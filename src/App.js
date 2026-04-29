@@ -1,24 +1,30 @@
 import React, { useState } from "react";
 import "./App.css";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  CartesianGrid
-} from "recharts";
 
 function App() {
+  const USERS = {
+    manager: { username: "manager", password: "3PL_Admin!" }
+  };
+
+  const [user, setUser] = useState(null);
+  const [login, setLogin] = useState({ username: "", password: "" });
+
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
   const [jobType, setJobType] = useState("Outbound");
-  const [tab, setTab] = useState("dashboard");
 
-  // ✅ Add job
+  // ✅ LOGIN
+  const loginUser = () => {
+    const match = Object.values(USERS).find(
+      u => u.username === login.username && u.password === login.password
+    );
+    if (!match) return alert("Invalid login");
+    setUser(match);
+  };
+
+  const logout = () => setUser(null);
+
+  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -29,22 +35,21 @@ function App() {
         type: jobType,
         status: "Open",
         startTime: null,
-        endTime: null,
-        created: new Date().toLocaleDateString()
+        endTime: null
       }
     ]);
 
     setNewJob("");
   };
 
-  // ✅ Start timer manually
+  // ✅ START TIMER
   const startJob = index => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ Close job
+  // ✅ CLOSE JOB
   const closeJob = index => {
     const copy = [...jobs];
     copy[index].status = "Closed";
@@ -52,166 +57,94 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ Export CSV
-  const exportToCSV = () => {
-    const headers = ["Task", "Type", "Status"];
-    const rows = jobs.map(j => [j.task, j.type, j.status]);
+  // ✅ LOGIN SCREEN
+  if (!user) {
+    return (
+      <div className="container">
+        <h2>Login</h2>
 
-    const csv =
-      "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map(r => r.join(",")).join("\n");
+        <input
+          placeholder="Username"
+          onChange={e =>
+            setLogin({ ...login, username: e.target.value })
+          }
+        />
 
-    const link = document.createElement("a");
-    link.href = encodeURI(csv);
-    link.download = "jobs.csv";
-    document.body.appendChild(link);
-    link.click();
-  };
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={e =>
+            setLogin({ ...login, password: e.target.value })
+          }
+        />
 
-  // ✅ KPI
-  const openJobs = jobs.filter(j => j.status === "Open").length;
-  const closedJobs = jobs.filter(j => j.status === "Closed").length;
+        <button onClick={loginUser}>Login</button>
+      </div>
+    );
+  }
 
-  // ✅ Line chart
-  const chartData = Object.values(
-    jobs.reduce((acc, job) => {
-      const d = job.created;
-      if (!acc[d]) acc[d] = { name: d, jobs: 0 };
-      acc[d].jobs++;
-      return acc;
-    }, {})
-  );
-
-  // ✅ Type chart
-  const typeChartData = Object.values(
-    jobs.reduce((acc, job) => {
-      if (!acc[job.type]) acc[job.type] = { name: job.type, count: 0 };
-      acc[job.type].count++;
-      return acc;
-    }, {})
-  );
-
+  // ✅ MAIN APP
   return (
     <div className="container">
-      <h1>3PL Operations Dashboard</h1>
+      <h1>Job Tracker</h1>
+      <button onClick={logout}>Logout</button>
 
-      {/* Tabs */}
-      <div className="tabs">
-        <button onClick={() => setTab("dashboard")}>Dashboard</button>
-        <button onClick={() => setTab("jobs")}>Jobs</button>
-        <button onClick={() => setTab("upload")}>Upload</button>
-      </div>
+      <h3>New Job</h3>
 
-      {/* ✅ DASHBOARD */}
-      {tab === "dashboard" && (
-        <>
-          <div className="kpi-row">
-            <div className="kpi-card">
-              <h3>Open</h3>
-              <p>{openJobs}</p>
-            </div>
-            <div className="kpi-card">
-              <h3>Closed</h3>
-              <p>{closedJobs}</p>
-            </div>
-          </div>
+      <input
+        value={newJob}
+        onChange={e => setNewJob(e.target.value)}
+        placeholder="Enter job task"
+      />
 
-          <div className="card">
-            <h3>Jobs Over Time</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={chartData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Line dataKey="jobs" stroke="#2563eb" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+      {/* ✅ JOB TYPE DROPDOWN */}
+      <select
+        value={jobType}
+        onChange={e => setJobType(e.target.value)}
+      >
+        <option>Outbound</option>
+        <option>Inbound</option>
+        <option>Wrapping</option>
+        <option>Movement</option>
+        <option>Picking</option>
+        <option>Other</option>
+      </select>
 
-          <div className="card">
-            <h3>Jobs by Type</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={typeChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#22c55e" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </>
-      )}
+      <button onClick={addJob}>Add Job</button>
 
-      {/* ✅ JOBS */}
-      {tab === "jobs" && (
-        <>
-          <div className="card">
-            <h3>New Job</h3>
+      <h3>Jobs</h3>
 
-            <input
-              value={newJob}
-              onChange={e => setNewJob(e.target.value)}
-            />
+      <ul>
+        {jobs.map((job, i) => (
+          <li key={i}>
+            {job.task} — {job.type} — {job.status} —{" "}
 
-            <select
-              value={jobType}
-              onChange={e => setJobType(e.target.value)}
-            >
-              <option>Outbound</option>
-              <option>Inbound</option>
-              <option>Wrapping</option>
-              <option>Movement</option>
-              <option>Picking</option>
-              <option>Other</option>
-            </select>
+            {/* ✅ TIMER DISPLAY */}
+            {job.startTime && job.endTime &&
+              (() => {
+                const diff = job.endTime - job.startTime;
+                const min = Math.floor(diff / 60000);
+                const sec = Math.floor((diff % 60000) / 1000);
+                return `${min}m ${sec}s`;
+              })()
+            }
 
-            <button onClick={addJob}>Add Job</button>
-          </div>
+            {/* ✅ START BUTTON */}
+            {!job.startTime && job.status === "Open" && (
+              <button onClick={() => startJob(i)}>
+                Start Timer
+              </button>
+            )}
 
-          <div className="card">
-            <h3>Jobs</h3>
-            <button onClick={exportToCSV}>Download CSV</button>
-
-            <ul>
-              {jobs.map((job, i) => (
-                <li key={i}>
-                  {job.task} — {job.type} — {job.status} —{" "}
-
-                  {job.startTime && job.endTime &&
-                    (() => {
-                      const diff = job.endTime - job.startTime;
-                      const min = Math.floor(diff / 60000);
-                      const sec = Math.floor((diff % 60000) / 1000);
-                      return `${min}m ${sec}s`;
-                    })()
-                  }
-
-                  {!job.startTime && job.status === "Open" && (
-                    <button onClick={() => startJob(i)}>
-                      Start
-                    </button>
-                  )}
-
-                  {job.startTime && job.status === "Open" && (
-                    <button onClick={() => closeJob(i)}>
-                      Close
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      )}
-
-      {/* ✅ UPLOAD TAB */}
-      {tab === "upload" && (
-        <div className="card">
-          <h3>Upload (next step)</h3>
-          <p>We can add Excel upload next.</p>
-        </div>
-      )}
+            {/* ✅ CLOSE BUTTON */}
+            {job.startTime && job.status === "Open" && (
+              <button onClick={() => closeJob(i)}>
+                Close
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
