@@ -16,7 +16,7 @@ function App() {
   // ✅ LOGIN
   const loginUser = () => {
     const match = Object.values(USERS).find(
-      u => u.username === login.username && u.password === login.password
+      (u) => u.username === login.username && u.password === login.password
     );
     if (!match) return alert("Invalid login");
     setUser(match);
@@ -43,14 +43,14 @@ function App() {
   };
 
   // ✅ START TIMER
-  const startJob = index => {
+  const startJob = (index) => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
   // ✅ CLOSE JOB
-  const closeJob = index => {
+  const closeJob = (index) => {
     const copy = [...jobs];
     copy[index].status = "Closed";
     copy[index].endTime = Date.now();
@@ -65,7 +65,7 @@ function App() {
 
         <input
           placeholder="Username"
-          onChange={e =>
+          onChange={(e) =>
             setLogin({ ...login, username: e.target.value })
           }
         />
@@ -73,7 +73,7 @@ function App() {
         <input
           type="password"
           placeholder="Password"
-          onChange={e =>
+          onChange={(e) =>
             setLogin({ ...login, password: e.target.value })
           }
         />
@@ -93,3 +93,75 @@ function App() {
 
       <input
         value={newJob}
+        onChange={(e) => setNewJob(e.target.value)}
+        placeholder="Enter job task"
+      />
+
+      <select
+        value={jobType}
+        onChange={(e) => setJobType(e.target.value)}
+      >
+        <option>Outbound</option>
+        <option>Inbound</option>
+        <option>Wrapping</option>
+        <option>Movement</option>
+        <option>Picking</option>
+        <option>Other</option>
+      </select>
+
+      <button onClick={addJob}>Add Job</button>
+
+      <h3>Jobs</h3>
+
+      <ul>
+        {jobs.map((job, i) => (
+          <li key={i}>
+            {/* ✅ STATUS SYMBOL */}
+            {job.status === "Closed"
+              ? "✅ "
+              : job.startTime
+              ? "⏳ "
+              : "⏺ "}
+
+            {job.task} — {job.type} —{" "}
+
+            {job.status === "Closed"
+              ? "Closed"
+              : job.startTime
+              ? "Active"
+              : "Open"}{" "}
+
+            {/* ✅ TIMER */}
+            {job.startTime && job.endTime && (
+              <>
+                —{" "}
+                {(() => {
+                  const diff = job.endTime - job.startTime;
+                  const min = Math.floor(diff / 60000);
+                  const sec = Math.floor((diff % 60000) / 1000);
+                  return `${min}m ${sec}s`;
+                })()}
+              </>
+            )}
+
+            {/* ✅ START BUTTON */}
+            {!job.startTime && job.status === "Open" && (
+              <button onClick={() => startJob(i)}>
+                Start Timer
+              </button>
+            )}
+
+            {/* ✅ CLOSE BUTTON */}
+            {job.startTime && job.status === "Open" && (
+              <button onClick={() => closeJob(i)}>
+                Close
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
