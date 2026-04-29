@@ -1,102 +1,31 @@
-body {
-  margin: 0;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  font-family: "Segoe UI", sans-serif;
-}
-
-.container {
-  max-width: 1000px;
-  margin: 20px auto;
-  background: rgba(255,255,255,0.95);
-  padding: 15px;
-  border-radius: 12px;
-}
-
-.subtitle {
-  color: gray;
-  margin-top: -5px;
-}
-
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.tabs button {
-  flex: 1;
-  padding: 8px;
-  background: #e5e7eb;
-  border: none;
-  border-radius: 6px;
-}
-
-.card {
-  background: #fff;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 8px;
-}
-
-.kpi-row {
-  display: flex;
-  gap: 10px;
-}
-
-.kpi-card {
-  flex: 1;
-  background: #f1f5f9;
-  padding: 10px;
-  text-align: center;
-  border-radius: 6px;
-}
-
-.kpi-card p {
-  font-size: 22px;
-  margin: 0;
-  font-weight: bold;
-}
-
-input, select {
+.dashboard {
   width: 100%;
-  padding: 6px;
-  margin-top: 5px;
 }
 
-button {
-  margin-top: 5px;
-  padding: 6px 10px;
-  border: none;
-  background: #2563eb;
-  color: white;
-  border-radius: 4px;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  padding: 8px;
-  margin-top: 6px;
-  border-radius: 6px;
+/* ✅ Charts side-by-side */
+.chart-row {
   display: flex;
-  justify-content: space-between;
+  gap: 15px;
+  margin-top: 15px;
 }
 
-/* ✅ Highlighting */
+.chart-row .card {
+  flex: 1;
+}
+
+/* Prevent oversized charts */
+.card {
+  max-height: 260px;
+}
+
+/* List highlighting */
 li.active {
   background: #dcfce7;
   border-left: 5px solid #22c55e;
 }
-
 li.open {
   background: #f9fafb;
-  border-left: 5px solid #9ca3af;
 }
-
 li.closed {
   background: #e0f2fe;
-  border-left: 5px solid #0284c7;
 }

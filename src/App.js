@@ -13,36 +13,12 @@ import {
 } from "recharts";
 
 function App() {
-  const USERS = {
-    manager: { username: "manager", password: "3PL_Admin!" }
-  };
-
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const [login, setLogin] = useState({ username: "", password: "" });
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
 
-  useEffect(() => {
-    if (user) localStorage.setItem("user", JSON.stringify(user));
-    else localStorage.removeItem("user");
-  }, [user]);
-
-  const loginUser = () => {
-    const match = Object.values(USERS).find(
-      u => u.username === login.username && u.password === login.password
-    );
-    if (!match) return alert("Invalid login");
-    setUser(match);
-  };
-
-  const logout = () => setUser(null);
-
+  // ✅ JOB FUNCTIONS
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -74,12 +50,37 @@ function App() {
     setJobs(copy);
   };
 
-  // KPI
+  // ✅ EXPORT FIX (RESTORED)
+  const exportToCSV = () => {
+    const headers = ["Task", "Type", "Status", "Duration"];
+
+    const rows = jobs.map(job => {
+      let duration = "";
+      if (job.startTime && job.endTime) {
+        const diff = job.endTime - job.startTime;
+        const min = Math.floor(diff / 60000);
+        duration = `${min}m`;
+      }
+      return [job.task, job.type, job.status, duration];
+    });
+
+    const csv =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map(r => r.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.href = encodeURI(csv);
+    link.download = "jobs.csv";
+    document.body.appendChild(link);
+    link.click();
+  };
+
+  // ✅ KPIs
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // Charts
+  // ✅ CHART DATA
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
       const d = job.created;
@@ -97,68 +98,58 @@ function App() {
     }, {})
   );
 
-  if (!user) {
-    return (
-      <div className="container">
-        <h2>INTRAL OPERATIONS LOGIN</h2>
-
-        <input placeholder="Username" onChange={e => setLogin({ ...login, username: e.target.value })}/>
-        <input type="password" placeholder="Password" onChange={e => setLogin({ ...login, password: e.target.value })}/>
-        <button onClick={loginUser}>Login</button>
-      </div>
-    );
-  }
-
   return (
     <div className="container">
 
       <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
-      <p className="subtitle">Operational Visibility • Efficiency • Precision</p>
-
-      <button onClick={logout}>Logout</button>
 
       <div className="tabs">
         <button onClick={() => setTab("dashboard")}>Dashboard</button>
         <button onClick={() => setTab("jobs")}>Jobs</button>
       </div>
 
-      {/* DASHBOARD */}
+      {/* ✅ DASHBOARD */}
       {tab === "dashboard" && (
-        <>
+        <div className="dashboard">
+
           <div className="kpi-row">
             <div className="kpi-card"><h3>Open</h3><p>{openJobs}</p></div>
             <div className="kpi-card"><h3>Active</h3><p>{activeJobs}</p></div>
             <div className="kpi-card"><h3>Closed</h3><p>{closedJobs}</p></div>
           </div>
 
-          <div className="card">
-            <h3>Jobs Over Time</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={chartData}>
-                <XAxis dataKey="name"/>
-                <YAxis/>
-                <Tooltip/>
-                <Line dataKey="jobs" stroke="#2563eb"/>
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <div className="chart-row">
 
-          <div className="card">
-            <h3>Jobs by Type</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={typeChartData}>
-                <CartesianGrid strokeDasharray="3 3"/>
-                <XAxis dataKey="name"/>
-                <YAxis/>
-                <Tooltip/>
-                <Bar dataKey="count" fill="#22c55e"/>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="card">
+              <h3>Jobs Over Time</h3>
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={chartData}>
+                  <XAxis dataKey="name"/>
+                  <YAxis/>
+                  <Tooltip/>
+                  <Line dataKey="jobs" stroke="#2563eb"/>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="card">
+              <h3>Jobs by Type</h3>
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={typeChartData}>
+                  <CartesianGrid strokeDasharray="3 3"/>
+                  <XAxis dataKey="name"/>
+                  <YAxis/>
+                  <Tooltip/>
+                  <Bar dataKey="count" fill="#22c55e"/>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
           </div>
-        </>
+        </div>
       )}
 
-      {/* JOBS */}
+      {/* ✅ JOBS */}
       {tab === "jobs" && (
         <>
           <h3>New Job</h3>
@@ -175,6 +166,9 @@ function App() {
           </select>
 
           <button onClick={addJob}>Add Job</button>
+          <button onClick={exportToCSV} style={{ marginLeft: "10px" }}>
+            Export CSV
+          </button>
 
           <ul>
             {jobs.map((job,i)=>(
@@ -212,4 +206,3 @@ function App() {
 }
 
 export default App;
-``
