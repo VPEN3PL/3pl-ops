@@ -19,13 +19,11 @@ function App() {
   const [tab, setTab] = useState("dashboard");
   const [timeNow, setTimeNow] = useState(new Date());
 
-  // ✅ CLOCK
   useEffect(() => {
     const interval = setInterval(() => setTimeNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -57,12 +55,10 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ LINE DATA
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
@@ -71,7 +67,6 @@ function App() {
     }, {})
   );
 
-  // ✅ PIE DATA
   const pieData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.type]) acc[j.type] = { name: j.type, value: 0 };
@@ -84,12 +79,9 @@ function App() {
 
   return (
     <>
-      <div className="background-layer"></div>
-
-      {/* ✅ MAIN CONTENT */}
       <div className="main-content">
-
         <div className="container">
+
           <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
           <p>{timeNow.toLocaleString()}</p>
 
@@ -98,7 +90,6 @@ function App() {
             <button onClick={() => setTab("jobs")}>Jobs</button>
           </div>
 
-          {/* ✅ DASHBOARD */}
           {tab === "dashboard" && (
             <>
               <div className="kpi-row">
@@ -108,7 +99,7 @@ function App() {
               </div>
 
               {jobs.length === 0 ? (
-                <p>No job data yet. Add jobs to see charts.</p>
+                <p>No job data yet. Add jobs.</p>
               ) : (
                 <div className="chart-grid">
 
@@ -143,13 +134,12 @@ function App() {
             </>
           )}
 
-          {/* ✅ JOBS */}
           {tab === "jobs" && (
             <>
               <input
                 value={newJob}
                 onChange={(e) => setNewJob(e.target.value)}
-                placeholder="Job name"
+                placeholder="Enter job"
               />
 
               <select
@@ -186,11 +176,10 @@ function App() {
         </div>
       </div>
 
-      {/* ✅ BOTTOM PANEL (NO OVERLAP) */}
+      {/* ✅ Bottom panel OUTSIDE */}
       <div className="active-bar">
         Active Jobs: {activeJobs}
       </div>
-
     </>
   );
 }
