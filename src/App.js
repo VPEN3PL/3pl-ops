@@ -18,7 +18,6 @@ function App() {
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
 
-  // ✅ Add Job
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -37,26 +36,23 @@ function App() {
     setNewJob("");
   };
 
-  // ✅ Start Timer
-  const startJob = index => {
+  const startJob = (index) => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ Close Job
-  const closeJob = index => {
+  const closeJob = (index) => {
     const copy = [...jobs];
     copy[index].status = "Closed";
     copy[index].endTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ Export CSV
   const exportToCSV = () => {
     const headers = ["Task", "Type", "Status", "Duration"];
 
-    const rows = jobs.map(job => {
+    const rows = jobs.map((job) => {
       let duration = "";
       if (job.startTime && job.endTime) {
         const diff = job.endTime - job.startTime;
@@ -68,7 +64,7 @@ function App() {
 
     const csv =
       "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map(r => r.join(",")).join("\n");
+      [headers, ...rows].map((r) => r.join(",")).join("\n");
 
     const link = document.createElement("a");
     link.href = encodeURI(csv);
@@ -77,12 +73,10 @@ function App() {
     link.click();
   };
 
-  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ Chart Data
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
       if (!acc[job.created]) acc[job.created] = { name: job.created, jobs: 0 };
@@ -112,7 +106,7 @@ function App() {
         <button onClick={() => setTab("jobs")}>Jobs</button>
       </div>
 
-      {/* ✅ DASHBOARD */}
+      {/* DASHBOARD */}
       {tab === "dashboard" && (
         <div className="dashboard-container">
 
@@ -153,14 +147,14 @@ function App() {
         </div>
       )}
 
-      {/* ✅ JOBS */}
+      {/* JOBS */}
       {tab === "jobs" && (
         <>
           <h3>New Job</h3>
 
-          <input value={newJob} onChange={e => setNewJob(e.target.value)} />
+          <input value={newJob} onChange={(e) => setNewJob(e.target.value)} />
 
-          <select value={jobType} onChange={e => setJobType(e.target.value)}>
+          <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
             <option>Outbound</option>
             <option>Inbound</option>
             <option>Receiving</option>
@@ -175,7 +169,7 @@ function App() {
           <button onClick={exportToCSV}>Export CSV</button>
 
           <ul>
-            {jobs.map((job,i)=>(
+            {jobs.map((job, i) => (
               <li
                 key={i}
                 className={
@@ -186,19 +180,24 @@ function App() {
                     : "open"
                 }
               >
-                {job.status==="Closed" ? "✅" : job.startTime ? "⏳" : "⏺"}{" "}
+                {job.status === "Closed"
+                  ? "✅"
+                  : job.startTime
+                  ? "⏳"
+                  : "⏺"}{" "}
+
                 {job.task} — {job.type} — {job.status}
 
                 {job.startTime && job.endTime &&
-                  ` — ${Math.floor((job.endTime - job.startTime)/60000)}m`
+                  ` — ${Math.floor((job.endTime - job.startTime) / 60000)}m`
                 }
 
-                {!job.startTime && job.status==="Open" && (
-                  <button onClick={()=>startJob(i)}>Start</button>
+                {!job.startTime && job.status === "Open" && (
+                  <button onClick={() => startJob(i)}>Start</button>
                 )}
 
-                {job.startTime && job.status==="Open" && (
-                  <button onClick={()=>closeJob(i)}>Close</button>
+                {job.startTime && job.status === "Open" && (
+                  <button onClick={() => closeJob(i)}>Close</button>
                 )}
               </li>
             ))}
@@ -210,3 +209,4 @@ function App() {
 }
 
 export default App;
+``

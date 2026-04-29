@@ -1,10 +1,17 @@
 body {
   margin: 0;
-  background:
+
+  background-image:
     linear-gradient(rgba(15,23,42,0.85), rgba(15,23,42,0.85)),
     url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* ✅ FIXED BACKGROUND */
+
+  min-height: 100vh;
+
   font-family: "Segoe UI", sans-serif;
 }
 
@@ -56,12 +63,13 @@ body {
   font-weight: bold;
 }
 
-/* ✅ GRID LAYOUT FIX */
+/* Dashboard layout */
 .dashboard-container {
   max-width: 900px;
   margin: auto;
 }
 
+/* ✅ FIXED GRID */
 .chart-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -82,6 +90,7 @@ input, select {
   margin-top: 5px;
 }
 
+/* Buttons */
 button {
   margin-top: 5px;
   padding: 6px 10px;
@@ -91,7 +100,7 @@ button {
   border-radius: 4px;
 }
 
-/* Jobs */
+/* List */
 ul {
   list-style: none;
   padding: 0;
@@ -103,7 +112,7 @@ li {
   border-radius: 6px;
 }
 
-/* ✅ Highlighting */
+/* Status colors */
 li.active {
   background: #dcfce7;
   border-left: 5px solid #22c55e;
@@ -116,3 +125,4 @@ li.open {
 li.closed {
   background: #e0f2fe;
 }
+``
