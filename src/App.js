@@ -7,9 +7,9 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  CartesianGrid
+  PieChart,
+  Pie,
+  Cell
 } from "recharts";
 
 function App() {
@@ -26,7 +26,6 @@ function App() {
 
   const [timeNow, setTimeNow] = useState(new Date());
 
-  // ✅ LIVE CLOCK
   useEffect(() => {
     const interval = setInterval(() => {
       setTimeNow(new Date());
@@ -34,7 +33,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ ADD JOB
+  // ✅ JOBS
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -66,33 +65,12 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ EXPORT
-  const exportToCSV = () => {
-    const headers = ["Task", "Type", "Status", "Duration"];
-    const rows = jobs.map(j => {
-      let d = "";
-      if (j.startTime && j.endTime) {
-        d = `${Math.floor((j.endTime - j.startTime) / 60000)}m`;
-      }
-      return [j.task, j.type, j.status, d];
-    });
-
-    const csv =
-      "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map(r => r.join(",")).join("\n");
-
-    const link = document.createElement("a");
-    link.href = encodeURI(csv);
-    link.download = "jobs.csv";
-    link.click();
-  };
-
   // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ JOB CHARTS
+  // ✅ LINE CHART (time)
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
@@ -101,19 +79,16 @@ function App() {
     }, {})
   );
 
+  // ✅ PIE CHART (job type distribution)
   const typeChartData = Object.values(
     jobs.reduce((acc, j) => {
-      if (!acc[j.type]) acc[j.type] = { name: j.type, count: 0 };
-      acc[j.type].count++;
+      if (!acc[j.type]) acc[j.type] = { name: j.type, value: 0 };
+      acc[j.type].value++;
       return acc;
     }, {})
   );
 
-  // ✅ REQUEST CHART
-  const requestChartData = requests.map((r, i) => ({
-    name: `Req ${i + 1}`,
-    count: 1
-  }));
+  const COLORS = ["#2563eb", "#22c55e", "#f59e0b", "#ef4444", "#6366f1"];
 
   return (
     <>
@@ -142,6 +117,7 @@ function App() {
 
             <div className="chart-grid">
 
+              {/* ✅ LINE CHART */}
               <div className="chart-box">
                 <h3>Jobs Over Time</h3>
                 <ResponsiveContainer width="100%" height={180}>
@@ -154,42 +130,45 @@ function App() {
                 </ResponsiveContainer>
               </div>
 
+              {/* ✅ PIE CHART */}
               <div className="chart-box">
-                <h3>Jobs by Type</h3>
+                <h3>Job Distribution</h3>
                 <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={typeChartData}>
-                    <CartesianGrid strokeDasharray="3 3"/>
-                    <XAxis dataKey="name"/>
-                    <YAxis/>
-                    <Tooltip/>
-                    <Bar dataKey="count" fill="#22c55e"/>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* ✅ NEW REQUEST CHART */}
-              <div className="chart-box">
-                <h3>Upcoming Requests</h3>
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={requestChartData}>
-                    <XAxis dataKey="name"/>
-                    <YAxis/>
-                    <Tooltip/>
-                    <Bar dataKey="count" fill="#f59e0b"/>
-                  </BarChart>
+                  <PieChart>
+                    <Pie
+                      data={typeChartData}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={70}
+                    >
+                      {typeChartData.map((entry, index) => (
+                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
 
             </div>
+
+            {/* ✅ REQUEST SUMMARY */}
+            <h3>Upcoming Requests</h3>
+            <ul>
+              {requests.map((r, i) => (
+                <li key={i}>{r}</li>
+              ))}
+            </ul>
+
           </>
         )}
 
         {/* ✅ JOBS */}
         {tab === "jobs" && (
           <>
-            <input value={newJob} onChange={e => setNewJob(e.target.value)} />
+            <input value={newJob} onChange={(e) => setNewJob(e.target.value)} />
 
-            <select value={jobType} onChange={e => setJobType(e.target.value)}>
+            <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
               <option>Outbound</option>
               <option>Inbound</option>
               <option>Receiving</option>
@@ -200,7 +179,6 @@ function App() {
             </select>
 
             <button onClick={addJob}>Add Job</button>
-            <button onClick={exportToCSV}>Export</button>
 
             <ul>
               {jobs.map((job, i) => (
@@ -209,7 +187,8 @@ function App() {
 
                   {job.task} — {job.type} — {job.status}
 
-                  {job.startTime && !job.endTime &&
+                  {job.startTime &&
+                    !job.endTime &&
                     ` — ${Math.floor((timeNow - job.startTime) / 60000)}m running`
                   }
 
@@ -229,8 +208,6 @@ function App() {
         {/* ✅ REQUESTS */}
         {tab === "requests" && (
           <>
-            <h3>Upcoming Requests</h3>
-
             <input value={newRequest} onChange={e => setNewRequest(e.target.value)} />
 
             <button onClick={() => {
@@ -239,20 +216,12 @@ function App() {
             }}>
               Add Request
             </button>
-
-            <ul>
-              {requests.map((r, i) => (
-                <li key={i}>{r}</li>
-              ))}
-            </ul>
           </>
         )}
 
-        {/* ✅ NOTES (REMOVABLE) */}
+        {/* ✅ NOTES */}
         {tab === "notes" && (
           <>
-            <h3>Operations Notes</h3>
-
             <input value={newNote} onChange={e => setNewNote(e.target.value)} />
 
             <button onClick={() => {
