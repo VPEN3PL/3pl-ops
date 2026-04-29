@@ -1,33 +1,26 @@
-/* ✅ ACTIVE JOB BAR */
+.container {.container  max-width: 1000px;
+  margin: 20px auto;
+  background: rgba(255,255,255,0.95);
+  padding: 20px;
+
+  /* ✅ CRITICAL FIX */
+  padding-bottom: 200px;
+
+  border-radius: 12px;
+}
+
+/* ✅ ACTIVE BAR FIXED */
 .active-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
 
-  background: rgba(15,23,42,0.95);
+  background: #111;
   color: white;
 
   padding: 10px;
-  border-top: 2px solid #2563eb;
+  height: 140px;   /* ✅ FIXED HEIGHT */
 
   z-index: 1000;
-}
-
-/* Title */
-.active-bar h4 {
-  margin: 0 0 5px 0;
-  font-size: 14px;
-}
-
-/* ✅ Scroll area */
-.active-list {
-  max-height: 120px;   /* shows ~4–5 items */
-  overflow-y: auto;
-}
-
-/* Each job */
-.active-item {
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
