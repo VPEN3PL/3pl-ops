@@ -18,7 +18,6 @@ function App() {
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
 
-  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -37,14 +36,12 @@ function App() {
     setNewJob("");
   };
 
-  // ✅ START TIMER
   const startJob = (index) => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ CLOSE JOB
   const closeJob = (index) => {
     const copy = [...jobs];
     copy[index].status = "Closed";
@@ -52,44 +49,38 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ EXPORT CSV (FIXED)
   const exportToCSV = () => {
     const headers = ["Task", "Type", "Status", "Duration"];
 
     const rows = jobs.map((job) => {
       let duration = "";
-
       if (job.startTime && job.endTime) {
         const diff = job.endTime - job.startTime;
         const min = Math.floor(diff / 60000);
         duration = `${min}m`;
       }
-
       return [job.task, job.type, job.status, duration];
     });
 
-    const csvContent =
+    const csv =
       "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map((row) => row.join(",")).join("\n");
+      [headers, ...rows].map((r) => r.join(",")).join("\n");
 
     const link = document.createElement("a");
-    link.href = encodeURI(csvContent);
+    link.href = encodeURI(csv);
     link.download = "jobs.csv";
     document.body.appendChild(link);
     link.click();
   };
 
-  // ✅ KPIs
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ CHART DATA
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
-      const d = job.created;
-      if (!acc[d]) acc[d] = { name: d, jobs: 0 };
-      acc[d].jobs++;
+      if (!acc[job.created]) acc[job.created] = { name: job.created, jobs: 0 };
+      acc[job.created].jobs++;
       return acc;
     }, {})
   );
@@ -106,7 +97,6 @@ function App() {
     <div className="container">
 
       <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
-      <p className="subtitle">Operational Visibility • Efficiency • Precision</p>
 
       <div className="tabs">
         <button onClick={() => setTab("dashboard")}>Dashboard</button>
@@ -115,7 +105,7 @@ function App() {
 
       {/* ✅ DASHBOARD */}
       {tab === "dashboard" && (
-        <div className="dashboard">
+        <div className="dashboard-container">
 
           <div className="kpi-row">
             <div className="kpi-card"><h3>Open</h3><p>{openJobs}</p></div>
@@ -123,10 +113,10 @@ function App() {
             <div className="kpi-card"><h3>Closed</h3><p>{closedJobs}</p></div>
           </div>
 
-          {/* ✅ FIXED: SIDE-BY-SIDE CHARTS */}
-          <div className="chart-row">
+          {/* ✅ FIXED GRID */}
+          <div className="chart-grid">
 
-            <div className="card">
+            <div className="chart-box">
               <h3>Jobs Over Time</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={chartData}>
@@ -138,7 +128,7 @@ function App() {
               </ResponsiveContainer>
             </div>
 
-            <div className="card">
+            <div className="chart-box">
               <h3>Jobs by Type</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={typeChartData}>
@@ -160,15 +150,9 @@ function App() {
         <>
           <h3>New Job</h3>
 
-          <input
-            value={newJob}
-            onChange={(e) => setNewJob(e.target.value)}
-          />
+          <input value={newJob} onChange={(e) => setNewJob(e.target.value)} />
 
-          <select
-            value={jobType}
-            onChange={(e) => setJobType(e.target.value)}
-          >
+          <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
             <option>Outbound</option>
             <option>Inbound</option>
             <option>Wrapping</option>
@@ -178,9 +162,7 @@ function App() {
           </select>
 
           <button onClick={addJob}>Add Job</button>
-          <button onClick={exportToCSV} style={{ marginLeft: "10px" }}>
-            Export CSV
-          </button>
+          <button onClick={exportToCSV}>Export CSV</button>
 
           <ul>
             {jobs.map((job, i) => (
@@ -194,12 +176,7 @@ function App() {
                     : "open"
                 }
               >
-                {job.status === "Closed"
-                  ? "✅"
-                  : job.startTime
-                  ? "⏳"
-                  : "⏺"}{" "}
-
+                {job.status === "Closed" ? "✅" : job.startTime ? "⏳" : "⏺"}{" "}
                 {job.task} — {job.type} — {job.status}
 
                 {job.startTime && job.endTime &&
