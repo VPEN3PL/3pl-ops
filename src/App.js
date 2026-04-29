@@ -101,7 +101,7 @@ function App() {
   if (!user) {
     return (
       <div className="container">
-        <h2>Intral Operations Login</h2>
+        <h2>INTRAL OPERATIONS LOGIN</h2>
 
         <input
           placeholder="Username"
@@ -122,7 +122,12 @@ function App() {
   return (
     <div className="container">
 
-      <h1>Intral Operations Dashboard</h1>
+      {/* ✅ ✅ ENTERPRISE HEADER */}
+      <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
+      <p style={{ color: "gray", marginTop: "-5px" }}>
+        Operational Visibility • Efficiency • Precision
+      </p>
+
       <button onClick={logout}>Logout</button>
 
       <div className="tabs">
@@ -130,7 +135,7 @@ function App() {
         <button onClick={() => setTab("jobs")}>Jobs</button>
       </div>
 
-      {/* ✅ DASHBOARD */}
+      {/* DASHBOARD */}
       {tab === "dashboard" && (
         <>
           <div className="kpi-row">
@@ -166,7 +171,7 @@ function App() {
         </>
       )}
 
-      {/* ✅ JOBS */}
+      {/* JOBS */}
       {tab === "jobs" && (
         <>
           <h3>New Job</h3>

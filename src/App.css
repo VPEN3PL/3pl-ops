@@ -1,27 +1,54 @@
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #111;
+}
+
+/* Main container */
 .container {
-  max-width: 900px;
-  margin: 20px auto;
-  font-family: Arial, sans-serif;
-  padding: 10px;
+  max-width: 1100px;
+  margin: 30px auto;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 12px;
 }
 
-.header {
+/* Header */
+h1 {
+  margin-bottom: 10px;
+}
+
+/* Tabs */
+.tabs {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-/* Cards now look like real UI panels */
+.tabs button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.tabs button:hover {
+  background: #d1d5db;
+}
+
+/* Cards */
 .card {
-  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 10px;
   padding: 15px;
   margin-top: 15px;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-/* KPI layout */
+/* KPI Row */
 .kpi-row {
   display: flex;
   gap: 15px;
@@ -30,75 +57,60 @@
 
 .kpi-card {
   flex: 1;
-  background: #f4f6f8;
+  background: #f1f5f9;
   padding: 15px;
   border-radius: 8px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .kpi-card h3 {
   margin: 0;
-  font-size: 14px;
   color: gray;
 }
 
 .kpi-card p {
   font-size: 28px;
+  margin: 5px 0 0 0;
   font-weight: bold;
-  margin-top: 5px;
 }
 
-/* Better buttons */
-button {
-  margin-top: 10px;
-  padding: 6px 12px;
-  border: none;
-  background-color: #2563eb;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #1e4ed8;
-}
-
-/* Better inputs */
-input {
-  display: block;
+/* Inputs */
+input, select {
   width: 100%;
-  margin-top: 10px;
   padding: 8px;
-  border-radius: 4px;
+  margin-top: 8px;
+  margin-bottom: 10px;
+  border-radius: 6px;
   border: 1px solid #ccc;
 }
 
-/* Clean job list */
+/* Buttons */
+button {
+  padding: 6px 12px;
+  margin-left: 5px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+/* Job list */
 ul {
   list-style: none;
   padding: 0;
 }
 
 li {
+  padding: 10px;
+  margin-top: 8px;
+  background: #f9fafb;
+  border-radius: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.tabs button {
-  flex: 1;
-  background: #e5e7eb;
-  color: black;
-}
-
-.tabs button:hover {
-  background: #d1d5db;
 }
