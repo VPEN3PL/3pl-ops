@@ -61,6 +61,25 @@ function App() {
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
+  // ✅ EXPORT FUNCTION
+  const exportToCSV = () => {
+    const headers = ["Task", "Status"];
+    const rows = jobs.map(job => [job.task, job.status]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows]
+        .map(row => row.join(","))
+        .join("\n");
+
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = "jobs.csv";
+
+    document.body.appendChild(link);
+    link.click();
+  };
+
   if (!user) {
     return (
       <div className="container">
@@ -88,14 +107,12 @@ function App() {
         <button onClick={logout}>Logout</button>
       </div>
 
-      {/* ✅ Tabs */}
       <div className="tabs">
         <button onClick={() => setTab("dashboard")}>Dashboard</button>
         <button onClick={() => setTab("jobs")}>Jobs</button>
         <button onClick={() => setTab("upload")}>Upload</button>
       </div>
 
-      {/* ✅ DASHBOARD TAB */}
       {tab === "dashboard" && (
         <div className="kpi-row">
           <div className="kpi-card">
@@ -109,7 +126,6 @@ function App() {
         </div>
       )}
 
-      {/* ✅ JOBS TAB */}
       {tab === "jobs" && (
         <>
           <div className="card">
@@ -123,6 +139,12 @@ function App() {
 
           <div className="card">
             <h3>Jobs</h3>
+
+            ✅ THIS IS THE BUTTON YOU WERE MISSING
+            <button onClick={exportToCSV}>
+              Download Jobs (Excel)
+            </button>
+
             <ul>
               {jobs.map((job, i) => (
                 <li key={i}>
@@ -139,7 +161,6 @@ function App() {
         </>
       )}
 
-      {/* ✅ UPLOAD TAB */}
       {tab === "upload" && (
         <div className="card">
           <h3>Upload (Coming Soon)</h3>
