@@ -25,7 +25,6 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -42,12 +41,9 @@ function App() {
     setNewJob("");
   };
 
-  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
-  const activeJobs = jobs.filter(j => j.status === "Active").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ LINE DATA
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
@@ -56,7 +52,6 @@ function App() {
     }, {})
   );
 
-  // ✅ PIE DATA
   const pieData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.type]) acc[j.type] = { name: j.type, value: 0 };
@@ -72,24 +67,19 @@ function App() {
       <div className="background-layer"></div>
 
       <div className="main-content">
-
         <div className="container">
-
           <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
           <p>{timeNow.toLocaleString()}</p>
 
-          {/* ✅ TABS */}
           <div className="tabs">
             <button onClick={() => setTab("dashboard")}>Dashboard</button>
             <button onClick={() => setTab("jobs")}>Jobs</button>
           </div>
 
-          {/* ✅ DASHBOARD */}
           {tab === "dashboard" && (
             <>
               <div className="kpi-row">
                 <div className="kpi-card">Open: {openJobs}</div>
-                <div className="kpi-card">Active: {activeJobs}</div>
                 <div className="kpi-card">Closed: {closedJobs}</div>
               </div>
 
@@ -98,7 +88,6 @@ function App() {
               ) : (
                 <div className="chart-grid">
 
-                  {/* ✅ LINE CHART */}
                   <div className="chart-box">
                     <h3>Jobs Over Time</h3>
                     <ResponsiveContainer width="100%" height={200}>
@@ -111,7 +100,6 @@ function App() {
                     </ResponsiveContainer>
                   </div>
 
-                  {/* ✅ PIE CHART */}
                   <div className="chart-box">
                     <h3>Job Distribution</h3>
                     <ResponsiveContainer width="100%" height={200}>
@@ -132,7 +120,6 @@ function App() {
             </>
           )}
 
-          {/* ✅ JOBS */}
           {tab === "jobs" && (
             <>
               <input
@@ -141,10 +128,7 @@ function App() {
                 placeholder="Enter job"
               />
 
-              <select
-                value={jobType}
-                onChange={(e) => setJobType(e.target.value)}
-              >
+              <select onChange={(e) => setJobType(e.target.value)}>
                 <option>Outbound</option>
                 <option>Inbound</option>
                 <option>Wrapping</option>
@@ -163,11 +147,9 @@ function App() {
               </ul>
             </>
           )}
-
         </div>
       </div>
 
-      {/* ✅ ACTIVE BAR (NO OVERLAP) */}
       <div className="active-bar">
         Active Jobs: {jobs.length}
       </div>

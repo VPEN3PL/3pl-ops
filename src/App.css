@@ -1,53 +1,9 @@
 body {
-  margin: max-width: 1000px;  margin: 0;
-  margin: 20px auto;
-  background: rgba(255,255,255,0.95);
-  padding: 20px;
-  border-radius: 10px;
+  margin: 0;
+  font-family: Arial, sans-serif;
 }
 
-/* ✅ TABS */
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-/* ✅ KPI */
-.kpi-row {
-  display: flex;
-  gap: 10px;
-}
-
-.kpi-card {
-  background: #eee;
-  padding: 10px;
-  flex: 1;
-}
-
-/* ✅ CHARTS */
-.chart-grid {
-  display: flex;
-  gap: 20px;
-}
-
-.chart-box {
-  flex: 1;
-}
-
-/* ✅ BOTTOM BAR */
-.active-bar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: #111;
-  color: white;
-  padding: 10px;
-}
-  font-family: "Segoe UI", sans-serif;
-}
-
-/* ✅ BACKGROUND IMAGE */
+/* BACKGROUND */
 .background-layer {
   position: fixed;
   width: 100%;
@@ -59,9 +15,54 @@ body {
   z-index: -1;
 }
 
-/* ✅ FIX OVERLAP */
+/* FIX OVERLAP */
 .main-content {
   padding-bottom: 140px;
 }
 
 .container {
+  max-width: 1000px;
+  margin: 20px auto;
+  background: rgba(255,255,255,0.95);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+/* UI */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.kpi-row {
+  display: flex;
+  gap: 10px;
+}
+
+.kpi-card {
+  background: #eee;
+  padding: 10px;
+  flex: 1;
+}
+
+/* Charts */
+.chart-grid {
+  display: flex;
+  gap: 20px;
+}
+
+.chart-box {
+  flex: 1;
+}
+
+/* Bottom bar */
+.active-bar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #111;
+  color: white;
+  padding: 10px;
+}
+``
