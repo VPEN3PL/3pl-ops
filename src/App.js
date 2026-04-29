@@ -23,7 +23,6 @@ function App() {
   });
 
   const [login, setLogin] = useState({ username: "", password: "" });
-
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
   const [jobType, setJobType] = useState("Outbound");
@@ -75,10 +74,12 @@ function App() {
     setJobs(copy);
   };
 
+  // KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
+  // Charts
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
       const d = job.created;
@@ -101,17 +102,8 @@ function App() {
       <div className="container">
         <h2>INTRAL OPERATIONS LOGIN</h2>
 
-        <input
-          placeholder="Username"
-          onChange={e => setLogin({ ...login, username: e.target.value })}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={e => setLogin({ ...login, password: e.target.value })}
-        />
-
+        <input placeholder="Username" onChange={e => setLogin({ ...login, username: e.target.value })}/>
+        <input type="password" placeholder="Password" onChange={e => setLogin({ ...login, password: e.target.value })}/>
         <button onClick={loginUser}>Login</button>
       </div>
     );
@@ -121,9 +113,7 @@ function App() {
     <div className="container">
 
       <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
-      <p style={{ color: "gray", marginTop: "-5px" }}>
-        Operational Visibility • Efficiency • Precision
-      </p>
+      <p className="subtitle">Operational Visibility • Efficiency • Precision</p>
 
       <button onClick={logout}>Logout</button>
 
@@ -132,7 +122,7 @@ function App() {
         <button onClick={() => setTab("jobs")}>Jobs</button>
       </div>
 
-      {/* ✅ DASHBOARD */}
+      {/* DASHBOARD */}
       {tab === "dashboard" && (
         <>
           <div className="kpi-row">
@@ -143,7 +133,7 @@ function App() {
 
           <div className="card">
             <h3>Jobs Over Time</h3>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200}>
               <LineChart data={chartData}>
                 <XAxis dataKey="name"/>
                 <YAxis/>
@@ -155,7 +145,7 @@ function App() {
 
           <div className="card">
             <h3>Jobs by Type</h3>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={typeChartData}>
                 <CartesianGrid strokeDasharray="3 3"/>
                 <XAxis dataKey="name"/>
@@ -168,7 +158,7 @@ function App() {
         </>
       )}
 
-      {/* ✅ JOBS */}
+      {/* JOBS */}
       {tab === "jobs" && (
         <>
           <h3>New Job</h3>
@@ -187,7 +177,7 @@ function App() {
           <button onClick={addJob}>Add Job</button>
 
           <ul>
-            {jobs.map((job, i) => (
+            {jobs.map((job,i)=>(
               <li
                 key={i}
                 className={
@@ -198,24 +188,19 @@ function App() {
                     : "open"
                 }
               >
-                {job.status === "Closed"
-                  ? "✅"
-                  : job.startTime
-                  ? "⏳"
-                  : "⏺"}{" "}
-
+                {job.status==="Closed" ? "✅" : job.startTime ? "⏳" : "⏺"}{" "}
                 {job.task} — {job.type} — {job.status}
 
                 {job.startTime && job.endTime &&
-                  ` — ${Math.floor((job.endTime - job.startTime) / 60000)}m`
+                  ` — ${Math.floor((job.endTime - job.startTime)/60000)}m`
                 }
 
-                {!job.startTime && job.status === "Open" && (
-                  <button onClick={() => startJob(i)}>Start</button>
+                {!job.startTime && job.status==="Open" && (
+                  <button onClick={()=>startJob(i)}>Start</button>
                 )}
 
-                {job.startTime && job.status === "Open" && (
-                  <button onClick={() => closeJob(i)}>Close</button>
+                {job.startTime && job.status==="Open" && (
+                  <button onClick={()=>closeJob(i)}>Close</button>
                 )}
               </li>
             ))}
@@ -227,3 +212,4 @@ function App() {
 }
 
 export default App;
+``
