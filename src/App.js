@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from "react";
-import "./App.css";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+import "./ {import "./App.css";
+  LineChart, Line, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
 
 function App() {
@@ -17,13 +9,6 @@ function App() {
   const [newJob, setNewJob] = useState("");
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
-
-  const [requests, setRequests] = useState([]);
-  const [newRequest, setNewRequest] = useState("");
-
-  const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState("");
-
   const [timeNow, setTimeNow] = useState(new Date());
 
   // ✅ LIVE CLOCK
@@ -34,7 +19,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ JOB FUNCTIONS
+  // ✅ JOBS
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -49,6 +34,7 @@ function App() {
         created: new Date().toLocaleDateString()
       }
     ]);
+
     setNewJob("");
   };
 
@@ -65,12 +51,12 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ KPIs
+  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ LINE CHART DATA
+  // ✅ LINE DATA
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
@@ -102,8 +88,6 @@ function App() {
         <div className="tabs">
           <button onClick={() => setTab("dashboard")}>Dashboard</button>
           <button onClick={() => setTab("jobs")}>Jobs</button>
-          <button onClick={() => setTab("requests")}>Requests</button>
-          <button onClick={() => setTab("notes")}>Notes</button>
         </div>
 
         {/* ✅ DASHBOARD */}
@@ -114,33 +98,34 @@ function App() {
                 <h3>Open</h3>
                 <p>{openJobs}</p>
               </div>
+
               <div className="kpi-card">
                 <h3>Active</h3>
                 <p>{activeJobs}</p>
               </div>
+
               <div className="kpi-card">
                 <h3>Closed</h3>
                 <p>{closedJobs}</p>
               </div>
             </div>
 
-            {/* ✅ FIXED GRID */}
             <div className="chart-grid">
 
-              {/* ✅ LINE */}
+              {/* LINE */}
               <div className="chart-box">
                 <h3>Jobs Over Time</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={chartData}>
-                    <XAxis dataKey="name"/>
-                    <YAxis/>
-                    <Tooltip/>
-                    <Line dataKey="jobs" stroke="#2563eb"/>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line dataKey="jobs" stroke="#2563eb" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* ✅ PIE */}
+              {/* PIE */}
               <div className="chart-box">
                 <h3>Job Distribution</h3>
                 <ResponsiveContainer width="100%" height={200}>
@@ -168,9 +153,15 @@ function App() {
         {/* ✅ JOBS */}
         {tab === "jobs" && (
           <>
-            <input value={newJob} onChange={(e) => setNewJob(e.target.value)} />
+            <input
+              value={newJob}
+              onChange={(e) => setNewJob(e.target.value)}
+            />
 
-            <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
+            <select
+              value={jobType}
+              onChange={(e) => setJobType(e.target.value)}
+            >
               <option>Outbound</option>
               <option>Inbound</option>
               <option>Receiving</option>
@@ -185,12 +176,16 @@ function App() {
             <ul>
               {jobs.map((job, i) => (
                 <li key={i}>
-                  {job.status === "Closed" ? "✅" : job.startTime ? "⏳" : "⏺"}
+                  {job.status === "Closed"
+                    ? "✅"
+                    : job.startTime
+                    ? "⏳"
+                    : "⏺"}{" "}
 
                   {job.task} — {job.type} — {job.status}
 
                   {job.startTime && !job.endTime &&
-                    ` — ${Math.floor((timeNow - job.startTime) / 60000)}m running`
+                    ` — ${Math.floor((timeNow - job.startTime) / 60000)}m`
                   }
 
                   {!job.startTime && job.status === "Open" && (
@@ -206,51 +201,6 @@ function App() {
           </>
         )}
 
-        {/* ✅ REQUESTS */}
-        {tab === "requests" && (
-          <>
-            <input value={newRequest} onChange={e => setNewRequest(e.target.value)} />
-            <button onClick={() => {
-              setRequests([...requests, newRequest]);
-              setNewRequest("");
-            }}>
-              Add Request
-            </button>
-
-            <ul>
-              {requests.map((r, i) => <li key={i}>{r}</li>)}
-            </ul>
-          </>
-        )}
-
-        {/* ✅ NOTES */}
-        {tab === "notes" && (
-          <>
-            <input value={newNote} onChange={e => setNewNote(e.target.value)} />
-            <button onClick={() => {
-              setNotes([...notes, newNote]);
-              setNewNote("");
-            }}>
-              Add Note
-            </button>
-
-            <ul>
-              {notes.map((n, i) => (
-                <li key={i}>
-                  {n}
-                  <button onClick={() => {
-                    const copy = [...notes];
-                    copy.splice(i, 1);
-                    setNotes(copy);
-                  }}>
-                    ❌
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-
         {/* ✅ ACTIVE BAR */}
         <div className="active-bar">
           <h4>ACTIVE JOBS ({activeJobs})</h4>
@@ -259,12 +209,10 @@ function App() {
             {jobs
               .filter(j => j.startTime && j.status === "Open")
               .map((job, i) => {
-                const diff = timeNow - job.startTime;
-                const minutes = Math.floor(diff / 60000);
-
+                const mins = Math.floor((timeNow - job.startTime) / 60000);
                 return (
                   <div key={i} className="active-item">
-                    ⏳ {job.task} — {job.type} — {minutes}m
+                    ⏳ {job.task} — {job.type} — {mins}m
                   </div>
                 );
               })}
@@ -277,4 +225,4 @@ function App() {
 }
 
 export default App;
-``
+
