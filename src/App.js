@@ -18,7 +18,7 @@ function App() {
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
 
-  // ✅ Add Job
+  // ✅ Add job
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -37,14 +37,14 @@ function App() {
     setNewJob("");
   };
 
-  // ✅ Start Timer
+  // ✅ Start timer manually
   const startJob = index => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ Close Job
+  // ✅ Close job
   const closeJob = index => {
     const copy = [...jobs];
     copy[index].status = "Closed";
@@ -52,21 +52,37 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ KPIs
+  // ✅ Export CSV
+  const exportToCSV = () => {
+    const headers = ["Task", "Type", "Status"];
+    const rows = jobs.map(j => [j.task, j.type, j.status]);
+
+    const csv =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map(r => r.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.href = encodeURI(csv);
+    link.download = "jobs.csv";
+    document.body.appendChild(link);
+    link.click();
+  };
+
+  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ Line Chart Data
+  // ✅ Line chart
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
-      const date = job.created;
-      if (!acc[date]) acc[date] = { name: date, jobs: 0 };
-      acc[date].jobs++;
+      const d = job.created;
+      if (!acc[d]) acc[d] = { name: d, jobs: 0 };
+      acc[d].jobs++;
       return acc;
     }, {})
   );
 
-  // ✅ Job Type Chart
+  // ✅ Type chart
   const typeChartData = Object.values(
     jobs.reduce((acc, job) => {
       if (!acc[job.type]) acc[job.type] = { name: job.type, count: 0 };
@@ -79,17 +95,25 @@ function App() {
     <div className="container">
       <h1>3PL Operations Dashboard</h1>
 
+      {/* Tabs */}
       <div className="tabs">
         <button onClick={() => setTab("dashboard")}>Dashboard</button>
         <button onClick={() => setTab("jobs")}>Jobs</button>
+        <button onClick={() => setTab("upload")}>Upload</button>
       </div>
 
       {/* ✅ DASHBOARD */}
       {tab === "dashboard" && (
         <>
           <div className="kpi-row">
-            <div className="kpi-card"><h3>Open</h3><p>{openJobs}</p></div>
-            <div className="kpi-card"><h3>Closed</h3><p>{closedJobs}</p></div>
+            <div className="kpi-card">
+              <h3>Open</h3>
+              <p>{openJobs}</p>
+            </div>
+            <div className="kpi-card">
+              <h3>Closed</h3>
+              <p>{closedJobs}</p>
+            </div>
           </div>
 
           <div className="card">
@@ -99,7 +123,7 @@ function App() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="jobs" stroke="#2563eb" />
+                <Line dataKey="jobs" stroke="#2563eb" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -139,6 +163,7 @@ function App() {
               <option>Wrapping</option>
               <option>Movement</option>
               <option>Picking</option>
+              <option>Other</option>
             </select>
 
             <button onClick={addJob}>Add Job</button>
@@ -146,6 +171,7 @@ function App() {
 
           <div className="card">
             <h3>Jobs</h3>
+            <button onClick={exportToCSV}>Download CSV</button>
 
             <ul>
               {jobs.map((job, i) => (
@@ -177,6 +203,14 @@ function App() {
             </ul>
           </div>
         </>
+      )}
+
+      {/* ✅ UPLOAD TAB */}
+      {tab === "upload" && (
+        <div className="card">
+          <h3>Upload (next step)</h3>
+          <p>We can add Excel upload next.</p>
+        </div>
       )}
     </div>
   );
