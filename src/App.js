@@ -44,12 +44,14 @@ function App() {
     localStorage.setItem("jobs", JSON.stringify(jobs));
   }, [jobs, hydrated]);
 
-  // ✅ Save user
+  // ✅ Save user session
   useEffect(() => {
     if (!hydrated) return;
-    user
-      ? localStorage.setItem("user", JSON.stringify(user))
-      : localStorage.removeItem("user");
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
   }, [user, hydrated]);
 
   const loginUser = () => {
@@ -62,7 +64,7 @@ function App() {
 
   const logout = () => setUser(null);
 
-  // ✅ Add job with timer
+  // ✅ Add job (start timer)
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -92,13 +94,13 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ KPI
+  // ✅ KPIs
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
   const chargeableJobs = jobs.filter(j => j.chargeable).length;
   const nonChargeableJobs = jobs.filter(j => !j.chargeable).length;
 
-  // ✅ Chart: jobs over time
+  // ✅ Line chart
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
       const date = job.created || "N/A";
@@ -108,7 +110,7 @@ function App() {
     }, {})
   );
 
-  // ✅ Chart: jobs by type
+  // ✅ Bar chart
   const typeChartData = Object.values(
     jobs.reduce((acc, job) => {
       const type = job.type || "Other";
@@ -139,6 +141,7 @@ function App() {
     link.click();
   };
 
+  // ✅ Login screen
   if (!user) {
     return (
       <div className="container">
@@ -163,6 +166,7 @@ function App() {
     );
   }
 
+  // ✅ MAIN UI
   return (
     <div className="container">
       <div className="header">
@@ -176,7 +180,7 @@ function App() {
         <button onClick={() => setTab("upload")}>Upload</button>
       </div>
 
-      {/* ✅ DASHBOARD */}
+      {/* DASHBOARD */}
       {tab === "dashboard" && (
         <>
           <div className="kpi-row">
@@ -213,7 +217,7 @@ function App() {
         </>
       )}
 
-      {/* ✅ JOBS */}
+      {/* JOBS */}
       {tab === "jobs" && (
         <>
           <div className="card">
