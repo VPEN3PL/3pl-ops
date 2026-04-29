@@ -7,6 +7,7 @@ function App() {
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
 
+  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -24,12 +25,14 @@ function App() {
     setNewJob("");
   };
 
+  // ✅ START TIMER
   const startJob = (index) => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
+  // ✅ CLOSE JOB
   const closeJob = (index) => {
     const copy = [...jobs];
     copy[index].status = "Closed";
@@ -37,10 +40,11 @@ function App() {
     setJobs(copy);
   };
 
+  // ✅ EXPORT
   const exportToCSV = () => {
     const headers = ["Task", "Type", "Status", "Duration"];
 
-    const rows = jobs.map((job) => {
+    const rows = jobs.map(job => {
       let duration = "";
 
       if (job.startTime && job.endTime) {
@@ -54,15 +58,15 @@ function App() {
 
     const csv =
       "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map((r) => r.join(",")).join("\n");
+      [headers, ...rows].map(r => r.join(",")).join("\n");
 
     const link = document.createElement("a");
     link.href = encodeURI(csv);
     link.download = "jobs.csv";
-    document.body.appendChild(link);
     link.click();
   };
 
+  // ✅ KPIs (Dashboard data)
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
@@ -80,19 +84,33 @@ function App() {
           <button onClick={() => setTab("jobs")}>Jobs</button>
         </div>
 
-        {/* ✅ DASHBOARD */}
+        {/* ✅ DASHBOARD (SAFE VERSION) */}
         {tab === "dashboard" && (
-          <div>
-            <h3>Open: {openJobs}</h3>
-            <h3>Active: {activeJobs}</h3>
-            <h3>Closed: {closedJobs}</h3>
-          </div>
+          <>
+            <h3>Operations Overview</h3>
+
+            <div className="kpi-row">
+              <div className="kpi-card">
+                <h3>Open</h3>
+                <p>{openJobs}</p>
+              </div>
+
+              <div className="kpi-card">
+                <h3>Active</h3>
+                <p>{activeJobs}</p>
+              </div>
+
+              <div className="kpi-card">
+                <h3>Closed</h3>
+                <p>{closedJobs}</p>
+              </div>
+            </div>
+          </>
         )}
 
         {/* ✅ JOBS */}
         {tab === "jobs" && (
-          <div>
-
+          <>
             <h3>New Job</h3>
 
             <input
@@ -144,8 +162,7 @@ function App() {
                 </li>
               ))}
             </ul>
-
-          </div>
+          </>
         )}
 
       </div>
@@ -154,4 +171,3 @@ function App() {
 }
 
 export default App;
-``
