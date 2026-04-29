@@ -8,6 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from "recharts";
+import { BarChart, Bar, CartesianGrid } from "recharts";
 
 function App() {
   const USERS = {
@@ -66,7 +67,9 @@ function App() {
         status: "Open",
         chargeable: chargeable,
         type: jobType,
-        created: new Date().toLocaleDateString()
+      created: new Date().toLocaleDateString(),
+startTime: Date.now(),
+endTime: null
       }
     ]);
 
@@ -87,6 +90,19 @@ function App() {
   const nonChargeableJobs = jobs.filter(j => !j.chargeable).length;
 
   const chartData = Object.values(
+    const typeChartData = Object.values(
+  jobs.reduce((acc, job) => {
+    const type = job.type || "Other";
+
+    if (!acc[type]) {
+      acc[type] = { name: type, count: 0 };
+    }
+
+    acc[type].count += 1;
+    return acc;
+  }, {})
+);
+``
     jobs.reduce((acc, job) => {
       const date = job.created || "N/A";
 
@@ -102,8 +118,10 @@ function App() {
   const exportToCSV = () => {
     const headers = ["Task", "Status", "Type", "Chargeable"];
     const rows = jobs.map(job => [
-      job.task,
-      job.status,
+{job.task} — {job.status} — {job.type} —{" "}
+{job.chargeable ? "💰" : "—"} —{" "}
+{job.endTime
+  ? Math.round((job.endTime - job.startTime) / 60000) +
       job.type,
       job.chargeable ? "Yes" : "No"
     ]);
@@ -180,6 +198,19 @@ function App() {
 
           <div className="card">
             <h3>Jobs Created Over Time</h3>
+            <div className="card">
+  <h3>Jobs by Type</h3>
+
+  <ResponsiveContainer width="100%" height={250}>
+    <BarChart data={typeChartData}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Tooltip />
+      <Bar dataKey="count" fill="#22c55e" />
+    </BarChart>
+  </ResponsiveContainer>
+</div>
 
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={chartData}>
