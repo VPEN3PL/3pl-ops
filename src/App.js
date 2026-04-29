@@ -78,7 +78,7 @@ function App() {
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ CHART DATA
+  // ✅ Chart data
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
       const date = job.created || "N/A";
@@ -92,7 +92,7 @@ function App() {
     }, {})
   );
 
-  // ✅ EXPORT
+  // ✅ Export
   const exportToCSV = () => {
     const headers = ["Task", "Status"];
     const rows = jobs.map(job => [job.task, job.status]);
@@ -117,12 +117,16 @@ function App() {
           <h2>3PL Login</h2>
           <input
             placeholder="Username"
-            onChange={e => setLogin({ ...login, username: e.target.value })}
+            onChange={e =>
+              setLogin({ ...login, username: e.target.value })
+            }
           />
           <input
             type="password"
             placeholder="Password"
-            onChange={e => setLogin({ ...login, password: e.target.value })}
+            onChange={e =>
+              setLogin({ ...login, password: e.target.value })
+            }
           />
           <button onClick={loginUser}>Login</button>
         </div>
@@ -143,7 +147,7 @@ function App() {
         <button onClick={() => setTab("upload")}>Upload</button>
       </div>
 
-      {/* ✅ DASHBOARD */}
+      {/* DASHBOARD */}
       {tab === "dashboard" && (
         <>
           <div className="kpi-row">
@@ -151,13 +155,13 @@ function App() {
               <h3>Open Jobs</h3>
               <p>{openJobs}</p>
             </div>
+
             <div className="kpi-card">
               <h3>Closed Jobs</h3>
               <p>{closedJobs}</p>
             </div>
           </div>
 
-          {/* ✅ CHART */}
           <div className="card">
             <h3>Jobs Created Over Time</h3>
 
@@ -166,14 +170,18 @@ function App() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="jobs" stroke="#2563eb" />
+                <Line
+                  type="monotone"
+                  dataKey="jobs"
+                  stroke="#2563eb"
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </>
       )}
 
-      {/* ✅ JOBS TAB */}
+      {/* JOBS */}
       {tab === "jobs" && (
         <>
           <div className="card">
@@ -187,7 +195,6 @@ function App() {
 
           <div className="card">
             <h3>Jobs</h3>
-
             <button onClick={exportToCSV}>
               Download Jobs (Excel)
             </button>
@@ -197,7 +204,9 @@ function App() {
                 <li key={i}>
                   {job.task} — {job.status}
                   {job.status === "Open" && (
-                    <button onClick={() => closeJob(i)}>Close</button>
+                    <button onClick={() => closeJob(i)}>
+                      Close
+                    </button>
                   )}
                 </li>
               ))}
@@ -206,7 +215,7 @@ function App() {
         </>
       )}
 
-      {/* ✅ UPLOAD TAB */}
+      {/* UPLOAD */}
       {tab === "upload" && (
         <div className="card">
           <h3>Upload (Coming Soon)</h3>
@@ -217,4 +226,3 @@ function App() {
 }
 
 export default App;
-``
