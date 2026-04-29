@@ -11,7 +11,6 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
 
-  // ✅ LOGIN
   const loginUser = () => {
     const match = Object.values(USERS).find(
       u => u.username === login.username && u.password === login.password
@@ -22,7 +21,6 @@ function App() {
 
   const logout = () => setUser(null);
 
-  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -39,14 +37,12 @@ function App() {
     setNewJob("");
   };
 
-  // ✅ START TIMER
   const startJob = index => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ CLOSE JOB
   const closeJob = index => {
     const copy = [...jobs];
     copy[index].status = "Closed";
@@ -60,16 +56,12 @@ function App() {
         <h2>Login</h2>
         <input
           placeholder="Username"
-          onChange={e =>
-            setLogin({ ...login, username: e.target.value })
-          }
+          onChange={e => setLogin({ ...login, username: e.target.value })}
         />
         <input
           type="password"
           placeholder="Password"
-          onChange={e =>
-            setLogin({ ...login, password: e.target.value })
-          }
+          onChange={e => setLogin({ ...login, password: e.target.value })}
         />
         <button onClick={loginUser}>Login</button>
       </div>
@@ -94,24 +86,24 @@ function App() {
           <li key={i}>
             {job.task} — {job.status} —{" "}
 
-            {/* ✅ Timer Display */}
-            {job.startTime && job.endTime && (
+            {/* Timer Display */}
+            {job.startTime && job.endTime &&
               (() => {
                 const diff = job.endTime - job.startTime;
                 const min = Math.floor(diff / 60000);
                 const sec = Math.floor((diff % 60000) / 1000);
                 return `${min}m ${sec}s`;
               })()
-            )}
+            }
 
-            {/* ✅ Start button */}
+            {/* Start button */}
             {!job.startTime && job.status === "Open" && (
               <button onClick={() => startJob(i)}>
                 Start Timer
               </button>
             )}
 
-            {/* ✅ Close button */}
+            {/* Close button */}
             {job.startTime && job.status === "Open" && (
               <button onClick={() => closeJob(i)}>
                 Close
