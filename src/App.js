@@ -75,12 +75,10 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ Charts
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
       const d = job.created;
@@ -122,7 +120,6 @@ function App() {
   return (
     <div className="container">
 
-      {/* ✅ ✅ ENTERPRISE HEADER */}
       <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
       <p style={{ color: "gray", marginTop: "-5px" }}>
         Operational Visibility • Efficiency • Precision
@@ -135,7 +132,7 @@ function App() {
         <button onClick={() => setTab("jobs")}>Jobs</button>
       </div>
 
-      {/* DASHBOARD */}
+      {/* ✅ DASHBOARD */}
       {tab === "dashboard" && (
         <>
           <div className="kpi-row">
@@ -171,7 +168,7 @@ function App() {
         </>
       )}
 
-      {/* JOBS */}
+      {/* ✅ JOBS */}
       {tab === "jobs" && (
         <>
           <h3>New Job</h3>
@@ -190,21 +187,35 @@ function App() {
           <button onClick={addJob}>Add Job</button>
 
           <ul>
-            {jobs.map((job,i)=>(
-              <li key={i}>
-                {job.status==="Closed" ? "✅" : job.startTime ? "⏳" : "⏺"}{" "}
+            {jobs.map((job, i) => (
+              <li
+                key={i}
+                className={
+                  job.status === "Closed"
+                    ? "closed"
+                    : job.startTime
+                    ? "active"
+                    : "open"
+                }
+              >
+                {job.status === "Closed"
+                  ? "✅"
+                  : job.startTime
+                  ? "⏳"
+                  : "⏺"}{" "}
+
                 {job.task} — {job.type} — {job.status}
 
                 {job.startTime && job.endTime &&
-                  ` — ${Math.floor((job.endTime - job.startTime)/60000)}m`
+                  ` — ${Math.floor((job.endTime - job.startTime) / 60000)}m`
                 }
 
-                {!job.startTime && job.status==="Open" && (
-                  <button onClick={()=>startJob(i)}>Start</button>
+                {!job.startTime && job.status === "Open" && (
+                  <button onClick={() => startJob(i)}>Start</button>
                 )}
 
-                {job.startTime && job.status==="Open" && (
-                  <button onClick={()=>closeJob(i)}>Close</button>
+                {job.startTime && job.status === "Open" && (
+                  <button onClick={() => closeJob(i)}>Close</button>
                 )}
               </li>
             ))}

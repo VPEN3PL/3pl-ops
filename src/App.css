@@ -1,116 +1,15 @@
-body {
-  margin: 0;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #111;
+/* ✅ Job status highlighting */
+li.active {
+  background: #dcfce7; /* light green */
+  border-left: 5px solid #22c55e;
 }
 
-/* Main container */
-.container {
-  max-width: 1100px;
-  margin: 30px auto;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 20px;
-  border-radius: 12px;
-}
-
-/* Header */
-h1 {
-  margin-bottom: 10px;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.tabs button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  background: #e5e7eb;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-.tabs button:hover {
-  background: #d1d5db;
-}
-
-/* Cards */
-.card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 15px;
-  margin-top: 15px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-/* KPI Row */
-.kpi-row {
-  display: flex;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.kpi-card {
-  flex: 1;
-  background: #f1f5f9;
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-}
-
-.kpi-card h3 {
-  margin: 0;
-  color: gray;
-}
-
-.kpi-card p {
-  font-size: 28px;
-  margin: 5px 0 0 0;
-  font-weight: bold;
-}
-
-/* Inputs */
-input, select {
-  width: 100%;
-  padding: 8px;
-  margin-top: 8px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-/* Buttons */
-button {
-  padding: 6px 12px;
-  margin-left: 5px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  background: #2563eb;
-  color: white;
-}
-
-button:hover {
-  background: #1e40af;
-}
-
-/* Job list */
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  padding: 10px;
-  margin-top: 8px;
+li.open {
   background: #f9fafb;
-  border-radius: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-left: 5px solid #9ca3af;
+}
+
+li.closed {
+  background: #e0f2fe;
+  border-left: 5px solid #0284c7;
 }
