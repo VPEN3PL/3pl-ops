@@ -20,6 +20,7 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
   const [chargeable, setChargeable] = useState(false);
+  const [jobType, setJobType] = useState("Inbound");
   const [hydrated, setHydrated] = useState(false);
   const [tab, setTab] = useState("dashboard");
 
@@ -64,12 +65,14 @@ function App() {
         task: newJob,
         status: "Open",
         chargeable: chargeable,
+        type: jobType,
         created: new Date().toLocaleDateString()
       }
     ]);
 
     setNewJob("");
     setChargeable(false);
+    setJobType("Inbound");
   };
 
   const closeJob = index => {
@@ -97,10 +100,11 @@ function App() {
   );
 
   const exportToCSV = () => {
-    const headers = ["Task", "Status", "Chargeable"];
+    const headers = ["Task", "Status", "Type", "Chargeable"];
     const rows = jobs.map(job => [
       job.task,
       job.status,
+      job.type,
       job.chargeable ? "Yes" : "No"
     ]);
 
@@ -124,16 +128,12 @@ function App() {
           <h2>3PL Login</h2>
           <input
             placeholder="Username"
-            onChange={e =>
-              setLogin({ ...login, username: e.target.value })
-            }
+            onChange={e => setLogin({ ...login, username: e.target.value })}
           />
           <input
             type="password"
             placeholder="Password"
-            onChange={e =>
-              setLogin({ ...login, password: e.target.value })
-            }
+            onChange={e => setLogin({ ...login, password: e.target.value })}
           />
           <button onClick={loginUser}>Login</button>
         </div>
@@ -154,7 +154,6 @@ function App() {
         <button onClick={() => setTab("upload")}>Upload</button>
       </div>
 
-      {/* DASHBOARD */}
       {tab === "dashboard" && (
         <>
           <div className="kpi-row">
@@ -194,7 +193,6 @@ function App() {
         </>
       )}
 
-      {/* JOBS */}
       {tab === "jobs" && (
         <>
           <div className="card">
@@ -205,6 +203,19 @@ function App() {
               onChange={e => setNewJob(e.target.value)}
               placeholder="Job description"
             />
+
+            <select
+              value={jobType}
+              onChange={e => setJobType(e.target.value)}
+            >
+              <option>Inbound</option>
+              <option>Outbound</option>
+              <option>Putaway</option>
+              <option>Picking</option>
+              <option>Wrapping</option>
+              <option>Movement</option>
+              <option>Other</option>
+            </select>
 
             <label>
               <input
@@ -228,8 +239,9 @@ function App() {
             <ul>
               {jobs.map((job, i) => (
                 <li key={i}>
-                  {job.task} — {job.status} —{" "}
+                  {job.task} — {job.status} — {job.type} —{" "}
                   {job.chargeable ? "💰" : "—"}
+
                   {job.status === "Open" && (
                     <button onClick={() => closeJob(i)}>
                       Close
