@@ -9,7 +9,8 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  Legend
 } from "recharts";
 
 function App() {
@@ -17,6 +18,13 @@ function App() {
   const [newJob, setNewJob] = useState("");
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
+
+  const [requests, setRequests] = useState([]);
+  const [newRequest, setNewRequest] = useState("");
+
+  const [notes, setNotes] = useState([]);
+  const [newNote, setNewNote] = useState("");
+
   const [timeNow, setTimeNow] = useState(new Date());
 
   useEffect(() => {
@@ -79,17 +87,24 @@ function App() {
 
   return (
     <>
+      <div className="background-layer"></div>
+
       <div className="main-content">
+
         <div className="container">
 
           <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
           <p>{timeNow.toLocaleString()}</p>
 
+          {/* ✅ TABS */}
           <div className="tabs">
             <button onClick={() => setTab("dashboard")}>Dashboard</button>
             <button onClick={() => setTab("jobs")}>Jobs</button>
+            <button onClick={() => setTab("requests")}>Requests</button>
+            <button onClick={() => setTab("notes")}>Notes</button>
           </div>
 
+          {/* ✅ DASHBOARD */}
           {tab === "dashboard" && (
             <>
               <div className="kpi-row">
@@ -99,7 +114,7 @@ function App() {
               </div>
 
               {jobs.length === 0 ? (
-                <p>No job data yet. Add jobs.</p>
+                <p>No job data yet.</p>
               ) : (
                 <div className="chart-grid">
 
@@ -120,11 +135,12 @@ function App() {
                     <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
                         <Pie data={pieData} dataKey="value" nameKey="name">
-                          {pieData.map((entry, index) => (
-                            <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                          {pieData.map((entry, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
                           ))}
                         </Pie>
                         <Tooltip />
+                        <Legend />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -134,18 +150,12 @@ function App() {
             </>
           )}
 
+          {/* ✅ JOBS */}
           {tab === "jobs" && (
             <>
-              <input
-                value={newJob}
-                onChange={(e) => setNewJob(e.target.value)}
-                placeholder="Enter job"
-              />
+              <input value={newJob} onChange={(e) => setNewJob(e.target.value)} />
 
-              <select
-                value={jobType}
-                onChange={(e) => setJobType(e.target.value)}
-              >
+              <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
                 <option>Outbound</option>
                 <option>Inbound</option>
                 <option>Wrapping</option>
@@ -158,17 +168,43 @@ function App() {
               <ul>
                 {jobs.map((job, i) => (
                   <li key={i}>
-                    {job.task} - {job.type} - {job.status}
-
-                    {!job.startTime && job.status === "Open" && (
-                      <button onClick={() => startJob(i)}>Start</button>
-                    )}
-
-                    {job.startTime && job.status === "Open" && (
-                      <button onClick={() => closeJob(i)}>Close</button>
-                    )}
+                    {job.task} — {job.type} — {job.status}
                   </li>
                 ))}
+              </ul>
+            </>
+          )}
+
+          {/* ✅ REQUESTS */}
+          {tab === "requests" && (
+            <>
+              <input value={newRequest} onChange={(e) => setNewRequest(e.target.value)} />
+              <button onClick={() => {
+                setRequests([...requests, newRequest]);
+                setNewRequest("");
+              }}>
+                Add Request
+              </button>
+
+              <ul>
+                {requests.map((r, i) => <li key={i}>{r}</li>)}
+              </ul>
+            </>
+          )}
+
+          {/* ✅ NOTES */}
+          {tab === "notes" && (
+            <>
+              <input value={newNote} onChange={(e) => setNewNote(e.target.value)} />
+              <button onClick={() => {
+                setNotes([...notes, newNote]);
+                setNewNote("");
+              }}>
+                Add Note
+              </button>
+
+              <ul>
+                {notes.map((n, i) => <li key={i}>{n}</li>)}
               </ul>
             </>
           )}
@@ -176,7 +212,7 @@ function App() {
         </div>
       </div>
 
-      {/* ✅ Bottom panel OUTSIDE */}
+      {/* ✅ ACTIVE BAR */}
       <div className="active-bar">
         Active Jobs: {activeJobs}
       </div>

@@ -1,17 +1,26 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
 }
 
-/* ✅ THIS FIXES YOUR OVERLAP */
+/ 100%;/* ✅ BACKGROUND IMAGE */
+  height: 100%;
+  background:
+    linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+    url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+  background-size: cover;
+  z-index: -1;
+}
+
+/* ✅ FIX OVERLAP */
 .main-content {
-  padding-bottom: 120px;
+  padding-bottom: 160px;
 }
 
 .container {
   max-width: 1000px;
   margin: 20px auto;
-  background: white;
+  background: rgba(255,255,255,0.95);
   padding: 20px;
   border-radius: 10px;
 }
@@ -20,14 +29,13 @@ body {
 .tabs {
   display: flex;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 /* KPI */
 .kpi-row {
   display: flex;
   gap: 10px;
-  margin: 10px 0;
 }
 
 .kpi-card {
@@ -46,14 +54,14 @@ body {
   flex: 1;
 }
 
-/* ✅ FIXED BOTTOM BAR */
+/* Bottom bar */
 .active-bar {
   position: fixed;
   bottom: 0;
-  left: 0;
   width: 100%;
-
   background: #111;
   color: white;
   padding: 10px;
 }
+.background-layer {
+  position: fixed;
