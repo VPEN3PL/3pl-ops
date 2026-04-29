@@ -11,13 +11,8 @@ function App() {
   const [login, setLogin] = useState({ username: "", password: "" });
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
-
-  // ✅ CRITICAL FLAG
   const [hydrated, setHydrated] = useState(false);
 
-  /* ==========================
-     LOAD SAVED DATA (ONCE)
-     ========================== */
   useEffect(() => {
     const savedJobs = localStorage.getItem("jobs");
     const savedUser = localStorage.getItem("user");
@@ -25,38 +20,23 @@ function App() {
     if (savedJobs) setJobs(JSON.parse(savedJobs));
     if (savedUser) setUser(JSON.parse(savedUser));
 
-    setHydrated(true); // ✅ allows saving afterward
+    setHydrated(true);
   }, []);
 
-  /* ==========================
-     SAVE JOBS (AFTER LOAD)
-     ========================== */
   useEffect(() => {
     if (!hydrated) return;
     localStorage.setItem("jobs", JSON.stringify(jobs));
   }, [jobs, hydrated]);
 
-  /* ==========================
-     SAVE USER SESSION
-     ========================== */
   useEffect(() => {
     if (!hydrated) return;
-
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("user");
-    }
+    if (user) localStorage.setItem("user", JSON.stringify(user));
+    else localStorage.removeItem("user");
   }, [user, hydrated]);
 
-  /* ==========================
-     AUTH
-     ========================== */
   const loginUser = () => {
     const match = Object.values(USERS).find(
-      u =>
-        u.username === login.username &&
-        u.password === login.password
+      u => u.username === login.username && u.password === login.password
     );
 
     if (!match) {
@@ -69,20 +49,9 @@ function App() {
 
   const logout = () => setUser(null);
 
-  /* ==========================
-     JOB ACTIONS
-     ========================== */
   const addJob = () => {
     if (!newJob.trim()) return;
-
-    setJobs([
-      ...jobs,
-      {
-        task: newJob,
-        status: "Open",
-        created: Date.now()
-      }
-    ]);
+    setJobs([...jobs, { task: newJob, status: "Open", created: Date.now() }]);
     setNewJob("");
   };
 
@@ -92,67 +61,62 @@ function App() {
     setJobs(copy);
   };
 
-  /* ==========================
-     LOGIN SCREEN
-     ========================== */
+  const openJobs = jobs.filter(j => j.status === "Open").length;
+  const closedJobs = jobs.filter(j => j.status === "Closed").length;
+
   if (!user) {
     return (
-      <div className="App">
-        <h2>3PL Login</h2>
-
-        <input
-          placeholder="Username"
-          onChange={e =>
-            setLogin({ ...login, username: e.target.value })
-          }
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={e =>
-            setLogin({ ...login, password: e.target.value })
-          }
-        />
-
-        <button onClick={loginUser}>Login</button>
+      <div className="container">
+        <div className="card">
+          <h2>3PL Login</h2>
+          <input placeholder="Username" onChange={e => setLogin({ ...login, username: e.target.value })} />
+          <input type="password" placeholder="Password" onChange={e => setLogin({ ...login, password: e.target.value })} />
+          <button onClick={loginUser}>Login</button>
+        </div>
       </div>
     );
   }
 
-  /* ==========================
-     DASHBOARD
-     ========================== */
   return (
-    <div className="App">
-      <h1>3PL Operations Dashboard</h1>
+    <div className="container">
+      <div className="header">
+        <h1>3PL Operations Dashboard</h1>
+        <button onClick={logout}>Logout</button>
+      </div>
 
-      <p>
-        Logged in as <b>{user.username}</b>
-      </p>
+      <div className="kpi-row">
+        <div className="kpi-card">
+          <h3>Open Jobs</h3>
+          <p>{openJobs}</p>
+        </div>
+        <div className="kpi-card">
+          <h3>Closed Jobs</h3>
+          <p>{closedJobs}</p>
+        </div>
+      </div>
 
-      <button onClick={logout}>Logout</button>
+      <div className="card">
+        <h3>New Job</h3>
+        <input value={newJob} onChange={e => setNewJob(e.target.value)} placeholder="Job description" />
+        <button onClick={addJob}>Add Job</button>
+      </div>
 
-      <h3>New Job</h3>
-      <input
-        placeholder="Job description"
-        value={newJob}
-        onChange={e => setNewJob(e.target.value)}
-      />
-      <button onClick={addJob}>Add Job</button>
-
-      <h3>Jobs</h3>
-      <ul>
-        {jobs.map((job, i) => (
-          <li key={i}>
-            {job.task} — {job.status}
-            {job.status === "Open" && (
-              <button onClick={() => closeJob(i)}>
-                Close
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+      <div className="card">
+        <h3>Jobs</h3>
+        <ul>
+          {jobs.map((job, i) => (
+            <li key={i}>
+              <div>
+                <strong>{job.task}</strong>
+                <span> ({job.status})</span>
+              </div>
+              {job.status === "Open" && (
+                <button onClick={() => closeJob(i)}>Close</button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
