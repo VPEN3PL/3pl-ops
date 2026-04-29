@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
 
 function App() {
   const USERS = {
@@ -48,7 +56,16 @@ function App() {
 
   const addJob = () => {
     if (!newJob.trim()) return;
-    setJobs([...jobs, { task: newJob, status: "Open" }]);
+
+    setJobs([
+      ...jobs,
+      {
+        task: newJob,
+        status: "Open",
+        created: new Date().toLocaleDateString()
+      }
+    ]);
+
     setNewJob("");
   };
 
@@ -61,7 +78,21 @@ function App() {
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ EXPORT FUNCTION
+  // ✅ CHART DATA
+  const chartData = Object.values(
+    jobs.reduce((acc, job) => {
+      const date = job.created || "N/A";
+
+      if (!acc[date]) {
+        acc[date] = { name: date, jobs: 0 };
+      }
+
+      acc[date].jobs += 1;
+      return acc;
+    }, {})
+  );
+
+  // ✅ EXPORT
   const exportToCSV = () => {
     const headers = ["Task", "Status"];
     const rows = jobs.map(job => [job.task, job.status]);
@@ -75,7 +106,6 @@ function App() {
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
     link.download = "jobs.csv";
-
     document.body.appendChild(link);
     link.click();
   };
@@ -113,19 +143,37 @@ function App() {
         <button onClick={() => setTab("upload")}>Upload</button>
       </div>
 
+      {/* ✅ DASHBOARD */}
       {tab === "dashboard" && (
-        <div className="kpi-row">
-          <div className="kpi-card">
-            <h3>Open Jobs</h3>
-            <p>{openJobs}</p>
+        <>
+          <div className="kpi-row">
+            <div className="kpi-card">
+              <h3>Open Jobs</h3>
+              <p>{openJobs}</p>
+            </div>
+            <div className="kpi-card">
+              <h3>Closed Jobs</h3>
+              <p>{closedJobs}</p>
+            </div>
           </div>
-          <div className="kpi-card">
-            <h3>Closed Jobs</h3>
-            <p>{closedJobs}</p>
+
+          {/* ✅ CHART */}
+          <div className="card">
+            <h3>Jobs Created Over Time</h3>
+
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="jobs" stroke="#2563eb" />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        </div>
+        </>
       )}
 
+      {/* ✅ JOBS TAB */}
       {tab === "jobs" && (
         <>
           <div className="card">
@@ -140,7 +188,6 @@ function App() {
           <div className="card">
             <h3>Jobs</h3>
 
-            ✅ THIS IS THE BUTTON YOU WERE MISSING
             <button onClick={exportToCSV}>
               Download Jobs (Excel)
             </button>
@@ -150,9 +197,7 @@ function App() {
                 <li key={i}>
                   {job.task} — {job.status}
                   {job.status === "Open" && (
-                    <button onClick={() => closeJob(i)}>
-                      Close
-                    </button>
+                    <button onClick={() => closeJob(i)}>Close</button>
                   )}
                 </li>
               ))}
@@ -161,10 +206,10 @@ function App() {
         </>
       )}
 
+      {/* ✅ UPLOAD TAB */}
       {tab === "upload" && (
         <div className="card">
           <h3>Upload (Coming Soon)</h3>
-          <p>CSV / Excel upload will go here</p>
         </div>
       )}
     </div>
@@ -172,3 +217,4 @@ function App() {
 }
 
 export default App;
+``
