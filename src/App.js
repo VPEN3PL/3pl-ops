@@ -57,6 +57,34 @@ function App() {
     setJobs(copy);
   };
 
+  // ✅ ✅ EXPORT CSV (NEW)
+  const exportToCSV = () => {
+    const headers = ["Task", "Type", "Status", "Duration"];
+
+    const rows = jobs.map((job) => {
+      let duration = "";
+
+      if (job.startTime && job.endTime) {
+        const diff = job.endTime - job.startTime;
+        const min = Math.floor(diff / 60000);
+        const sec = Math.floor((diff % 60000) / 1000);
+        duration = `${min}m ${sec}s`;
+      }
+
+      return [job.task, job.type, job.status, duration];
+    });
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers, ...rows].map((row) => row.join(",")).join("\n");
+
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = "jobs.csv";
+    document.body.appendChild(link);
+    link.click();
+  };
+
   // ✅ LOGIN SCREEN
   if (!user) {
     return (
@@ -111,12 +139,18 @@ function App() {
 
       <button onClick={addJob}>Add Job</button>
 
+      {/* ✅ EXPORT BUTTON */}
+      <br /><br />
+      <button onClick={exportToCSV}>
+        Download CSV
+      </button>
+
       <h3>Jobs</h3>
 
       <ul>
         {jobs.map((job, i) => (
           <li key={i}>
-            {/* ✅ STATUS SYMBOL */}
+            {/* ✅ STATUS ICON */}
             {job.status === "Closed"
               ? "✅ "
               : job.startTime
@@ -144,14 +178,12 @@ function App() {
               </>
             )}
 
-            {/* ✅ START BUTTON */}
             {!job.startTime && job.status === "Open" && (
               <button onClick={() => startJob(i)}>
                 Start Timer
               </button>
             )}
 
-            {/* ✅ CLOSE BUTTON */}
             {job.startTime && job.status === "Open" && (
               <button onClick={() => closeJob(i)}>
                 Close
