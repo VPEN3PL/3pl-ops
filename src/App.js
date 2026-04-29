@@ -18,13 +18,6 @@ function App() {
   const [newJob, setNewJob] = useState("");
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
-
-  const [requests, setRequests] = useState([]);
-  const [newRequest, setNewRequest] = useState("");
-
-  const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState("");
-
   const [timeNow, setTimeNow] = useState(new Date());
 
   useEffect(() => {
@@ -32,6 +25,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -41,8 +35,6 @@ function App() {
         task: newJob,
         type: jobType,
         status: "Open",
-        startTime: null,
-        endTime: null,
         created: new Date().toLocaleDateString()
       }
     ]);
@@ -50,23 +42,12 @@ function App() {
     setNewJob("");
   };
 
-  const startJob = (i) => {
-    const copy = [...jobs];
-    copy[i].startTime = Date.now();
-    setJobs(copy);
-  };
-
-  const closeJob = (i) => {
-    const copy = [...jobs];
-    copy[i].status = "Closed";
-    copy[i].endTime = Date.now();
-    setJobs(copy);
-  };
-
+  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
-  const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
+  const activeJobs = jobs.filter(j => j.status === "Active").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
+  // ✅ LINE DATA
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
@@ -75,6 +56,7 @@ function App() {
     }, {})
   );
 
+  // ✅ PIE DATA
   const pieData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.type]) acc[j.type] = { name: j.type, value: 0 };
@@ -100,8 +82,6 @@ function App() {
           <div className="tabs">
             <button onClick={() => setTab("dashboard")}>Dashboard</button>
             <button onClick={() => setTab("jobs")}>Jobs</button>
-            <button onClick={() => setTab("requests")}>Requests</button>
-            <button onClick={() => setTab("notes")}>Notes</button>
           </div>
 
           {/* ✅ DASHBOARD */}
@@ -114,10 +94,11 @@ function App() {
               </div>
 
               {jobs.length === 0 ? (
-                <p>No job data yet.</p>
+                <p>No job data yet. Add jobs.</p>
               ) : (
                 <div className="chart-grid">
 
+                  {/* ✅ LINE CHART */}
                   <div className="chart-box">
                     <h3>Jobs Over Time</h3>
                     <ResponsiveContainer width="100%" height={200}>
@@ -130,13 +111,14 @@ function App() {
                     </ResponsiveContainer>
                   </div>
 
+                  {/* ✅ PIE CHART */}
                   <div className="chart-box">
                     <h3>Job Distribution</h3>
                     <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
                         <Pie data={pieData} dataKey="value" nameKey="name">
-                          {pieData.map((entry, i) => (
-                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          {pieData.map((entry, index) => (
+                            <Cell key={index} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
                         <Tooltip />
@@ -153,9 +135,16 @@ function App() {
           {/* ✅ JOBS */}
           {tab === "jobs" && (
             <>
-              <input value={newJob} onChange={(e) => setNewJob(e.target.value)} />
+              <input
+                value={newJob}
+                onChange={(e) => setNewJob(e.target.value)}
+                placeholder="Enter job"
+              />
 
-              <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
+              <select
+                value={jobType}
+                onChange={(e) => setJobType(e.target.value)}
+              >
                 <option>Outbound</option>
                 <option>Inbound</option>
                 <option>Wrapping</option>
@@ -168,43 +157,9 @@ function App() {
               <ul>
                 {jobs.map((job, i) => (
                   <li key={i}>
-                    {job.task} — {job.type} — {job.status}
+                    {job.task} - {job.type}
                   </li>
                 ))}
-              </ul>
-            </>
-          )}
-
-          {/* ✅ REQUESTS */}
-          {tab === "requests" && (
-            <>
-              <input value={newRequest} onChange={(e) => setNewRequest(e.target.value)} />
-              <button onClick={() => {
-                setRequests([...requests, newRequest]);
-                setNewRequest("");
-              }}>
-                Add Request
-              </button>
-
-              <ul>
-                {requests.map((r, i) => <li key={i}>{r}</li>)}
-              </ul>
-            </>
-          )}
-
-          {/* ✅ NOTES */}
-          {tab === "notes" && (
-            <>
-              <input value={newNote} onChange={(e) => setNewNote(e.target.value)} />
-              <button onClick={() => {
-                setNotes([...notes, newNote]);
-                setNewNote("");
-              }}>
-                Add Note
-              </button>
-
-              <ul>
-                {notes.map((n, i) => <li key={i}>{n}</li>)}
               </ul>
             </>
           )}
@@ -212,9 +167,9 @@ function App() {
         </div>
       </div>
 
-      {/* ✅ ACTIVE BAR */}
+      {/* ✅ ACTIVE BAR (NO OVERLAP) */}
       <div className="active-bar">
-        Active Jobs: {activeJobs}
+        Active Jobs: {jobs.length}
       </div>
     </>
   );
