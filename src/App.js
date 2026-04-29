@@ -1,16 +1,5 @@
 import React, { useState } from "react";
 import "./App.css";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  CartesianGrid
-} from "recharts";
 
 function App() {
   const [jobs, setJobs] = useState([]);
@@ -18,7 +7,6 @@ function App() {
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
 
-  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -29,22 +17,19 @@ function App() {
         type: jobType,
         status: "Open",
         startTime: null,
-        endTime: null,
-        created: new Date().toLocaleDateString()
+        endTime: null
       }
     ]);
 
     setNewJob("");
   };
 
-  // ✅ START TIMER
   const startJob = (index) => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ CLOSE JOB
   const closeJob = (index) => {
     const copy = [...jobs];
     copy[index].status = "Closed";
@@ -52,7 +37,6 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ EXPORT CSV
   const exportToCSV = () => {
     const headers = ["Task", "Type", "Status", "Duration"];
 
@@ -79,39 +63,17 @@ function App() {
     link.click();
   };
 
-  // ✅ KPIs
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ CHART DATA
-  const chartData = Object.values(
-    jobs.reduce((acc, job) => {
-      if (!acc[job.created]) acc[job.created] = { name: job.created, jobs: 0 };
-      acc[job.created].jobs++;
-      return acc;
-    }, {})
-  );
-
-  const typeChartData = Object.values(
-    jobs.reduce((acc, job) => {
-      if (!acc[job.type]) acc[job.type] = { name: job.type, count: 0 };
-      acc[job.type].count++;
-      return acc;
-    }, {})
-  );
-
   return (
     <>
-      {/* ✅ FIXED BACKGROUND */}
       <div className="background-layer"></div>
 
       <div className="container">
 
         <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
-        <p className="subtitle">
-          Live Operations • Workload Visibility • Efficiency Tracking
-        </p>
 
         <div className="tabs">
           <button onClick={() => setTab("dashboard")}>Dashboard</button>
@@ -120,53 +82,28 @@ function App() {
 
         {/* ✅ DASHBOARD */}
         {tab === "dashboard" && (
-          <div className="dashboard-container">
-
-            <div className="kpi-row">
-              <div className="kpi-card"><h3>Open</h3><p>{openJobs}</p></div>
-              <div className="kpi-card"><h3>Active</h3><p>{activeJobs}</p></div>
-              <div className="kpi-card"><h3>Closed</h3><p>{closedJobs}</p></div>
-            </div>
-
-            <div className="chart-grid">
-
-              <div className="chart-box">
-                <h3>Jobs Over Time</h3>
-                <ResponsiveContainer width="100%" height={180}>
-                  <LineChart data={chartData}>
-                    <XAxis dataKey="name"/>
-                    <YAxis/>
-                    <Tooltip/>
-                    <Line dataKey="jobs" stroke="#2563eb"/>
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="chart-box">
-                <h3>Jobs by Type</h3>
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={typeChartData}>
-                    <CartesianGrid strokeDasharray="3 3"/>
-                    <XAxis dataKey="name"/>
-                    <YAxis/>
-                    <Tooltip/>
-                    <Bar dataKey="count" fill="#22c55e"/>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-            </div>
+          <div>
+            <h3>Open: {openJobs}</h3>
+            <h3>Active: {activeJobs}</h3>
+            <h3>Closed: {closedJobs}</h3>
           </div>
         )}
 
         {/* ✅ JOBS */}
         {tab === "jobs" && (
-          <>
+          <div>
+
             <h3>New Job</h3>
 
-            <input value={newJob} onChange={(e) => setNewJob(e.target.value)} />
+            <input
+              value={newJob}
+              onChange={(e) => setNewJob(e.target.value)}
+            />
 
-            <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
+            <select
+              value={jobType}
+              onChange={(e) => setJobType(e.target.value)}
+            >
               <option>Outbound</option>
               <option>Inbound</option>
               <option>Receiving</option>
@@ -182,16 +119,8 @@ function App() {
 
             <ul>
               {jobs.map((job, i) => (
-                <li
-                  key={i}
-                  className={
-                    job.status === "Closed"
-                      ? "closed"
-                      : job.startTime
-                      ? "active"
-                      : "open"
-                  }
-                >
+                <li key={i}>
+
                   {job.status === "Closed"
                     ? "✅"
                     : job.startTime
@@ -211,14 +140,18 @@ function App() {
                   {job.startTime && job.status === "Open" && (
                     <button onClick={() => closeJob(i)}>Close</button>
                   )}
+
                 </li>
               ))}
             </ul>
-          </>
+
+          </div>
         )}
+
       </div>
     </>
   );
 }
 
 export default App;
+``
