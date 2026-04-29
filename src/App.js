@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./App.css";
 import {
   LineChart,
@@ -18,7 +18,7 @@ function App() {
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
 
-  // ✅ JOB FUNCTIONS
+  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -37,39 +37,43 @@ function App() {
     setNewJob("");
   };
 
-  const startJob = index => {
+  // ✅ START TIMER
+  const startJob = (index) => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
-  const closeJob = index => {
+  // ✅ CLOSE JOB
+  const closeJob = (index) => {
     const copy = [...jobs];
     copy[index].status = "Closed";
     copy[index].endTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ EXPORT FIX (RESTORED)
+  // ✅ EXPORT CSV (FIXED)
   const exportToCSV = () => {
     const headers = ["Task", "Type", "Status", "Duration"];
 
-    const rows = jobs.map(job => {
+    const rows = jobs.map((job) => {
       let duration = "";
+
       if (job.startTime && job.endTime) {
         const diff = job.endTime - job.startTime;
         const min = Math.floor(diff / 60000);
         duration = `${min}m`;
       }
+
       return [job.task, job.type, job.status, duration];
     });
 
-    const csv =
+    const csvContent =
       "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map(r => r.join(",")).join("\n");
+      [headers, ...rows].map((row) => row.join(",")).join("\n");
 
     const link = document.createElement("a");
-    link.href = encodeURI(csv);
+    link.href = encodeURI(csvContent);
     link.download = "jobs.csv";
     document.body.appendChild(link);
     link.click();
@@ -102,6 +106,7 @@ function App() {
     <div className="container">
 
       <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
+      <p className="subtitle">Operational Visibility • Efficiency • Precision</p>
 
       <div className="tabs">
         <button onClick={() => setTab("dashboard")}>Dashboard</button>
@@ -118,16 +123,17 @@ function App() {
             <div className="kpi-card"><h3>Closed</h3><p>{closedJobs}</p></div>
           </div>
 
+          {/* ✅ FIXED: SIDE-BY-SIDE CHARTS */}
           <div className="chart-row">
 
             <div className="card">
               <h3>Jobs Over Time</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={chartData}>
-                  <XAxis dataKey="name"/>
-                  <YAxis/>
-                  <Tooltip/>
-                  <Line dataKey="jobs" stroke="#2563eb"/>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line dataKey="jobs" stroke="#2563eb" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -136,11 +142,11 @@ function App() {
               <h3>Jobs by Type</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={typeChartData}>
-                  <CartesianGrid strokeDasharray="3 3"/>
-                  <XAxis dataKey="name"/>
-                  <YAxis/>
-                  <Tooltip/>
-                  <Bar dataKey="count" fill="#22c55e"/>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#22c55e" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -154,9 +160,15 @@ function App() {
         <>
           <h3>New Job</h3>
 
-          <input value={newJob} onChange={e => setNewJob(e.target.value)} />
+          <input
+            value={newJob}
+            onChange={(e) => setNewJob(e.target.value)}
+          />
 
-          <select value={jobType} onChange={e => setJobType(e.target.value)}>
+          <select
+            value={jobType}
+            onChange={(e) => setJobType(e.target.value)}
+          >
             <option>Outbound</option>
             <option>Inbound</option>
             <option>Wrapping</option>
@@ -171,7 +183,7 @@ function App() {
           </button>
 
           <ul>
-            {jobs.map((job,i)=>(
+            {jobs.map((job, i) => (
               <li
                 key={i}
                 className={
@@ -182,19 +194,24 @@ function App() {
                     : "open"
                 }
               >
-                {job.status==="Closed" ? "✅" : job.startTime ? "⏳" : "⏺"}{" "}
+                {job.status === "Closed"
+                  ? "✅"
+                  : job.startTime
+                  ? "⏳"
+                  : "⏺"}{" "}
+
                 {job.task} — {job.type} — {job.status}
 
                 {job.startTime && job.endTime &&
-                  ` — ${Math.floor((job.endTime - job.startTime)/60000)}m`
+                  ` — ${Math.floor((job.endTime - job.startTime) / 60000)}m`
                 }
 
-                {!job.startTime && job.status==="Open" && (
-                  <button onClick={()=>startJob(i)}>Start</button>
+                {!job.startTime && job.status === "Open" && (
+                  <button onClick={() => startJob(i)}>Start</button>
                 )}
 
-                {job.startTime && job.status==="Open" && (
-                  <button onClick={()=>closeJob(i)}>Close</button>
+                {job.startTime && job.status === "Open" && (
+                  <button onClick={() => closeJob(i)}>Close</button>
                 )}
               </li>
             ))}

@@ -1,31 +1,124 @@
-.dashboard {
-  width: 100%;
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  font-family: "Segoe UI", sans-serif;
 }
 
-/* ✅ Charts side-by-side */
+/* ✅ MAIN CONTAINER */
+.container {
+  max-width: 1100px;
+  margin: 20px auto;
+  background: rgba(255,255,255,0.95);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+/* ✅ HEADER */
+.subtitle {
+  color: gray;
+  margin-top: -5px;
+}
+
+/* ✅ TABS */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ✅ KPI ROW */
+.kpi-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.kpi-card {
+  flex: 1;
+  background: #f1f5f9;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.kpi-card p {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* ✅ ✅ FIX: CHARTS SIDE-BY-SIDE */
 .chart-row {
   display: flex;
   gap: 15px;
-  margin-top: 15px;
 }
 
 .chart-row .card {
   flex: 1;
 }
 
-/* Prevent oversized charts */
+/* ✅ CARD STYLE */
 .card {
-  max-height: 260px;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
 }
 
-/* List highlighting */
+/* ✅ LIMIT CHART SIZE */
+.card canvas {
+  max-height: 200px;
+}
+
+/* ✅ INPUTS */
+input, select {
+  width: 100%;
+  padding: 6px;
+  margin-top: 5px;
+}
+
+/* ✅ BUTTONS */
+button {
+  margin-top: 5px;
+  padding: 6px 12px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ✅ JOB LIST */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 8px;
+  margin-top: 6px;
+  border-radius: 6px;
+}
+
+/* ✅ STATUS COLORS */
 li.active {
   background: #dcfce7;
   border-left: 5px solid #22c55e;
 }
+
 li.open {
   background: #f9fafb;
+  border-left: 5px solid #9ca3af;
 }
+
 li.closed {
   background: #e0f2fe;
+  border-left: 5px solid #0284c7;
 }
