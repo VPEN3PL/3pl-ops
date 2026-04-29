@@ -3,8 +3,8 @@ import "./App.css";
 
 function App() {
   const USERS = {
-    manager: { username: "manager", password: "3PL_Admin!", role: "manager" },
-    operator: { username: "operator", password: "3PL_User!", role: "operator" }
+    manager: { username: "manager", password: "3PL_Admin!" },
+    operator: { username: "operator", password: "3PL_User!" }
   };
 
   const [user, setUser] = useState(null);
@@ -12,6 +12,7 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [tab, setTab] = useState("dashboard");
 
   useEffect(() => {
     const savedJobs = localStorage.getItem("jobs");
@@ -30,20 +31,16 @@ function App() {
 
   useEffect(() => {
     if (!hydrated) return;
-    if (user) localStorage.setItem("user", JSON.stringify(user));
-    else localStorage.removeItem("user");
+    user
+      ? localStorage.setItem("user", JSON.stringify(user))
+      : localStorage.removeItem("user");
   }, [user, hydrated]);
 
   const loginUser = () => {
     const match = Object.values(USERS).find(
       u => u.username === login.username && u.password === login.password
     );
-
-    if (!match) {
-      alert("Invalid login");
-      return;
-    }
-
+    if (!match) return alert("Invalid login");
     setUser(match);
   };
 
@@ -51,7 +48,7 @@ function App() {
 
   const addJob = () => {
     if (!newJob.trim()) return;
-    setJobs([...jobs, { task: newJob, status: "Open", created: Date.now() }]);
+    setJobs([...jobs, { task: newJob, status: "Open" }]);
     setNewJob("");
   };
 
@@ -69,8 +66,15 @@ function App() {
       <div className="container">
         <div className="card">
           <h2>3PL Login</h2>
-          <input placeholder="Username" onChange={e => setLogin({ ...login, username: e.target.value })} />
-          <input type="password" placeholder="Password" onChange={e => setLogin({ ...login, password: e.target.value })} />
+          <input
+            placeholder="Username"
+            onChange={e => setLogin({ ...login, username: e.target.value })}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            onChange={e => setLogin({ ...login, password: e.target.value })}
+          />
           <button onClick={loginUser}>Login</button>
         </div>
       </div>
@@ -80,43 +84,68 @@ function App() {
   return (
     <div className="container">
       <div className="header">
-        <h1>3PL Operations Dashboard</h1>
+        <h1>3PL Dashboard</h1>
         <button onClick={logout}>Logout</button>
       </div>
 
-      <div className="kpi-row">
-        <div className="kpi-card">
-          <h3>Open Jobs</h3>
-          <p>{openJobs}</p>
-        </div>
-        <div className="kpi-card">
-          <h3>Closed Jobs</h3>
-          <p>{closedJobs}</p>
-        </div>
+      {/* ✅ Tabs */}
+      <div className="tabs">
+        <button onClick={() => setTab("dashboard")}>Dashboard</button>
+        <button onClick={() => setTab("jobs")}>Jobs</button>
+        <button onClick={() => setTab("upload")}>Upload</button>
       </div>
 
-      <div className="card">
-        <h3>New Job</h3>
-        <input value={newJob} onChange={e => setNewJob(e.target.value)} placeholder="Job description" />
-        <button onClick={addJob}>Add Job</button>
-      </div>
+      {/* ✅ DASHBOARD TAB */}
+      {tab === "dashboard" && (
+        <div className="kpi-row">
+          <div className="kpi-card">
+            <h3>Open Jobs</h3>
+            <p>{openJobs}</p>
+          </div>
+          <div className="kpi-card">
+            <h3>Closed Jobs</h3>
+            <p>{closedJobs}</p>
+          </div>
+        </div>
+      )}
 
-      <div className="card">
-        <h3>Jobs</h3>
-        <ul>
-          {jobs.map((job, i) => (
-            <li key={i}>
-              <div>
-                <strong>{job.task}</strong>
-                <span> ({job.status})</span>
-              </div>
-              {job.status === "Open" && (
-                <button onClick={() => closeJob(i)}>Close</button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* ✅ JOBS TAB */}
+      {tab === "jobs" && (
+        <>
+          <div className="card">
+            <h3>New Job</h3>
+            <input
+              value={newJob}
+              onChange={e => setNewJob(e.target.value)}
+            />
+            <button onClick={addJob}>Add Job</button>
+          </div>
+
+          <div className="card">
+            <h3>Jobs</h3>
+            <ul>
+              {jobs.map((job, i) => (
+                <li key={i}>
+                  {job.task} — {job.status}
+                  {job.status === "Open" && (
+                    <button onClick={() => closeJob(i)}>
+                      Close
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
+
+      {/* ✅ UPLOAD TAB */}
+      {tab === "upload" && (
+        <div className="card">
+          <h3>Upload (Coming Soon)</h3>
+          <p>CSV / Excel upload will go here</p>
+        </div>
+      )}
     </div>
   );
 }

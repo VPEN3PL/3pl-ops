@@ -87,3 +87,18 @@ li {
   padding: 10px 0;
   border-bottom: 1px solid #eee;
 }
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.tabs button {
+  flex: 1;
+  background: #e5e7eb;
+  color: black;
+}
+
+.tabs button:hover {
+  background: #d1d5db;
+}
