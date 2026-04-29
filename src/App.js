@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from "react";import React, [jobs, setJobs] = useState([]);
+import React, { useState, useEffect } from "react";
+import "./App.css";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+
+function App() {
+  const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
   const [timeNow, setTimeNow] = useState(new Date());
 
-  // ✅ LIVE CLOCK
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeNow(new Date());
-    }, 1000);
+    const interval = setInterval(() => setTimeNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ ADD JOB
   const addJob = () => {
-    if (!newJob.trim()) return;
-
+    if (!newJob) return;
     setJobs([
       ...jobs,
       {
@@ -27,7 +27,6 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
         created: new Date().toLocaleDateString()
       }
     ]);
-
     setNewJob("");
   };
 
@@ -44,12 +43,10 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
     setJobs(copy);
   };
 
-  // ✅ KPIs
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ LINE CHART
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
@@ -58,7 +55,6 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
     }, {})
   );
 
-  // ✅ PIE CHART
   const typeChartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.type]) acc[j.type] = { name: j.type, value: 0 };
@@ -74,7 +70,6 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
       <div className="background-layer"></div>
 
       <div className="container">
-
         <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
         <p>{timeNow.toLocaleString()}</p>
 
@@ -86,18 +81,9 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
         {tab === "dashboard" && (
           <>
             <div className="kpi-row">
-              <div className="kpi-card">
-                <h3>Open</h3>
-                <p>{openJobs}</p>
-              </div>
-              <div className="kpi-card">
-                <h3>Active</h3>
-                <p>{activeJobs}</p>
-              </div>
-              <div className="kpi-card">
-                <h3>Closed</h3>
-                <p>{closedJobs}</p>
-              </div>
+              <div className="kpi-card">Open: {openJobs}</div>
+              <div className="kpi-card">Active: {activeJobs}</div>
+              <div className="kpi-card">Closed: {closedJobs}</div>
             </div>
 
             <div className="chart-grid">
@@ -117,13 +103,7 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
                 <h3>Job Distribution</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
-                    <Pie
-                      data={typeChartData}
-                      dataKey="value"
-                      nameKey="name"
-                      outerRadius={80}
-                      label={({ name, value }) => `${name} (${value})`}
-                    >
+                    <Pie data={typeChartData} dataKey="value" nameKey="name">
                       {typeChartData.map((entry, index) => (
                         <Cell key={index} fill={COLORS[index % COLORS.length]} />
                       ))}
@@ -138,19 +118,11 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
 
         {tab === "jobs" && (
           <>
-            <input
-              value={newJob}
-              onChange={(e) => setNewJob(e.target.value)}
-            />
+            <input value={newJob} onChange={(e) => setNewJob(e.target.value)} />
 
-            <select
-              value={jobType}
-              onChange={(e) => setJobType(e.target.value)}
-            >
+            <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
               <option>Outbound</option>
               <option>Inbound</option>
-              <option>Receiving</option>
-              <option>Kitting</option>
               <option>Wrapping</option>
               <option>Movement</option>
               <option>Picking</option>
@@ -161,29 +133,17 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
             <ul>
               {jobs.map((job, i) => (
                 <li key={i}>
-                  {job.task} — {job.type} — {job.status}
+                  {job.task} - {job.type} - {job.status}
+                  {!job.startTime && <button onClick={() => startJob(i)}>Start</button>}
+                  {job.startTime && job.status === "Open" && <button onClick={() => closeJob(i)}>Close</button>}
                 </li>
               ))}
             </ul>
           </>
         )}
 
-        {/* ✅ ACTIVE BAR */}
         <div className="active-bar">
-          <h4>ACTIVE JOBS ({activeJobs})</h4>
-
-          <div className="active-list">
-            {jobs
-              .filter(j => j.startTime && j.status === "Open")
-              .map((job, i) => {
-                const mins = Math.floor((timeNow - job.startTime) / 60000);
-                return (
-                  <div key={i} className="active-item">
-                    ⏳ {job.task} — {job.type} — {mins}m
-                  </div>
-                );
-              })}
-          </div>
+          <h4>Active Jobs: {activeJobs}</h4>
         </div>
 
       </div>
@@ -192,18 +152,3 @@ import React, { useState, useEffect } from "react";import React, [jobs, setJobs]
 }
 
 export default App;
-``
-import "./App.css";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from "recharts";
-
-function App() {
