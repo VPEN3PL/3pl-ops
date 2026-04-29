@@ -19,6 +19,7 @@ function App() {
   const [login, setLogin] = useState({ username: "", password: "" });
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
+  const [chargeable, setChargeable] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [tab, setTab] = useState("dashboard");
 
@@ -62,11 +63,13 @@ function App() {
       {
         task: newJob,
         status: "Open",
+        chargeable: chargeable,
         created: new Date().toLocaleDateString()
       }
     ]);
 
     setNewJob("");
+    setChargeable(false);
   };
 
   const closeJob = index => {
@@ -77,8 +80,9 @@ function App() {
 
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
+  const chargeableJobs = jobs.filter(j => j.chargeable).length;
+  const nonChargeableJobs = jobs.filter(j => !j.chargeable).length;
 
-  // ✅ Chart data
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
       const date = job.created || "N/A";
@@ -92,10 +96,13 @@ function App() {
     }, {})
   );
 
-  // ✅ Export
   const exportToCSV = () => {
-    const headers = ["Task", "Status"];
-    const rows = jobs.map(job => [job.task, job.status]);
+    const headers = ["Task", "Status", "Chargeable"];
+    const rows = jobs.map(job => [
+      job.task,
+      job.status,
+      job.chargeable ? "Yes" : "No"
+    ]);
 
     const csvContent =
       "data:text/csv;charset=utf-8," +
@@ -160,6 +167,16 @@ function App() {
               <h3>Closed Jobs</h3>
               <p>{closedJobs}</p>
             </div>
+
+            <div className="kpi-card">
+              <h3>Chargeable</h3>
+              <p>{chargeableJobs}</p>
+            </div>
+
+            <div className="kpi-card">
+              <h3>Non‑Chargeable</h3>
+              <p>{nonChargeableJobs}</p>
+            </div>
           </div>
 
           <div className="card">
@@ -170,11 +187,7 @@ function App() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="jobs"
-                  stroke="#2563eb"
-                />
+                <Line type="monotone" dataKey="jobs" stroke="#2563eb" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -186,15 +199,28 @@ function App() {
         <>
           <div className="card">
             <h3>New Job</h3>
+
             <input
               value={newJob}
               onChange={e => setNewJob(e.target.value)}
+              placeholder="Job description"
             />
+
+            <label>
+              <input
+                type="checkbox"
+                checked={chargeable}
+                onChange={e => setChargeable(e.target.checked)}
+              />
+              Chargeable
+            </label>
+
             <button onClick={addJob}>Add Job</button>
           </div>
 
           <div className="card">
             <h3>Jobs</h3>
+
             <button onClick={exportToCSV}>
               Download Jobs (Excel)
             </button>
@@ -202,7 +228,8 @@ function App() {
             <ul>
               {jobs.map((job, i) => (
                 <li key={i}>
-                  {job.task} — {job.status}
+                  {job.task} — {job.status} —{" "}
+                  {job.chargeable ? "💰" : "—"}
                   {job.status === "Open" && (
                     <button onClick={() => closeJob(i)}>
                       Close
@@ -215,7 +242,6 @@ function App() {
         </>
       )}
 
-      {/* UPLOAD */}
       {tab === "upload" && (
         <div className="card">
           <h3>Upload (Coming Soon)</h3>
