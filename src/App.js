@@ -1,4 +1,13 @@
-import React, { useState, useEffect } from "react";import React,Now(new Date());
+import React, { useState, useEffect } from "react";import React, [jobs, setJobs] = useState([]);
+  const [newJob, setNewJob] = useState("");
+  const [jobType, setJobType] = useState("Outbound");
+  const [tab, setTab] = useState("dashboard");
+  const [timeNow, setTimeNow] = useState(new Date());
+
+  // ✅ LIVE CLOCK
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeNow(new Date());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -22,14 +31,12 @@ import React, { useState, useEffect } from "react";import React,Now(new Date());
     setNewJob("");
   };
 
-  // ✅ START TIMER
   const startJob = (i) => {
     const copy = [...jobs];
     copy[i].startTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ CLOSE JOB
   const closeJob = (i) => {
     const copy = [...jobs];
     copy[i].status = "Closed";
@@ -37,12 +44,12 @@ import React, { useState, useEffect } from "react";import React,Now(new Date());
     setJobs(copy);
   };
 
-  // ✅ KPI
+  // ✅ KPIs
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ LINE CHART DATA
+  // ✅ LINE CHART
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
@@ -51,7 +58,7 @@ import React, { useState, useEffect } from "react";import React,Now(new Date());
     }, {})
   );
 
-  // ✅ PIE CHART DATA
+  // ✅ PIE CHART
   const typeChartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.type]) acc[j.type] = { name: j.type, value: 0 };
@@ -76,7 +83,6 @@ import React, { useState, useEffect } from "react";import React,Now(new Date());
           <button onClick={() => setTab("jobs")}>Jobs</button>
         </div>
 
-        {/* ✅ DASHBOARD */}
         {tab === "dashboard" && (
           <>
             <div className="kpi-row">
@@ -95,8 +101,6 @@ import React, { useState, useEffect } from "react";import React,Now(new Date());
             </div>
 
             <div className="chart-grid">
-
-              {/* ✅ LINE CHART */}
               <div className="chart-box">
                 <h3>Jobs Over Time</h3>
                 <ResponsiveContainer width="100%" height={200}>
@@ -109,7 +113,6 @@ import React, { useState, useEffect } from "react";import React,Now(new Date());
                 </ResponsiveContainer>
               </div>
 
-              {/* ✅ PIE CHART */}
               <div className="chart-box">
                 <h3>Job Distribution</h3>
                 <ResponsiveContainer width="100%" height={200}>
@@ -122,22 +125,17 @@ import React, { useState, useEffect } from "react";import React,Now(new Date());
                       label={({ name, value }) => `${name} (${value})`}
                     >
                       {typeChartData.map((entry, index) => (
-                        <Cell
-                          key={index}
-                          fill={COLORS[index % COLORS.length]}
-                        />
+                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-
             </div>
           </>
         )}
 
-        {/* ✅ JOBS */}
         {tab === "jobs" && (
           <>
             <input
@@ -163,32 +161,14 @@ import React, { useState, useEffect } from "react";import React,Now(new Date());
             <ul>
               {jobs.map((job, i) => (
                 <li key={i}>
-                  {job.status === "Closed"
-                    ? "✅"
-                    : job.startTime
-                    ? "⏳"
-                    : "⏺"}{" "}
-
                   {job.task} — {job.type} — {job.status}
-
-                  {job.startTime && !job.endTime &&
-                    ` — ${Math.floor((timeNow - job.startTime) / 60000)}m running`
-                  }
-
-                  {!job.startTime && job.status === "Open" && (
-                    <button onClick={() => startJob(i)}>Start</button>
-                  )}
-
-                  {job.startTime && job.status === "Open" && (
-                    <button onClick={() => closeJob(i)}>Close</button>
-                  )}
                 </li>
               ))}
             </ul>
           </>
         )}
 
-        {/* ✅ ACTIVE JOB BAR */}
+        {/* ✅ ACTIVE BAR */}
         <div className="active-bar">
           <h4>ACTIVE JOBS ({activeJobs})</h4>
 
@@ -227,12 +207,3 @@ import {
 } from "recharts";
 
 function App() {
-  const [jobs, setJobs] = useState([]);
-  const [newJob, setNewJob] = useState("");
-  const [jobType, setJobType] = useState("Outbound");
-  const [tab, setTab] = useState("dashboard");
-  const [timeNow, setTimeNow] = useState(new Date());
-
-  // ✅ LIVE CLOCK
-  useEffect(() => {
-    const interval = setInterval(() => {
