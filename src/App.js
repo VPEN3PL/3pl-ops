@@ -6,9 +6,11 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  CartesianGrid
 } from "recharts";
-import { BarChart, Bar, CartesianGrid } from "recharts";
 
 function App() {
   const USERS = {
@@ -25,6 +27,7 @@ function App() {
   const [hydrated, setHydrated] = useState(false);
   const [tab, setTab] = useState("dashboard");
 
+  // ✅ Load saved data
   useEffect(() => {
     const savedJobs = localStorage.getItem("jobs");
     const savedUser = localStorage.getItem("user");
@@ -35,17 +38,19 @@ function App() {
     setHydrated(true);
   }, []);
 
+  // ✅ Save jobs
   useEffect(() => {
     if (!hydrated) return;
     localStorage.setItem("jobs", JSON.stringify(jobs));
-  }, [jobs, hydrated]);
+  }, [jobs]);
 
+  // ✅ Save user
   useEffect(() => {
     if (!hydrated) return;
     user
       ? localStorage.setItem("user", JSON.stringify(user))
       : localStorage.removeItem("user");
-  }, [user, hydrated]);
+  }, [user]);
 
   const loginUser = () => {
     const match = Object.values(USERS).find(
@@ -57,6 +62,7 @@ function App() {
 
   const logout = () => setUser(null);
 
+  // ✅ Add job (WITH TIMER)
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -67,9 +73,9 @@ function App() {
         status: "Open",
         chargeable: chargeable,
         type: jobType,
-      created: new Date().toLocaleDateString(),
-startTime: Date.now(),
-endTime: null
+        created: new Date().toLocaleDateString(),
+        startTime: Date.now(),
+        endTime: null
       }
     ]);
 
@@ -78,59 +84,53 @@ endTime: null
     setJobType("Inbound");
   };
 
+  // ✅ Close job (WITH TIMER STOP)
   const closeJob = index => {
     const copy = [...jobs];
     copy[index].status = "Closed";
+    copy[index].endTime = Date.now();
     setJobs(copy);
   };
 
+  // ✅ KPI counts
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
   const chargeableJobs = jobs.filter(j => j.chargeable).length;
   const nonChargeableJobs = jobs.filter(j => !j.chargeable).length;
 
+  // ✅ Line chart data
   const chartData = Object.values(
-    const typeChartData = Object.values(
-  jobs.reduce((acc, job) => {
-    const type = job.type || "Other";
-
-    if (!acc[type]) {
-      acc[type] = { name: type, count: 0 };
-    }
-
-    acc[type].count += 1;
-    return acc;
-  }, {})
-);
-``
     jobs.reduce((acc, job) => {
       const date = job.created || "N/A";
-
-      if (!acc[date]) {
-        acc[date] = { name: date, jobs: 0 };
-      }
-
+      if (!acc[date]) acc[date] = { name: date, jobs: 0 };
       acc[date].jobs += 1;
       return acc;
     }, {})
   );
 
+  // ✅ Bar chart (job types)
+  const typeChartData = Object.values(
+    jobs.reduce((acc, job) => {
+      const type = job.type || "Other";
+      if (!acc[type]) acc[type] = { name: type, count: 0 };
+      acc[type].count += 1;
+      return acc;
+    }, {})
+  );
+
+  // ✅ Export
   const exportToCSV = () => {
     const headers = ["Task", "Status", "Type", "Chargeable"];
     const rows = jobs.map(job => [
-{job.task} — {job.status} — {job.type} —{" "}
-{job.chargeable ? "💰" : "—"} —{" "}
-{job.endTime
-  ? Math.round((job.endTime - job.startTime) / 60000) +
+      job.task,
+      job.status,
       job.type,
       job.chargeable ? "Yes" : "No"
     ]);
 
     const csvContent =
       "data:text/csv;charset=utf-8," +
-      [headers, ...rows]
-        .map(row => row.join(","))
-        .join("\n");
+      [headers, ...rows].map(row => row.join(",")).join("\n");
 
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
@@ -146,12 +146,16 @@ endTime: null
           <h2>3PL Login</h2>
           <input
             placeholder="Username"
-            onChange={e => setLogin({ ...login, username: e.target.value })}
+            onChange={e =>
+              setLogin({ ...login, username: e.target.value })
+            }
           />
           <input
             type="password"
             placeholder="Password"
-            onChange={e => setLogin({ ...login, password: e.target.value })}
+            onChange={e =>
+              setLogin({ ...login, password: e.target.value })
+            }
           />
           <button onClick={loginUser}>Login</button>
         </div>
@@ -172,46 +176,19 @@ endTime: null
         <button onClick={() => setTab("upload")}>Upload</button>
       </div>
 
+      {/* ✅ DASHBOARD */}
       {tab === "dashboard" && (
         <>
           <div className="kpi-row">
-            <div className="kpi-card">
-              <h3>Open Jobs</h3>
-              <p>{openJobs}</p>
-            </div>
-
-            <div className="kpi-card">
-              <h3>Closed Jobs</h3>
-              <p>{closedJobs}</p>
-            </div>
-
-            <div className="kpi-card">
-              <h3>Chargeable</h3>
-              <p>{chargeableJobs}</p>
-            </div>
-
-            <div className="kpi-card">
-              <h3>Non‑Chargeable</h3>
-              <p>{nonChargeableJobs}</p>
-            </div>
+            <div className="kpi-card"><h3>Open</h3><p>{openJobs}</p></div>
+            <div className="kpi-card"><h3>Closed</h3><p>{closedJobs}</p></div>
+            <div className="kpi-card"><h3>💰</h3><p>{chargeableJobs}</p></div>
+            <div className="kpi-card"><h3>No $</h3><p>{nonChargeableJobs}</p></div>
           </div>
 
+          {/* Line Chart */}
           <div className="card">
-            <h3>Jobs Created Over Time</h3>
-            <div className="card">
-  <h3>Jobs by Type</h3>
-
-  <ResponsiveContainer width="100%" height={250}>
-    <BarChart data={typeChartData}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Tooltip />
-      <Bar dataKey="count" fill="#22c55e" />
-    </BarChart>
-  </ResponsiveContainer>
-</div>
-
+            <h3>Jobs Over Time</h3>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={chartData}>
                 <XAxis dataKey="name" />
@@ -221,9 +198,24 @@ endTime: null
               </LineChart>
             </ResponsiveContainer>
           </div>
+
+          {/* Bar Chart */}
+          <div className="card">
+            <h3>Jobs by Type</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={typeChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#22c55e" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </>
       )}
 
+      {/* ✅ JOBS */}
       {tab === "jobs" && (
         <>
           <div className="card">
@@ -232,13 +224,9 @@ endTime: null
             <input
               value={newJob}
               onChange={e => setNewJob(e.target.value)}
-              placeholder="Job description"
             />
 
-            <select
-              value={jobType}
-              onChange={e => setJobType(e.target.value)}
-            >
+            <select value={jobType} onChange={e => setJobType(e.target.value)}>
               <option>Inbound</option>
               <option>Outbound</option>
               <option>Putaway</option>
@@ -263,20 +251,19 @@ endTime: null
           <div className="card">
             <h3>Jobs</h3>
 
-            <button onClick={exportToCSV}>
-              Download Jobs (Excel)
-            </button>
+            <button onClick={exportToCSV}>Download CSV</button>
 
             <ul>
               {jobs.map((job, i) => (
                 <li key={i}>
                   {job.task} — {job.status} — {job.type} —{" "}
-                  {job.chargeable ? "💰" : "—"}
+                  {job.chargeable ? "💰" : "—"} —{" "}
+                  {job.endTime
+                    ? Math.round((job.endTime - job.startTime) / 60000) + " min"
+                    : "In Progress"}
 
                   {job.status === "Open" && (
-                    <button onClick={() => closeJob(i)}>
-                      Close
-                    </button>
+                    <button onClick={() => closeJob(i)}>Close</button>
                   )}
                 </li>
               ))}
