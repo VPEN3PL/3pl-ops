@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./App.css";
 
 function App() {
@@ -22,7 +22,7 @@ function App() {
 
   const logout = () => setUser(null);
 
-  // ✅ ADD JOB (NO TIMER YET)
+  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -46,7 +46,7 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ CLOSE JOB (STOP TIMER)
+  // ✅ CLOSE JOB
   const closeJob = index => {
     const copy = [...jobs];
     copy[index].status = "Closed";
@@ -94,7 +94,7 @@ function App() {
           <li key={i}>
             {job.task} — {job.status} —{" "}
 
-            {/* ✅ TIMER DISPLAY */}
+            {/* ✅ Timer Display */}
             {job.startTime && job.endTime && (
               (() => {
                 const diff = job.endTime - job.startTime;
@@ -104,12 +104,14 @@ function App() {
               })()
             )}
 
+            {/* ✅ Start button */}
             {!job.startTime && job.status === "Open" && (
               <button onClick={() => startJob(i)}>
                 Start Timer
               </button>
             )}
 
+            {/* ✅ Close button */}
             {job.startTime && job.status === "Open" && (
               <button onClick={() => closeJob(i)}>
                 Close
