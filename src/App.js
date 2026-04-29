@@ -9,8 +9,7 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-  Legend
+  Cell
 } from "recharts";
 
 function App() {
@@ -35,7 +34,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ ADD JOB
+  // ✅ JOB FUNCTIONS
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -50,7 +49,6 @@ function App() {
         created: new Date().toLocaleDateString()
       }
     ]);
-
     setNewJob("");
   };
 
@@ -67,34 +65,12 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ EXPORT
-  const exportToCSV = () => {
-    const headers = ["Task", "Type", "Status", "Duration"];
-
-    const rows = jobs.map(j => {
-      let d = "";
-      if (j.startTime && j.endTime) {
-        d = `${Math.floor((j.endTime - j.startTime) / 60000)}m`;
-      }
-      return [j.task, j.type, j.status, d];
-    });
-
-    const csv =
-      "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map(r => r.join(",")).join("\n");
-
-    const link = document.createElement("a");
-    link.href = encodeURI(csv);
-    link.download = "jobs.csv";
-    link.click();
-  };
-
-  // ✅ KPI
+  // ✅ KPIs
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ LINE CHART
+  // ✅ LINE CHART DATA
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
@@ -103,7 +79,7 @@ function App() {
     }, {})
   );
 
-  // ✅ PIE CHART DATA
+  // ✅ PIE DATA
   const typeChartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.type]) acc[j.type] = { name: j.type, value: 0 };
@@ -134,27 +110,37 @@ function App() {
         {tab === "dashboard" && (
           <>
             <div className="kpi-row">
-              <div className="kpi-card"><h3>Open</h3><p>{openJobs}</p></div>
-              <div className="kpi-card"><h3>Active</h3><p>{activeJobs}</p></div>
-              <div className="kpi-card"><h3>Closed</h3><p>{closedJobs}</p></div>
+              <div className="kpi-card">
+                <h3>Open</h3>
+                <p>{openJobs}</p>
+              </div>
+              <div className="kpi-card">
+                <h3>Active</h3>
+                <p>{activeJobs}</p>
+              </div>
+              <div className="kpi-card">
+                <h3>Closed</h3>
+                <p>{closedJobs}</p>
+              </div>
             </div>
 
+            {/* ✅ FIXED GRID */}
             <div className="chart-grid">
 
-              {/* ✅ LINE CHART */}
+              {/* ✅ LINE */}
               <div className="chart-box">
                 <h3>Jobs Over Time</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={chartData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line dataKey="jobs" stroke="#2563eb" />
+                    <XAxis dataKey="name"/>
+                    <YAxis/>
+                    <Tooltip/>
+                    <Line dataKey="jobs" stroke="#2563eb"/>
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* ✅ PIE CHART WITH LABELS */}
+              {/* ✅ PIE */}
               <div className="chart-box">
                 <h3>Job Distribution</h3>
                 <ResponsiveContainer width="100%" height={200}>
@@ -171,7 +157,6 @@ function App() {
                       ))}
                     </Pie>
                     <Tooltip />
-                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -196,7 +181,6 @@ function App() {
             </select>
 
             <button onClick={addJob}>Add Job</button>
-            <button onClick={exportToCSV}>Export CSV</button>
 
             <ul>
               {jobs.map((job, i) => (
@@ -267,9 +251,30 @@ function App() {
           </>
         )}
 
+        {/* ✅ ACTIVE BAR */}
+        <div className="active-bar">
+          <h4>ACTIVE JOBS ({activeJobs})</h4>
+
+          <div className="active-list">
+            {jobs
+              .filter(j => j.startTime && j.status === "Open")
+              .map((job, i) => {
+                const diff = timeNow - job.startTime;
+                const minutes = Math.floor(diff / 60000);
+
+                return (
+                  <div key={i} className="active-item">
+                    ⏳ {job.task} — {job.type} — {minutes}m
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+
       </div>
     </>
   );
 }
 
 export default App;
+``
