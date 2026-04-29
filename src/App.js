@@ -27,7 +27,7 @@ function App() {
   const [hydrated, setHydrated] = useState(false);
   const [tab, setTab] = useState("dashboard");
 
-  // ✅ Load saved data
+  // ✅ Load data
   useEffect(() => {
     const savedJobs = localStorage.getItem("jobs");
     const savedUser = localStorage.getItem("user");
@@ -42,7 +42,7 @@ function App() {
   useEffect(() => {
     if (!hydrated) return;
     localStorage.setItem("jobs", JSON.stringify(jobs));
-  }, [jobs]);
+  }, [jobs, hydrated]);
 
   // ✅ Save user
   useEffect(() => {
@@ -50,7 +50,7 @@ function App() {
     user
       ? localStorage.setItem("user", JSON.stringify(user))
       : localStorage.removeItem("user");
-  }, [user]);
+  }, [user, hydrated]);
 
   const loginUser = () => {
     const match = Object.values(USERS).find(
@@ -62,7 +62,7 @@ function App() {
 
   const logout = () => setUser(null);
 
-  // ✅ Add job (WITH TIMER)
+  // ✅ Add job with timer
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -71,7 +71,7 @@ function App() {
       {
         task: newJob,
         status: "Open",
-        chargeable: chargeable,
+        chargeable,
         type: jobType,
         created: new Date().toLocaleDateString(),
         startTime: Date.now(),
@@ -84,7 +84,7 @@ function App() {
     setJobType("Inbound");
   };
 
-  // ✅ Close job (WITH TIMER STOP)
+  // ✅ Close job (stop timer)
   const closeJob = index => {
     const copy = [...jobs];
     copy[index].status = "Closed";
@@ -92,28 +92,28 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ KPI counts
+  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
   const chargeableJobs = jobs.filter(j => j.chargeable).length;
   const nonChargeableJobs = jobs.filter(j => !j.chargeable).length;
 
-  // ✅ Line chart data
+  // ✅ Chart: jobs over time
   const chartData = Object.values(
     jobs.reduce((acc, job) => {
       const date = job.created || "N/A";
       if (!acc[date]) acc[date] = { name: date, jobs: 0 };
-      acc[date].jobs += 1;
+      acc[date].jobs++;
       return acc;
     }, {})
   );
 
-  // ✅ Bar chart (job types)
+  // ✅ Chart: jobs by type
   const typeChartData = Object.values(
     jobs.reduce((acc, job) => {
       const type = job.type || "Other";
       if (!acc[type]) acc[type] = { name: type, count: 0 };
-      acc[type].count += 1;
+      acc[type].count++;
       return acc;
     }, {})
   );
@@ -130,7 +130,7 @@ function App() {
 
     const csvContent =
       "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map(row => row.join(",")).join("\n");
+      [headers, ...rows].map(r => r.join(",")).join("\n");
 
     const link = document.createElement("a");
     link.href = encodeURI(csvContent);
@@ -186,7 +186,6 @@ function App() {
             <div className="kpi-card"><h3>No $</h3><p>{nonChargeableJobs}</p></div>
           </div>
 
-          {/* Line Chart */}
           <div className="card">
             <h3>Jobs Over Time</h3>
             <ResponsiveContainer width="100%" height={250}>
@@ -199,7 +198,6 @@ function App() {
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart */}
           <div className="card">
             <h3>Jobs by Type</h3>
             <ResponsiveContainer width="100%" height={250}>
@@ -259,23 +257,20 @@ function App() {
                   {job.task} — {job.status} — {job.type} —{" "}
                   {job.chargeable ? "💰" : "—"} —{" "}
                   {job.endTime
-                    ? Math.round((job.endTime - job.startTime) / 60000) + " min"
+                    ? Math.round((job.endTime - job.startTime) / 60000) +
+                      " min"
                     : "In Progress"}
 
                   {job.status === "Open" && (
-                    <button onClick={() => closeJob(i)}>Close</button>
+                    <button onClick={() => closeJob(i)}>
+                      Close
+                    </button>
                   )}
                 </li>
               ))}
             </ul>
           </div>
         </>
-      )}
-
-      {tab === "upload" && (
-        <div className="card">
-          <h3>Upload (Coming Soon)</h3>
-        </div>
       )}
     </div>
   );
