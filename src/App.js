@@ -1,5 +1,16 @@
 import React, { useState } from "react";
 import "./App.css";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  CartesianGrid
+} from "recharts";
 
 function App() {
   const USERS = {
@@ -12,11 +23,11 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [newJob, setNewJob] = useState("");
   const [jobType, setJobType] = useState("Outbound");
+  const [tab, setTab] = useState("dashboard");
 
-  // ✅ LOGIN
   const loginUser = () => {
     const match = Object.values(USERS).find(
-      (u) => u.username === login.username && u.password === login.password
+      u => u.username === login.username && u.password === login.password
     );
     if (!match) return alert("Invalid login");
     setUser(match);
@@ -24,7 +35,6 @@ function App() {
 
   const logout = () => setUser(null);
 
-  // ✅ ADD JOB
   const addJob = () => {
     if (!newJob.trim()) return;
 
@@ -35,163 +45,186 @@ function App() {
         type: jobType,
         status: "Open",
         startTime: null,
-        endTime: null
+        endTime: null,
+        created: new Date().toLocaleDateString()
       }
     ]);
 
     setNewJob("");
   };
 
-  // ✅ START TIMER
-  const startJob = (index) => {
+  const startJob = index => {
     const copy = [...jobs];
     copy[index].startTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ CLOSE JOB
-  const closeJob = (index) => {
+  const closeJob = index => {
     const copy = [...jobs];
     copy[index].status = "Closed";
     copy[index].endTime = Date.now();
     setJobs(copy);
   };
 
-  // ✅ ✅ EXPORT CSV (NEW)
   const exportToCSV = () => {
     const headers = ["Task", "Type", "Status", "Duration"];
 
-    const rows = jobs.map((job) => {
+    const rows = jobs.map(job => {
       let duration = "";
-
       if (job.startTime && job.endTime) {
         const diff = job.endTime - job.startTime;
         const min = Math.floor(diff / 60000);
         const sec = Math.floor((diff % 60000) / 1000);
         duration = `${min}m ${sec}s`;
       }
-
       return [job.task, job.type, job.status, duration];
     });
 
-    const csvContent =
+    const csv =
       "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map((row) => row.join(",")).join("\n");
+      [headers, ...rows].map(r => r.join(",")).join("\n");
 
     const link = document.createElement("a");
-    link.href = encodeURI(csvContent);
+    link.href = encodeURI(csv);
     link.download = "jobs.csv";
     document.body.appendChild(link);
     link.click();
   };
 
-  // ✅ LOGIN SCREEN
+  // Charts
+  const chartData = Object.values(
+    jobs.reduce((acc, job) => {
+      const d = job.created;
+      if (!acc[d]) acc[d] = { name: d, jobs: 0 };
+      acc[d].jobs++;
+      return acc;
+    }, {})
+  );
+
+  const typeChartData = Object.values(
+    jobs.reduce((acc, job) => {
+      if (!acc[job.type]) acc[job.type] = { name: job.type, count: 0 };
+      acc[job.type].count++;
+      return acc;
+    }, {})
+  );
+
   if (!user) {
     return (
       <div className="container">
-        <h2>Login</h2>
-
-        <input
-          placeholder="Username"
-          onChange={(e) =>
-            setLogin({ ...login, username: e.target.value })
-          }
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) =>
-            setLogin({ ...login, password: e.target.value })
-          }
-        />
-
+        <h2>Intral Operations Login</h2>
+        <input placeholder="Username" onChange={e => setLogin({ ...login, username: e.target.value })}/>
+        <input type="password" placeholder="Password" onChange={e => setLogin({ ...login, password: e.target.value })}/>
         <button onClick={loginUser}>Login</button>
       </div>
     );
   }
 
-  // ✅ MAIN APP
   return (
     <div className="container">
-      <h1>Job Tracker</h1>
+
+      <h1>Intral Operations Dashboard</h1>
       <button onClick={logout}>Logout</button>
 
-      <h3>New Job</h3>
+      <div className="tabs">
+        <button onClick={() => setTab("dashboard")}>Dashboard</button>
+        <button onClick={() => setTab("jobs")}>Jobs</button>
+      </div>
 
-      <input
-        value={newJob}
-        onChange={(e) => setNewJob(e.target.value)}
-        placeholder="Enter job task"
-      />
+      {/* DASHBOARD */}
+      {tab === "dashboard" && (
+        <>
+          <div className="kpi-row">
+            <div className="kpi-card">
+              <h3>Open</h3>
+              <p>{jobs.filter(j => j.status === "Open").length}</p>
+            </div>
 
-      <select
-        value={jobType}
-        onChange={(e) => setJobType(e.target.value)}
-      >
-        <option>Outbound</option>
-        <option>Inbound</option>
-        <option>Wrapping</option>
-        <option>Movement</option>
-        <option>Picking</option>
-        <option>Other</option>
-      </select>
+            <div className="kpi-card">
+              <h3>Active</h3>
+              <p>{jobs.filter(j => j.startTime && j.status === "Open").length}</p>
+            </div>
 
-      <button onClick={addJob}>Add Job</button>
+            <div className="kpi-card">
+              <h3>Closed</h3>
+              <p>{jobs.filter(j => j.status === "Closed").length}</p>
+            </div>
+          </div>
 
-      {/* ✅ EXPORT BUTTON */}
-      <br /><br />
-      <button onClick={exportToCSV}>
-        Download CSV
-      </button>
+          <div className="card">
+            <h3>Jobs Over Time</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData}>
+                <XAxis dataKey="name"/>
+                <YAxis/>
+                <Tooltip/>
+                <Line dataKey="jobs" stroke="#2563eb"/>
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
 
-      <h3>Jobs</h3>
+          <div className="card">
+            <h3>Jobs by Type</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={typeChartData}>
+                <CartesianGrid strokeDasharray="3 3"/>
+                <XAxis dataKey="name"/>
+                <YAxis/>
+                <Tooltip/>
+                <Bar dataKey="count" fill="#22c55e"/>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
 
-      <ul>
-        {jobs.map((job, i) => (
-          <li key={i}>
-            {/* ✅ STATUS ICON */}
-            {job.status === "Closed"
-              ? "✅ "
-              : job.startTime
-              ? "⏳ "
-              : "⏺ "}
+      {/* JOBS */}
+      {tab === "jobs" && (
+        <>
+          <h3>New Job</h3>
 
-            {job.task} — {job.type} —{" "}
+          <input value={newJob} onChange={e => setNewJob(e.target.value)} />
 
-            {job.status === "Closed"
-              ? "Closed"
-              : job.startTime
-              ? "Active"
-              : "Open"}{" "}
+          <select value={jobType} onChange={e => setJobType(e.target.value)}>
+            <option>Outbound</option>
+            <option>Inbound</option>
+            <option>Wrapping</option>
+            <option>Movement</option>
+            <option>Picking</option>
+            <option>Other</option>
+          </select>
 
-            {/* ✅ TIMER */}
-            {job.startTime && job.endTime && (
-              <>
-                —{" "}
-                {(() => {
-                  const diff = job.endTime - job.startTime;
-                  const min = Math.floor(diff / 60000);
-                  const sec = Math.floor((diff % 60000) / 1000);
-                  return `${min}m ${sec}s`;
-                })()}
-              </>
-            )}
+          <button onClick={addJob}>Add Job</button>
 
-            {!job.startTime && job.status === "Open" && (
-              <button onClick={() => startJob(i)}>
-                Start Timer
-              </button>
-            )}
+          <br/><br/>
+          <button onClick={exportToCSV}>Download CSV</button>
 
-            {job.startTime && job.status === "Open" && (
-              <button onClick={() => closeJob(i)}>
-                Close
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+          <ul>
+            {jobs.map((job,i)=>(
+              <li key={i}>
+                {job.status==="Closed" ? "✅" : job.startTime ? "⏳" : "⏺"}{" "}
+                {job.task} — {job.type} — {job.status}
+
+                {job.startTime && job.endTime && (
+                  <>
+                    {" — "}
+                    {Math.floor((job.endTime - job.startTime)/60000)}m
+                  </>
+                )}
+
+                {!job.startTime && job.status==="Open" && (
+                  <button onClick={()=>startJob(i)}>Start</button>
+                )}
+
+                {job.startTime && job.status==="Open" && (
+                  <button onClick={()=>closeJob(i)}>Close</button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
     </div>
   );
 }
