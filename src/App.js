@@ -19,17 +19,15 @@ function App() {
   const [tab, setTab] = useState("dashboard");
   const [timeNow, setTimeNow] = useState(new Date());
 
-  // ✅ Live clock
+  // ✅ CLOCK
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeNow(new Date());
-    }, 1000);
+    const interval = setInterval(() => setTimeNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ Add job
+  // ✅ ADD JOB
   const addJob = () => {
-    if (!newJob) return;
+    if (!newJob.trim()) return;
 
     setJobs([
       ...jobs,
@@ -46,7 +44,6 @@ function App() {
     setNewJob("");
   };
 
-  // ✅ Start / Close
   const startJob = (i) => {
     const copy = [...jobs];
     copy[i].startTime = Date.now();
@@ -60,25 +57,25 @@ function App() {
     setJobs(copy);
   };
 
-  // ✅ KPIs
+  // ✅ KPI
   const openJobs = jobs.filter(j => j.status === "Open").length;
   const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
   const closedJobs = jobs.filter(j => j.status === "Closed").length;
 
-  // ✅ Line chart data
+  // ✅ LINE DATA
   const chartData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.created]) acc[j.created] = { name: j.created, jobs: 0 };
-      acc[j.created].jobs += 1;
+      acc[j.created].jobs++;
       return acc;
     }, {})
   );
 
-  // ✅ Pie chart data
+  // ✅ PIE DATA
   const pieData = Object.values(
     jobs.reduce((acc, j) => {
       if (!acc[j.type]) acc[j.type] = { name: j.type, value: 0 };
-      acc[j.type].value += 1;
+      acc[j.type].value++;
       return acc;
     }, {})
   );
@@ -86,122 +83,115 @@ function App() {
   const COLORS = ["#2563eb", "#22c55e", "#f59e0b", "#ef4444", "#6366f1"];
 
   return (
-    <div className="container">
+    <>
+      <div className="background-layer"></div>
 
-      <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
-      <p>{timeNow.toLocaleString()}</p>
+      {/* ✅ MAIN CONTENT */}
+      <div className="main-content">
 
-      <div className="tabs">
-        <button onClick={() => setTab("dashboard")}>Dashboard</button>
-        <button onClick={() => setTab("jobs")}>Jobs</button>
-      </div>
+        <div className="container">
+          <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
+          <p>{timeNow.toLocaleString()}</p>
 
-      {/* ✅ DASHBOARD */}
-      {tab === "dashboard" && (
-        <div>
+          <div className="tabs">
+            <button onClick={() => setTab("dashboard")}>Dashboard</button>
+            <button onClick={() => setTab("jobs")}>Jobs</button>
+          </div>
 
-          <h3>Open: {openJobs}</h3>
-          <h3>Active: {activeJobs}</h3>
-          <h3>Closed: {closedJobs}</h3>
-
-          {jobs.length === 0 ? (
-            <p>No job data yet. Add jobs.</p>
-          ) : (
-            <div style={{ display: "flex", gap: "20px" }}>
-
-              {/* LINE */}
-              <div style={{ width: "50%" }}>
-                <h3>Jobs Over Time</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={chartData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line dataKey="jobs" stroke="#2563eb" />
-                  </LineChart>
-                </ResponsiveContainer>
+          {/* ✅ DASHBOARD */}
+          {tab === "dashboard" && (
+            <>
+              <div className="kpi-row">
+                <div className="kpi-card">Open: {openJobs}</div>
+                <div className="kpi-card">Active: {activeJobs}</div>
+                <div className="kpi-card">Closed: {closedJobs}</div>
               </div>
 
-              {/* PIE */}
-              <div style={{ width: "50%" }}>
-                <h3>Job Distribution</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie data={pieData} dataKey="value" nameKey="name">
-                      {pieData.map((entry, index) => (
-                        <Cell
-                          key={index}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              {jobs.length === 0 ? (
+                <p>No job data yet. Add jobs to see charts.</p>
+              ) : (
+                <div className="chart-grid">
 
-            </div>
+                  <div className="chart-box">
+                    <h3>Jobs Over Time</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={chartData}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line dataKey="jobs" stroke="#2563eb" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="chart-box">
+                    <h3>Job Distribution</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie data={pieData} dataKey="value" nameKey="name">
+                          {pieData.map((entry, index) => (
+                            <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ✅ JOBS */}
+          {tab === "jobs" && (
+            <>
+              <input
+                value={newJob}
+                onChange={(e) => setNewJob(e.target.value)}
+                placeholder="Job name"
+              />
+
+              <select
+                value={jobType}
+                onChange={(e) => setJobType(e.target.value)}
+              >
+                <option>Outbound</option>
+                <option>Inbound</option>
+                <option>Wrapping</option>
+                <option>Movement</option>
+                <option>Picking</option>
+              </select>
+
+              <button onClick={addJob}>Add Job</button>
+
+              <ul>
+                {jobs.map((job, i) => (
+                  <li key={i}>
+                    {job.task} - {job.type} - {job.status}
+
+                    {!job.startTime && job.status === "Open" && (
+                      <button onClick={() => startJob(i)}>Start</button>
+                    )}
+
+                    {job.startTime && job.status === "Open" && (
+                      <button onClick={() => closeJob(i)}>Close</button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
 
         </div>
-      )}
+      </div>
 
-      {/* ✅ JOBS */}
-      {tab === "jobs" && (
-        <div>
-
-          <input
-            value={newJob}
-            onChange={(e) => setNewJob(e.target.value)}
-            placeholder="Enter job"
-          />
-
-          <select
-            value={jobType}
-            onChange={(e) => setJobType(e.target.value)}
-          >
-            <option>Outbound</option>
-            <option>Inbound</option>
-            <option>Wrapping</option>
-            <option>Movement</option>
-            <option>Picking</option>
-          </select>
-
-          <button onClick={addJob}>Add Job</button>
-
-          <ul>
-            {jobs.map((job, i) => (
-              <li key={i}>
-                {job.task} - {job.type} - {job.status}
-
-                {!job.startTime && job.status === "Open" && (
-                  <button onClick={() => startJob(i)}>Start</button>
-                )}
-
-                {job.startTime && job.status === "Open" && (
-                  <button onClick={() => closeJob(i)}>Close</button>
-                )}
-              </li>
-            ))}
-          </ul>
-
-        </div>
-      )}
-
-      {/* ✅ ACTIVE BAR */}
-      <div style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        width: "100%",
-        background: "#111",
-        color: "white",
-        padding: "8px"
-      }}>
+      {/* ✅ BOTTOM PANEL (NO OVERLAP) */}
+      <div className="active-bar">
         Active Jobs: {activeJobs}
       </div>
 
-    </div>
+    </>
   );
 }
 
