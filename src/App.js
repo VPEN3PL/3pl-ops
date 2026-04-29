@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  CartesianGrid
+} from "recharts";
 
 function App() {
   const USERS = {
     manager: { username: "manager", password: "3PL_Admin!" }
   };
 
-  // ✅ LOAD USER FROM LOCAL STORAGE
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("user");
     return saved ? JSON.parse(saved) : null;
@@ -19,16 +29,11 @@ function App() {
   const [jobType, setJobType] = useState("Outbound");
   const [tab, setTab] = useState("dashboard");
 
-  // ✅ SAVE USER WHEN IT CHANGES
   useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("user");
-    }
+    if (user) localStorage.setItem("user", JSON.stringify(user));
+    else localStorage.removeItem("user");
   }, [user]);
 
-  // ✅ LOGIN
   const loginUser = () => {
     const match = Object.values(USERS).find(
       u => u.username === login.username && u.password === login.password
@@ -49,7 +54,8 @@ function App() {
         type: jobType,
         status: "Open",
         startTime: null,
-        endTime: null
+        endTime: null,
+        created: new Date().toLocaleDateString()
       }
     ]);
 
@@ -69,10 +75,33 @@ function App() {
     setJobs(copy);
   };
 
+  // ✅ KPI
+  const openJobs = jobs.filter(j => j.status === "Open").length;
+  const activeJobs = jobs.filter(j => j.startTime && j.status === "Open").length;
+  const closedJobs = jobs.filter(j => j.status === "Closed").length;
+
+  // ✅ Charts
+  const chartData = Object.values(
+    jobs.reduce((acc, job) => {
+      const d = job.created;
+      if (!acc[d]) acc[d] = { name: d, jobs: 0 };
+      acc[d].jobs++;
+      return acc;
+    }, {})
+  );
+
+  const typeChartData = Object.values(
+    jobs.reduce((acc, job) => {
+      if (!acc[job.type]) acc[job.type] = { name: job.type, count: 0 };
+      acc[job.type].count++;
+      return acc;
+    }, {})
+  );
+
   if (!user) {
     return (
       <div className="container">
-        <h2>Login</h2>
+        <h2>Intral Operations Login</h2>
 
         <input
           placeholder="Username"
@@ -93,7 +122,7 @@ function App() {
   return (
     <div className="container">
 
-      <h1>3PL Operations Dashboard</h1>
+      <h1>Intral Operations Dashboard</h1>
       <button onClick={logout}>Logout</button>
 
       <div className="tabs">
@@ -101,28 +130,50 @@ function App() {
         <button onClick={() => setTab("jobs")}>Jobs</button>
       </div>
 
-      {/* DASHBOARD */}
+      {/* ✅ DASHBOARD */}
       {tab === "dashboard" && (
         <>
-          <h3>Overview</h3>
-          <p>Build charts here (next step)</p>
+          <div className="kpi-row">
+            <div className="kpi-card"><h3>Open</h3><p>{openJobs}</p></div>
+            <div className="kpi-card"><h3>Active</h3><p>{activeJobs}</p></div>
+            <div className="kpi-card"><h3>Closed</h3><p>{closedJobs}</p></div>
+          </div>
+
+          <div className="card">
+            <h3>Jobs Over Time</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData}>
+                <XAxis dataKey="name"/>
+                <YAxis/>
+                <Tooltip/>
+                <Line dataKey="jobs" stroke="#2563eb"/>
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="card">
+            <h3>Jobs by Type</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={typeChartData}>
+                <CartesianGrid strokeDasharray="3 3"/>
+                <XAxis dataKey="name"/>
+                <YAxis/>
+                <Tooltip/>
+                <Bar dataKey="count" fill="#22c55e"/>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </>
       )}
 
-      {/* JOBS */}
+      {/* ✅ JOBS */}
       {tab === "jobs" && (
         <>
           <h3>New Job</h3>
 
-          <input
-            value={newJob}
-            onChange={e => setNewJob(e.target.value)}
-          />
+          <input value={newJob} onChange={e => setNewJob(e.target.value)} />
 
-          <select
-            value={jobType}
-            onChange={e => setJobType(e.target.value)}
-          >
+          <select value={jobType} onChange={e => setJobType(e.target.value)}>
             <option>Outbound</option>
             <option>Inbound</option>
             <option>Wrapping</option>
@@ -133,36 +184,22 @@ function App() {
 
           <button onClick={addJob}>Add Job</button>
 
-          <h3>Jobs</h3>
-
           <ul>
-            {jobs.map((job, i) => (
+            {jobs.map((job,i)=>(
               <li key={i}>
-                {job.status === "Closed"
-                  ? "✅ "
-                  : job.startTime
-                  ? "⏳ "
-                  : "⏺ "}
-
+                {job.status==="Closed" ? "✅" : job.startTime ? "⏳" : "⏺"}{" "}
                 {job.task} — {job.type} — {job.status}
 
-                {job.startTime && job.endTime && (
-                  <>
-                    {" — "}
-                    {Math.floor((job.endTime - job.startTime) / 60000)}m
-                  </>
+                {job.startTime && job.endTime &&
+                  ` — ${Math.floor((job.endTime - job.startTime)/60000)}m`
+                }
+
+                {!job.startTime && job.status==="Open" && (
+                  <button onClick={()=>startJob(i)}>Start</button>
                 )}
 
-                {!job.startTime && job.status === "Open" && (
-                  <button onClick={() => startJob(i)}>
-                    Start
-                  </button>
-                )}
-
-                {job.startTime && job.status === "Open" && (
-                  <button onClick={() => closeJob(i)}>
-                    Close
-                  </button>
+                {job.startTime && job.status==="Open" && (
+                  <button onClick={()=>closeJob(i)}>Close</button>
                 )}
               </li>
             ))}
