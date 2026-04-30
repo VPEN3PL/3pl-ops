@@ -735,6 +735,37 @@ function App() {
               </div>
             )}
           </div>
+
+          <h2>Top 5 Oldest Open Requests</h2>
+
+          <div className="card">
+            {topOldestRequests.length === 0 ? (
+              <p>No open requests.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Job #</th>
+                    <th>Requestor</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Hours Open</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topOldestRequests.map((j) => (
+                    <tr key={j.id}>
+                      <td>{j.jobNumber}</td>
+                      <td>{j.requestorName}</td>
+                      <td>{j.requestCategory}</td>
+                      <td>{j.status}</td>
+                      <td>{getHoursOpen(j)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       )}
 
