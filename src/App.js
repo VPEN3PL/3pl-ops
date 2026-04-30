@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import "./App.css";
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, PieChart, Pie
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
 } from "recharts";
 
 function App() {
@@ -12,16 +20,13 @@ function App() {
   const [tab, setTab] = useState("dashboard");
 
   const addJob = () => {
-    if (!newJob) return;
+    if (!newJob.trim()) return;
 
-    setJobs([
-      ...jobs,
-      {
-        task: newJob,
-        type: jobType,
-        created: new Date().toLocaleDateString()
-      }
-    ]);
+    setJobs([...jobs, {
+      task: newJob,
+      type: jobType,
+      created: new Date().toLocaleDateString()
+    }]);
 
     setNewJob("");
   };
@@ -42,86 +47,96 @@ function App() {
     }, {})
   );
 
+  const COLORS = ["#2563eb","#22c55e","#f59e0b","#ef4444","#6366f1"];
+
   return (
-    <div className="container">
+    <>
+      <div className="background"></div>
 
-      <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
+      <div className="page">
 
-      <div className="tabs">
-        <button onClick={() => setTab("dashboard")}>Dashboard</button>
-        <button onClick={() => setTab("jobs")}>Jobs</button>
-      </div>
+        <div className="card">
+          <h1>INTRAL OPERATIONS CONTROL PANEL</h1>
 
-      {tab === "dashboard" && (
-        <div>
+          <div className="tabs">
+            <button onClick={() => setTab("dashboard")}>Dashboard</button>
+            <button onClick={() => setTab("jobs")}>Jobs</button>
+          </div>
 
-          <h3>Total Jobs: {jobs.length}</h3>
+          {tab === "dashboard" && (
+            <>
+              <h3>Total Jobs: {jobs.length}</h3>
 
-          {jobs.length === 0 ? (
-            <p>No data yet</p>
-          ) : (
-            <div className="chart-row">
+              {jobs.length === 0 ? (
+                <p>No data yet</p>
+              ) : (
+                <div className="charts">
 
-              <div className="chart-box">
-                <h3>Jobs Over Time</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={chartData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line dataKey="jobs" stroke="#2563eb" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+                  <div>
+                    <h3>Jobs Over Time</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={chartData}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line dataKey="jobs" stroke="#2563eb" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
 
-              <div className="chart-box">
-                <h3>Job Types</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie data={pieData} dataKey="value" nameKey="name" />
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+                  <div>
+                    <h3>Job Distribution</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie data={pieData} dataKey="value" nameKey="name" label>
+                          {pieData.map((entry, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
 
-            </div>
+                </div>
+              )}
+            </>
           )}
 
+          {tab === "jobs" && (
+            <>
+              <input
+                value={newJob}
+                onChange={(e) => setNewJob(e.target.value)}
+                placeholder="Enter job"
+              />
+
+              <select onChange={(e) => setJobType(e.target.value)}>
+                <option>Wrapping</option>
+                <option>Movement</option>
+                <option>Picking</option>
+              </select>
+
+              <button onClick={addJob}>Add Job</button>
+
+              <ul>
+                {jobs.map((job, i) => (
+                  <li key={i}>{job.task} — {job.type}</li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
-      )}
 
-      {tab === "jobs" && (
-        <div>
-
-          <input
-            value={newJob}
-            onChange={(e) => setNewJob(e.target.value)}
-            placeholder="Enter job"
-          />
-
-          <select onChange={(e) => setJobType(e.target.value)}>
-            <option>Wrapping</option>
-            <option>Movement</option>
-            <option>Picking</option>
-          </select>
-
-          <button onClick={addJob}>Add Job</button>
-
-          <ul>
-            {jobs.map((job, i) => (
-              <li key={i}>{job.task} - {job.type}</li>
-            ))}
-          </ul>
-
+        <div className="footer">
+          Jobs: {jobs.length}
         </div>
-      )}
 
-      <div className="active-bar">
-        Jobs: {jobs.length}
       </div>
-
-    </div>
+    </>
   );
 }
 
 export default App;
+``
