@@ -109,11 +109,6 @@ function App() {
   const [transferScanInput, setTransferScanInput] = useState("");
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  const [pickForm, setPickForm] = useState({
-    inventoryId: "",
-    pickQty: "",
-  });
-
   const [allocationForm, setAllocationForm] = useState({
     jobNumber: "",
     inventoryId: "",
@@ -276,6 +271,15 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (
+      isCustomer &&
+      (tab === "home" || tab === "orders" || tab === "audit" || tab === "admin")
+    ) {
+      setTab("capture");
+    }
+  }, [isCustomer, tab]);
+
+  useEffect(() => {
     if (tab === "inventory" && inventorySection === "moving") {
       setTimeout(() => transferScanRef.current?.focus(), 100);
     }
@@ -366,19 +370,6 @@ function App() {
     const source = String(job?.request_source || "").toLowerCase();
     const category = String(job?.request_category || "").toLowerCase();
     return source === "customer" && category.includes("inventory support");
-  };
-
-  const isCratingJob = (job) => {
-    const source = String(job?.request_source || "").toLowerCase();
-    const category = String(job?.request_category || "").toLowerCase();
-    const jobType = String(job?.job_type || "").toLowerCase();
-
-    return (
-      source.includes("a&m") ||
-      source.includes("am") ||
-      category.includes("crating") ||
-      jobType.includes("crating")
-    );
   };
 
   const getHoursOpen = (job) => {
