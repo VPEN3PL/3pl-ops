@@ -89,10 +89,7 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [inventoryItems, setInventoryItems] = useState(() => {
-    const saved = localStorage.getItem("intralInventoryItems");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [inventoryItems, setInventoryItems] = useState([]);
 
   const [labelData, setLabelData] = useState(null);
   const [inventorySearch, setInventorySearch] = useState("");
@@ -230,6 +227,67 @@ function App() {
   }, [session]);
 
   useEffect(() => {
+    async function fetchInventoryItems() {
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from("inventory_items")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.log("Inventory load error:", error.message);
+        return;
+      }
+
+      setInventoryItems((data || []).map(mapInventoryFromDb));
+    }
+
+    fetchInventoryItems();
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const channel = supabase
+      .channel("realtime-inventory-items")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "inventory_items" },
+        (payload) => {
+          setInventoryItems((prev) => {
+            let updated = [...prev];
+
+            if (payload.eventType === "INSERT") {
+              const newItem = mapInventoryFromDb(payload.new);
+              if (!updated.some((item) => item.dbId === newItem.dbId)) {
+                updated.unshift(newItem);
+              }
+            }
+
+            if (payload.eventType === "UPDATE") {
+              const updatedItem = mapInventoryFromDb(payload.new);
+              updated = updated.map((item) =>
+                item.dbId === updatedItem.dbId ? updatedItem : item
+              );
+            }
+
+            if (payload.eventType === "DELETE") {
+              updated = updated.filter((item) => item.dbId !== payload.old.id);
+            }
+
+            return updated;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session]);
+
+  useEffect(() => {
     async function fetchAuditLogs() {
       if (!session || !(isAdmin || isManager)) return;
 
@@ -249,10 +307,6 @@ function App() {
 
     fetchAuditLogs();
   }, [session, isAdmin, isManager, jobs, inventoryMoveQueue]);
-
-  useEffect(() => {
-    localStorage.setItem("intralInventoryItems", JSON.stringify(inventoryItems));
-  }, [inventoryItems]);
 
   useEffect(() => {
     localStorage.setItem(
@@ -365,6 +419,48 @@ function App() {
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
+
+  const mapInventoryFromDb = (row) => ({
+    id: row.inventory_id,
+    dbId: row.id,
+    inventoryId: row.inventory_id,
+    jobNumber: row.job_number || "",
+    customer: row.customer || "",
+    partNumber: row.part_number || "",
+    description: row.description || "",
+    quantity: Number(row.quantity || 0),
+    site: row.site || "",
+    locationDetail: row.location_detail || "",
+    amTag: row.am_tag || "",
+    status: row.status || "Available",
+    poNumber: row.po_number || "",
+    countryOfOrigin: row.country_of_origin || "",
+    squareFeet: row.square_feet || "",
+    createdAt: row.created_at || "",
+    updatedAt: row.updated_at || "",
+    createdByEmail: row.created_by_email || "",
+    moveHistory: [],
+    pickHistory: [],
+    allocations: [],
+  });
+
+  const mapInventoryToDb = (item, generatedInventoryId) => ({
+    inventory_id: generatedInventoryId,
+    job_number: getNextJobNumber(inventoryItems),
+    customer: item.customer || "",
+    part_number: item.partNumber || "",
+    description: item.description || "",
+    quantity: Number(item.quantity || 0),
+    site: item.site || "INTRAL",
+    location_detail: item.locationDetail || "",
+    am_tag: item.amTag || "",
+    status: "Available",
+    po_number: item.poNumber || "",
+    country_of_origin: item.countryOfOrigin || "",
+    square_feet: item.squareFeet || "",
+    created_by: session?.user?.id || null,
+    created_by_email: session?.user?.email || "",
+  });
 
   const isCustomerInventorySupportJob = (job) => {
     const source = String(job?.request_source || "").toLowerCase();
@@ -617,23 +713,41 @@ function App() {
     alert("Job request submitted successfully.");
   };
 
-  const addInventoryItem = (item) => {
+  const addInventoryItem = async (item) => {
+    if (!canReceiveInventory) {
+      alert("You do not have permission to receive inventory.");
+      return;
+    }
+
     const generatedInventoryId = getNextInventoryId(inventoryItems);
+    const dbItem = mapInventoryToDb(item, generatedInventoryId);
 
-    const newItem = {
-      id: generatedInventoryId,
-      inventoryId: generatedInventoryId,
-      jobNumber: getNextJobNumber(inventoryItems),
-      status: "Available",
-      createdAt: new Date().toISOString(),
-      moveHistory: [],
-      pickHistory: [],
-      allocations: [],
-      ...item,
-      quantity: Number(item.quantity || 0),
-    };
+    const { data, error } = await supabase
+      .from("inventory_items")
+      .insert([dbItem])
+      .select()
+      .single();
 
-    setInventoryItems((prev) => [...prev, newItem]);
+    if (error) {
+      alert(`Inventory receiving failed: ${error.message}`);
+      return;
+    }
+
+    const newItem = mapInventoryFromDb(data);
+
+    setInventoryItems((prev) => {
+      const exists = prev.some((inventoryItem) => inventoryItem.dbId === newItem.dbId);
+      return exists ? prev : [newItem, ...prev];
+    });
+
+    await logAudit({
+      action: "Inventory received",
+      module: "Inventory",
+      inventoryId: newItem.inventoryId,
+      newStatus: "Available",
+      quantity: newItem.quantity,
+      notes: `${newItem.customer} | ${newItem.partNumber} | ${newItem.description}`,
+    });
 
     setLabelData({
       inventoryId: newItem.inventoryId,
@@ -650,6 +764,8 @@ function App() {
     });
 
     setInventorySection("labels");
+
+    alert("Inventory received and shared live with all users.");
   };
 
   const validateLocation = (site, location) => {
