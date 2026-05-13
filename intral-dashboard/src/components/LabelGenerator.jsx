@@ -368,6 +368,25 @@ ${isAM ? `^FO30,542^FDA&M TAG: ${clean(label.amTag)}^FS
         <strong>Operational SKU:</strong>
         <p>{operationalSku}</p>
       </div>
+<div
+  style={{
+    background: "#f8fafc",
+    border: "1px solid #cbd5e1",
+    padding: "12px",
+    borderRadius: "8px",
+    marginBottom: "12px",
+  }}
+>
+  <strong>Printer Instructions</strong>
+
+  <p style={{ margin: "6px 0" }}>
+    Label Size: 4.25 x 4.25
+  </p>
+
+  <p style={{ margin: "6px 0" }}>
+    Click Print → select your local Zebra printer
+  </p>
+</div>
 
       <button onClick={copyZpl}>Copy ZPL</button>
       <button onClick={downloadZpl}>Download ZPL</button>
