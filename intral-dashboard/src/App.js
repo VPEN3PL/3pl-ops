@@ -768,6 +768,24 @@ function App() {
     alert("Inventory received and shared live with all users.");
   };
 
+  const reprintInventoryLabel = (item) => {
+    setLabelData({
+      inventoryId: item.inventoryId || item.id || "",
+      customer: item.customer || "",
+      partNumber: item.partNumber || "",
+      quantity: item.quantity || "",
+      description: item.description || "",
+      poNumber: item.poNumber || "",
+      countryOfOrigin: item.countryOfOrigin || "",
+      site: item.site || "INTRAL",
+      amTag: item.amTag || "",
+      squareFeet: item.squareFeet || "",
+      date: new Date().toISOString().slice(0, 10),
+    });
+
+    setInventorySection("labels");
+  };
+
   const validateLocation = (site, location) => {
     if (!site || site.trim() === "") return "Please select a destination site.";
     if (!location || location.trim() === "") return "Location cannot be empty.";
@@ -2593,12 +2611,13 @@ function App() {
                         <th>Status</th>
                         <th>Allocated Job #</th>
                         <th>Source Inventory ID</th>
+                        <th>Label</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredInventoryItems.length === 0 ? (
                         <tr>
-                          <td colSpan="11">
+                          <td colSpan="12">
                             No matching inventory records found.
                           </td>
                         </tr>
@@ -2620,6 +2639,11 @@ function App() {
                             <td>{item.status}</td>
                             <td>{item.allocatedJobNumber || "-"}</td>
                             <td>{item.sourceInventoryId || "-"}</td>
+                            <td>
+                              <button onClick={() => reprintInventoryLabel(item)}>
+                                Reprint Label
+                              </button>
+                            </td>
                           </tr>
                         ))
                       )}
