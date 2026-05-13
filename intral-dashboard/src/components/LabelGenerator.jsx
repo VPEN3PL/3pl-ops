@@ -258,8 +258,8 @@ ${isAM ? `^FO30,542^FDA&M TAG: ${clean(label.amTag)}^FS
 
 ^XZ`;
 
-      const port = await navigator.serial.requestPort();
 
+      const port = await window.print();
       await port.open({
         baudRate: 9600,
         dataBits: 8,
