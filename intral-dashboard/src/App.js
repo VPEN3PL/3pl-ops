@@ -2054,15 +2054,66 @@ function App() {
         <div className="topbar">
           <div>
             <h1>🚚 INTRAL 3PL CONTROL TOWER</h1>
-            <div>
+
+            <div
+              style={{
+                fontSize: "18px",
+                marginTop: "4px",
+                color: "#e2e8f0",
+              }}
+            >
               Warehouse Operations • Logistics Visibility • Customer Request Portal
             </div>
-            <div style={{ marginTop: "6px" }}>
-              Logged in as:{" "}
-              <strong>
-                {profile?.role ? profile.role.toUpperCase() : "USER"}
-              </strong>{" "}
-              <button onClick={logout}>Logout</button>
+
+            <div
+              style={{
+                marginTop: "16px",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "12px",
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.12)",
+                  padding: "10px 14px",
+                  borderRadius: "14px",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  fontWeight: "700",
+                  color: "white",
+                }}
+              >
+                👤 {session?.user?.email || "No User"}
+              </div>
+
+              <div
+                style={{
+                  background: "#0057b8",
+                  padding: "10px 14px",
+                  borderRadius: "999px",
+                  fontWeight: "800",
+                  color: "white",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                ROLE: {profile?.role ? profile.role.toUpperCase() : "LOADING"}
+              </div>
+
+              <button
+                onClick={logout}
+                style={{
+                  background: "#991b1b",
+                  color: "white",
+                  padding: "10px 16px",
+                  borderRadius: "12px",
+                  fontWeight: "800",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Logout
+              </button>
             </div>
           </div>
 
@@ -2075,6 +2126,7 @@ function App() {
                 timeZoneName: "short",
               })}
             </div>
+
             <div className="clock-date">
               {now.toLocaleDateString([], {
                 weekday: "long",
@@ -2082,6 +2134,27 @@ function App() {
                 day: "numeric",
                 year: "numeric",
               })}
+            </div>
+
+            <div
+              style={{
+                marginTop: "14px",
+                fontSize: "12px",
+                fontWeight: "700",
+                color: "#64748b",
+              }}
+            >
+              Last KPI Refresh:
+            </div>
+
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: "700",
+                color: "#0f172a",
+              }}
+            >
+              {lastKpiRefresh.toLocaleTimeString()}
             </div>
           </div>
         </div>
