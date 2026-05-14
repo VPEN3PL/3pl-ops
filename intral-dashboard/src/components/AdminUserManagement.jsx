@@ -2,11 +2,15 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
 function AdminUserManagement({ session, profile }) {
+  const CREATE_USER_FUNCTION_URL =
+    "https://yykbaayqwnewqljrywit.supabase.co/functions/v1/create-user";
+
   const [profiles, setProfiles] = useState([]);
   const [userRequests, setUserRequests] = useState([]);
   const [message, setMessage] = useState("");
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  const [creatingUserId, setCreatingUserId] = useState("");
 
   const [newUserForm, setNewUserForm] = useState({
     email: "",
@@ -19,7 +23,13 @@ function AdminUserManagement({ session, profile }) {
   const isAdmin = String(profile?.role || "").toLowerCase().trim() === "admin";
 
   const roleOptions = ["admin", "manager", "employee", "customer"];
-  const statusOptions = ["Pending", "Approved", "Created", "Rejected", "Disabled"];
+  const statusOptions = [
+    "Pending",
+    "Approved",
+    "Created",
+    "Rejected",
+    "Disabled",
+  ];
 
   const loadProfiles = async () => {
     if (!isAdmin) {
@@ -127,6 +137,48 @@ function AdminUserManagement({ session, profile }) {
     alert("Role updated successfully.");
   };
 
+  const updateProfileActiveStatus = async (profileId, isActive) => {
+    if (!isAdmin) {
+      alert("Only Admin users can manage account status.");
+      return;
+    }
+
+    if (!profileId) {
+      alert("Profile ID is required.");
+      return;
+    }
+
+    const actionText = isActive ? "reactivate" : "disable";
+    const confirmed = window.confirm(`Are you sure you want to ${actionText} this account?`);
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        is_active: isActive,
+      })
+      .eq("id", profileId);
+
+    if (error) {
+      alert(`Account status update failed: ${error.message}`);
+      return;
+    }
+
+    setProfiles((prev) =>
+      prev.map((item) =>
+        item.id === profileId
+          ? {
+              ...item,
+              is_active: isActive,
+            }
+          : item
+      )
+    );
+
+    alert(isActive ? "Account reactivated." : "Account disabled.");
+  };
+
   const saveUserRequest = async () => {
     if (!isAdmin) {
       alert("Only Admin users can save user requests.");
@@ -144,7 +196,7 @@ function AdminUserManagement({ session, profile }) {
     }
 
     if (!newUserForm.temporaryPassword.trim()) {
-      alert("Temporary password is required for Phase 1B.1 request tracking.");
+      alert("Temporary password is required for account creation.");
       return;
     }
 
@@ -219,6 +271,87 @@ function AdminUserManagement({ session, profile }) {
     alert("Request status updated.");
   };
 
+  const createRealUserFromRequest = async (request) => {
+    if (!isAdmin) {
+      alert("Only Admin users can create accounts.");
+      return;
+    }
+
+    if (!request?.requested_email) {
+      alert("Requested email is missing.");
+      return;
+    }
+
+    if (!request?.temporary_password) {
+      alert("Temporary password is missing.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Create REAL Supabase login for ${request.requested_email}?`
+    );
+
+    if (!confirmed) return;
+
+    setCreatingUserId(request.id);
+
+    try {
+      const response = await fetch(CREATE_USER_FUNCTION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          email: request.requested_email,
+          password: request.temporary_password,
+          role: request.requested_role || "employee",
+          notes: request.notes || "",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Create user failed.");
+      }
+
+      const { error: updateError } = await supabase
+        .from("admin_user_requests")
+        .update({
+          status: "Created",
+        })
+        .eq("id", request.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setUserRequests((prev) =>
+        prev.map((item) =>
+          item.id === request.id
+            ? {
+                ...item,
+                status: "Created",
+              }
+            : item
+        )
+      );
+
+      await loadProfiles();
+
+      alert(
+        `User created successfully.\n\nEmail: ${request.requested_email}\nRole: ${String(
+          request.requested_role || "employee"
+        ).toUpperCase()}`
+      );
+    } catch (error) {
+      alert(`Create user failed: ${error.message}`);
+    } finally {
+      setCreatingUserId("");
+    }
+  };
+
   const deleteUserRequest = async (requestId) => {
     if (!isAdmin) {
       alert("Only Admin users can delete user requests.");
@@ -245,6 +378,26 @@ function AdminUserManagement({ session, profile }) {
     alert("User request deleted.");
   };
 
+  const renderActiveBadge = (isActive) => {
+    const active = isActive !== false;
+
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          background: active ? "#166534" : "#991b1b",
+          color: "white",
+          padding: "6px 10px",
+          borderRadius: "999px",
+          fontWeight: "800",
+          fontSize: "12px",
+        }}
+      >
+        {active ? "ACTIVE" : "DISABLED"}
+      </span>
+    );
+  };
+
   if (!isAdmin) {
     return (
       <div className="card">
@@ -265,19 +418,18 @@ function AdminUserManagement({ session, profile }) {
 
         <div
           style={{
-            background: "#eff6ff",
-            border: "1px solid #bfdbfe",
+            background: "#ecfdf5",
+            border: "1px solid #86efac",
             padding: "14px",
             borderRadius: "12px",
             marginTop: "14px",
             marginBottom: "14px",
           }}
         >
-          <strong>Phase 1B.1 Status</strong>
+          <strong>Phase 1B.4 Merged Status</strong>
           <p style={{ marginBottom: 0 }}>
-            This screen now saves email, role, temporary password, notes, and
-            request status into Supabase. The next step will connect a secure
-            Supabase Edge Function to create the actual Auth user.
+            This file preserves onboarding requests, Create Real User, profile role
+            updates, and adds account disable/reactivate lifecycle controls.
           </p>
         </div>
 
@@ -305,8 +457,8 @@ function AdminUserManagement({ session, profile }) {
       <div className="card">
         <h3>Create User Request</h3>
         <p>
-          This stores the onboarding request. Actual Supabase Auth creation will
-          be handled by the secure Edge Function in the next step.
+          Create the onboarding request first. Then use the Create Real User
+          button in the request table to create the actual login account.
         </p>
 
         <div className="grid">
@@ -374,8 +526,8 @@ function AdminUserManagement({ session, profile }) {
       <div className="card">
         <h3>User Requests</h3>
         <p>
-          Tracks requested users before the secure account creation step is
-          activated.
+          Use Create Real User only after reviewing the email, role, and
+          temporary password.
         </p>
 
         {userRequests.length === 0 ? (
@@ -393,6 +545,7 @@ function AdminUserManagement({ session, profile }) {
                   <th>Notes</th>
                   <th>Created</th>
                   <th>Update Status</th>
+                  <th>Create Login</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -427,6 +580,21 @@ function AdminUserManagement({ session, profile }) {
                       </select>
                     </td>
                     <td>
+                      <button
+                        onClick={() => createRealUserFromRequest(request)}
+                        disabled={
+                          creatingUserId === request.id ||
+                          request.status === "Created"
+                        }
+                      >
+                        {creatingUserId === request.id
+                          ? "Creating..."
+                          : request.status === "Created"
+                          ? "Created"
+                          : "Create Real User"}
+                      </button>
+                    </td>
+                    <td>
                       <button onClick={() => deleteUserRequest(request.id)}>
                         Delete
                       </button>
@@ -442,8 +610,8 @@ function AdminUserManagement({ session, profile }) {
       <div className="card">
         <h3>Current User Profiles</h3>
         <p>
-          Existing Supabase profile records. Role updates here affect dashboard
-          permissions.
+          Existing Supabase profile records. Role updates affect dashboard
+          permissions. Disable/reactivate controls employee access lifecycle.
         </p>
 
         {profiles.length === 0 ? (
@@ -456,35 +624,71 @@ function AdminUserManagement({ session, profile }) {
                   <th>User ID</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Account Status</th>
                   <th>Update Role</th>
+                  <th>Disable / Reactivate</th>
                   <th>Created</th>
                 </tr>
               </thead>
               <tbody>
-                {profiles.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.id}</td>
-                    <td>{item.email || item.user_email || "Email not stored"}</td>
-                    <td>
-                      <strong>{String(item.role || "").toUpperCase()}</strong>
-                    </td>
-                    <td>
-                      <select
-                        value={item.role || "employee"}
-                        onChange={(e) =>
-                          updateProfileRole(item.id, e.target.value)
-                        }
-                      >
-                        {roleOptions.map((role) => (
-                          <option key={role} value={role}>
-                            {role.toUpperCase()}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>{item.created_at || "-"}</td>
-                  </tr>
-                ))}
+                {profiles.map((item) => {
+                  const isActive = item.is_active !== false;
+
+                  return (
+                    <tr key={item.id}>
+                      <td>{item.id}</td>
+                      <td>{item.email || item.user_email || "Email not stored"}</td>
+                      <td>
+                        <strong>{String(item.role || "").toUpperCase()}</strong>
+                      </td>
+                      <td>{renderActiveBadge(item.is_active)}</td>
+                      <td>
+                        <select
+                          value={item.role || "employee"}
+                          onChange={(e) =>
+                            updateProfileRole(item.id, e.target.value)
+                          }
+                        >
+                          {roleOptions.map((role) => (
+                            <option key={role} value={role}>
+                              {role.toUpperCase()}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        {isActive ? (
+                          <button
+                            onClick={() =>
+                              updateProfileActiveStatus(item.id, false)
+                            }
+                            style={{
+                              background: "#991b1b",
+                              color: "white",
+                              fontWeight: "800",
+                            }}
+                          >
+                            Disable
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              updateProfileActiveStatus(item.id, true)
+                            }
+                            style={{
+                              background: "#166534",
+                              color: "white",
+                              fontWeight: "800",
+                            }}
+                          >
+                            Reactivate
+                          </button>
+                        )}
+                      </td>
+                      <td>{item.created_at || "-"}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
