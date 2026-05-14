@@ -3,18 +3,23 @@ import { supabase } from "../supabaseClient";
 
 function AdminUserManagement({ session, profile }) {
   const [profiles, setProfiles] = useState([]);
+  const [userRequests, setUserRequests] = useState([]);
   const [message, setMessage] = useState("");
   const [loadingProfiles, setLoadingProfiles] = useState(false);
+  const [loadingRequests, setLoadingRequests] = useState(false);
 
   const [newUserForm, setNewUserForm] = useState({
     email: "",
     role: "employee",
+    temporaryPassword: "",
     notes: "",
+    status: "Pending",
   });
 
   const isAdmin = String(profile?.role || "").toLowerCase().trim() === "admin";
 
   const roleOptions = ["admin", "manager", "employee", "customer"];
+  const statusOptions = ["Pending", "Approved", "Created", "Rejected", "Disabled"];
 
   const loadProfiles = async () => {
     if (!isAdmin) {
@@ -41,9 +46,33 @@ function AdminUserManagement({ session, profile }) {
     setLoadingProfiles(false);
   };
 
+  const loadUserRequests = async () => {
+    if (!isAdmin) {
+      setMessage("Only Admin users can view user requests.");
+      return;
+    }
+
+    setLoadingRequests(true);
+
+    const { data, error } = await supabase
+      .from("admin_user_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setMessage(`User request load failed: ${error.message}`);
+      setLoadingRequests(false);
+      return;
+    }
+
+    setUserRequests(data || []);
+    setLoadingRequests(false);
+  };
+
   useEffect(() => {
     if (isAdmin) {
       loadProfiles();
+      loadUserRequests();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
@@ -98,9 +127,9 @@ function AdminUserManagement({ session, profile }) {
     alert("Role updated successfully.");
   };
 
-  const createUserRequest = async () => {
+  const saveUserRequest = async () => {
     if (!isAdmin) {
-      alert("Only Admin users can request new accounts.");
+      alert("Only Admin users can save user requests.");
       return;
     }
 
@@ -114,44 +143,106 @@ function AdminUserManagement({ session, profile }) {
       return;
     }
 
-    /*
-      SECURITY NOTE:
-      Do not create Supabase Auth users directly from React using the service role key.
-      The secure production method is:
-      1. Admin submits this request.
-      2. Supabase Edge Function creates the Auth user with service role key.
-      3. Edge Function inserts/updates the profiles table.
-      4. React never sees the service role key.
-
-      For now, this creates an admin request record if the table exists.
-      If you have not created admin_user_requests yet, this will show a table error.
-    */
-
-    const { error } = await supabase.from("admin_user_requests").insert([
-      {
-        requested_email: newUserForm.email.trim(),
-        requested_role: newUserForm.role,
-        notes: newUserForm.notes.trim(),
-        requested_by: session?.user?.id || null,
-        requested_by_email: session?.user?.email || "",
-        status: "Pending",
-      },
-    ]);
-
-    if (error) {
-      alert(
-        `User request could not be saved yet: ${error.message}\n\nThis is expected if the admin_user_requests table has not been created.`
-      );
+    if (!newUserForm.temporaryPassword.trim()) {
+      alert("Temporary password is required for Phase 1B.1 request tracking.");
       return;
     }
+
+    const { data, error } = await supabase
+      .from("admin_user_requests")
+      .insert([
+        {
+          requested_email: newUserForm.email.trim(),
+          requested_role: newUserForm.role,
+          temporary_password: newUserForm.temporaryPassword.trim(),
+          notes: newUserForm.notes.trim(),
+          requested_by: session?.user?.id || null,
+          requested_by_email: session?.user?.email || "",
+          status: newUserForm.status || "Pending",
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      alert(`User request save failed: ${error.message}`);
+      return;
+    }
+
+    setUserRequests((prev) => [data, ...prev]);
 
     setNewUserForm({
       email: "",
       role: "employee",
+      temporaryPassword: "",
       notes: "",
+      status: "Pending",
     });
 
-    alert("User account request saved.");
+    alert("User request saved successfully.");
+  };
+
+  const updateUserRequestStatus = async (requestId, newStatus) => {
+    if (!isAdmin) {
+      alert("Only Admin users can update request status.");
+      return;
+    }
+
+    if (!requestId || !newStatus) {
+      alert("Request ID and status are required.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("admin_user_requests")
+      .update({
+        status: newStatus,
+      })
+      .eq("id", requestId);
+
+    if (error) {
+      alert(`Status update failed: ${error.message}`);
+      return;
+    }
+
+    setUserRequests((prev) =>
+      prev.map((request) =>
+        request.id === requestId
+          ? {
+              ...request,
+              status: newStatus,
+            }
+          : request
+      )
+    );
+
+    alert("Request status updated.");
+  };
+
+  const deleteUserRequest = async (requestId) => {
+    if (!isAdmin) {
+      alert("Only Admin users can delete user requests.");
+      return;
+    }
+
+    const confirmed = window.confirm("Delete this user request?");
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("admin_user_requests")
+      .delete()
+      .eq("id", requestId);
+
+    if (error) {
+      alert(`Delete failed: ${error.message}`);
+      return;
+    }
+
+    setUserRequests((prev) =>
+      prev.filter((request) => request.id !== requestId)
+    );
+
+    alert("User request deleted.");
   };
 
   if (!isAdmin) {
@@ -169,7 +260,7 @@ function AdminUserManagement({ session, profile }) {
         <h2>Admin User Management</h2>
         <p>
           Admin-only user control center for employee, manager, customer, and
-          admin role visibility.
+          admin onboarding.
         </p>
 
         <div
@@ -182,16 +273,20 @@ function AdminUserManagement({ session, profile }) {
             marginBottom: "14px",
           }}
         >
-          <strong>Phase 1B Security Rule</strong>
+          <strong>Phase 1B.1 Status</strong>
           <p style={{ marginBottom: 0 }}>
-            React can safely view profiles and update roles only when Supabase
-            RLS allows it. Creating new Supabase Auth users must be done later
-            through a secure Supabase Edge Function, not directly inside React.
+            This screen now saves email, role, temporary password, notes, and
+            request status into Supabase. The next step will connect a secure
+            Supabase Edge Function to create the actual Auth user.
           </p>
         </div>
 
         <button onClick={loadProfiles} disabled={loadingProfiles}>
-          {loadingProfiles ? "Refreshing..." : "Refresh User List"}
+          {loadingProfiles ? "Refreshing Profiles..." : "Refresh User Profiles"}
+        </button>
+
+        <button onClick={loadUserRequests} disabled={loadingRequests}>
+          {loadingRequests ? "Refreshing Requests..." : "Refresh User Requests"}
         </button>
 
         {message && (
@@ -208,10 +303,10 @@ function AdminUserManagement({ session, profile }) {
       </div>
 
       <div className="card">
-        <h3>Request New User Account</h3>
+        <h3>Create User Request</h3>
         <p>
-          This creates a secure admin request. The actual Supabase Auth user
-          creation will be connected in the next step with an Edge Function.
+          This stores the onboarding request. Actual Supabase Auth creation will
+          be handled by the secure Edge Function in the next step.
         </p>
 
         <div className="grid">
@@ -238,6 +333,32 @@ function AdminUserManagement({ session, profile }) {
               ))}
             </select>
           </div>
+
+          <div>
+            <label>Temporary Password</label>
+            <input
+              type="text"
+              value={newUserForm.temporaryPassword}
+              onChange={(e) =>
+                updateNewUserForm("temporaryPassword", e.target.value)
+              }
+              placeholder="Temporary password"
+            />
+          </div>
+
+          <div>
+            <label>Request Status</label>
+            <select
+              value={newUserForm.status}
+              onChange={(e) => updateNewUserForm("status", e.target.value)}
+            >
+              {statusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <label>Notes</label>
@@ -247,11 +368,83 @@ function AdminUserManagement({ session, profile }) {
           placeholder="Example: Oscar - staging employee"
         />
 
-        <button onClick={createUserRequest}>Save User Request</button>
+        <button onClick={saveUserRequest}>Save User Request</button>
+      </div>
+
+      <div className="card">
+        <h3>User Requests</h3>
+        <p>
+          Tracks requested users before the secure account creation step is
+          activated.
+        </p>
+
+        {userRequests.length === 0 ? (
+          <p>No user requests found.</p>
+        ) : (
+          <div className="scroll-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Requested Email</th>
+                  <th>Role</th>
+                  <th>Temporary Password</th>
+                  <th>Status</th>
+                  <th>Requested By</th>
+                  <th>Notes</th>
+                  <th>Created</th>
+                  <th>Update Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {userRequests.map((request) => (
+                  <tr key={request.id}>
+                    <td>{request.requested_email}</td>
+                    <td>
+                      <strong>
+                        {String(request.requested_role || "").toUpperCase()}
+                      </strong>
+                    </td>
+                    <td>{request.temporary_password || "-"}</td>
+                    <td>
+                      <strong>{request.status || "Pending"}</strong>
+                    </td>
+                    <td>{request.requested_by_email || "-"}</td>
+                    <td>{request.notes || "-"}</td>
+                    <td>{request.created_at || "-"}</td>
+                    <td>
+                      <select
+                        value={request.status || "Pending"}
+                        onChange={(e) =>
+                          updateUserRequestStatus(request.id, e.target.value)
+                        }
+                      >
+                        {statusOptions.map((status) => (
+                          <option key={status} value={status}>
+                            {status.toUpperCase()}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <button onClick={() => deleteUserRequest(request.id)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div className="card">
         <h3>Current User Profiles</h3>
+        <p>
+          Existing Supabase profile records. Role updates here affect dashboard
+          permissions.
+        </p>
 
         {profiles.length === 0 ? (
           <p>No profiles loaded.</p>
