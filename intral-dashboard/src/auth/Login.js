@@ -9,10 +9,53 @@ function Login() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
+  async function writeLoginAudit({
+    userId = null,
+    userEmail = "",
+    userRole = "",
+    action = "Login",
+    success = true,
+    notes = "",
+  }) {
+    try {
+      await supabase.from("login_audit_logs").insert([
+        {
+          user_id: userId,
+          user_email: userEmail,
+          user_role: userRole,
+          action,
+          success,
+          notes,
+        },
+      ]);
+    } catch (error) {
+      console.warn("Login audit failed:", error.message);
+    }
+  }
+
+  async function getUserProfile(userId) {
+    if (!userId) return null;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.warn("Profile lookup failed:", error.message);
+      return null;
+    }
+
+    return data;
+  }
+
   async function handleLogin(e) {
     e.preventDefault();
 
-    if (!email.trim()) {
+    const cleanEmail = email.trim();
+
+    if (!cleanEmail) {
       setMessage("Please enter your email.");
       return;
     }
@@ -25,23 +68,61 @@ function Login() {
     setIsLoggingIn(true);
     setMessage("Logging in...");
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
       password,
     });
 
     if (error) {
+      await writeLoginAudit({
+        userEmail: cleanEmail,
+        action: "Login Failed",
+        success: false,
+        notes: error.message,
+      });
+
       setMessage(error.message);
       setIsLoggingIn(false);
       return;
     }
+
+    const user = data?.user || null;
+    const userProfile = await getUserProfile(user?.id);
+
+    if (userProfile && userProfile.is_active === false) {
+      await writeLoginAudit({
+        userId: user.id,
+        userEmail: user.email || cleanEmail,
+        userRole: userProfile.role || "",
+        action: "Login Blocked",
+        success: false,
+        notes: "Account is disabled.",
+      });
+
+      await supabase.auth.signOut();
+
+      setMessage("This account has been disabled. Contact an administrator.");
+      setIsLoggingIn(false);
+      return;
+    }
+
+    await writeLoginAudit({
+      userId: user?.id || null,
+      userEmail: user?.email || cleanEmail,
+      userRole: userProfile?.role || "",
+      action: "Login Successful",
+      success: true,
+      notes: "User logged into INTRAL Control Tower.",
+    });
 
     setMessage("Login successful!");
     setIsLoggingIn(false);
   }
 
   async function handleForgotPassword() {
-    if (!email.trim()) {
+    const cleanEmail = email.trim();
+
+    if (!cleanEmail) {
       setMessage("Enter your email first, then click Forgot Password.");
       return;
     }
@@ -51,15 +132,29 @@ function Login() {
 
     const redirectTo = window.location.origin;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
       redirectTo,
     });
 
     if (error) {
+      await writeLoginAudit({
+        userEmail: cleanEmail,
+        action: "Password Reset Failed",
+        success: false,
+        notes: error.message,
+      });
+
       setMessage(error.message);
       setIsResettingPassword(false);
       return;
     }
+
+    await writeLoginAudit({
+      userEmail: cleanEmail,
+      action: "Password Reset Requested",
+      success: true,
+      notes: "Password reset email requested from login page.",
+    });
 
     setMessage(
       "Password reset email sent. Check your inbox and follow the reset link."
@@ -155,7 +250,8 @@ function Login() {
         >
           <strong>Authorized Users Only</strong>
           <br />
-          Access is controlled by Supabase authentication and assigned user roles.
+          Access is controlled by Supabase authentication, assigned user roles,
+          account status, and login audit tracking.
           <br />
           Use Forgot Password if an employee needs account recovery.
         </div>
