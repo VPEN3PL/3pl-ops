@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "./supabaseClient";
 import Login from "./auth/Login";
 import InventoryForm from "./components/InventoryForm";
+import AdminUserManagement from "./components/AdminUserManagement";
 import intralLogo from "./assets/intral-logo.jpg";
 import * as XLSX from "xlsx";
 import "./App.css";
@@ -2248,13 +2249,7 @@ function App() {
         )}
 
         {tab === "admin" && canManageUsers && (
-          <div className="card">
-            <h2>Admin User Management</h2>
-            <p>
-              Admin-only area. Later we will add employee creation, role
-              updates, and user removal here.
-            </p>
-          </div>
+          <AdminUserManagement session={session} profile={profile} />
         )}
 
         {tab === "orders" && !isCustomer && (
