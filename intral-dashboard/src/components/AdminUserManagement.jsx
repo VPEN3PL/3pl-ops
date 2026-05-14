@@ -288,7 +288,7 @@ function AdminUserManagement({ session, profile }) {
     }
 
     const confirmed = window.confirm(
-      `Create REAL Supabase login for ${request.requested_email}?`
+      `Create REAL Supabase login for ${request.requested_email} and send onboarding email?`
     );
 
     if (!confirmed) return;
@@ -307,6 +307,7 @@ function AdminUserManagement({ session, profile }) {
           password: request.temporary_password,
           role: request.requested_role || "employee",
           notes: request.notes || "",
+          requestedByEmail: session?.user?.email || "",
         }),
       });
 
@@ -316,10 +317,12 @@ function AdminUserManagement({ session, profile }) {
         throw new Error(result.error || "Create user failed.");
       }
 
+      const finalStatus = "Created";
+
       const { error: updateError } = await supabase
         .from("admin_user_requests")
         .update({
-          status: "Created",
+          status: finalStatus,
         })
         .eq("id", request.id);
 
@@ -332,7 +335,7 @@ function AdminUserManagement({ session, profile }) {
           item.id === request.id
             ? {
                 ...item,
-                status: "Created",
+                status: finalStatus,
               }
             : item
         )
@@ -340,11 +343,21 @@ function AdminUserManagement({ session, profile }) {
 
       await loadProfiles();
 
-      alert(
-        `User created successfully.\n\nEmail: ${request.requested_email}\nRole: ${String(
-          request.requested_role || "employee"
-        ).toUpperCase()}`
-      );
+      if (result.emailSent) {
+        alert(
+          `User created and onboarding email sent.\n\nEmail: ${
+            request.requested_email
+          }\nRole: ${String(request.requested_role || "employee").toUpperCase()}`
+        );
+      } else {
+        alert(
+          `User created and profile populated, but onboarding email was not sent.\n\nEmail: ${
+            request.requested_email
+          }\nRole: ${String(request.requested_role || "employee").toUpperCase()}\n\nEmail Error: ${
+            result.emailError || "Unknown email error"
+          }`
+        );
+      }
     } catch (error) {
       alert(`Create user failed: ${error.message}`);
     } finally {
@@ -426,10 +439,11 @@ function AdminUserManagement({ session, profile }) {
             marginBottom: "14px",
           }}
         >
-          <strong>Phase 1B.4 Merged Status</strong>
+          <strong>Onboarding Email Integration</strong>
           <p style={{ marginBottom: 0 }}>
-            This file preserves onboarding requests, Create Real User, profile role
-            updates, and adds account disable/reactivate lifecycle controls.
+            Create Real User now creates the Supabase Auth account, populates the
+            profile record, requires first-login password change, and attempts to
+            send a branded onboarding email from the Edge Function.
           </p>
         </div>
 
@@ -458,7 +472,8 @@ function AdminUserManagement({ session, profile }) {
         <h3>Create User Request</h3>
         <p>
           Create the onboarding request first. Then use the Create Real User
-          button in the request table to create the actual login account.
+          button in the request table to create the actual login account and send
+          the onboarding notification.
         </p>
 
         <div className="grid">
@@ -591,7 +606,7 @@ function AdminUserManagement({ session, profile }) {
                           ? "Creating..."
                           : request.status === "Created"
                           ? "Created"
-                          : "Create Real User"}
+                          : "Create Real User + Email"}
                       </button>
                     </td>
                     <td>
@@ -625,6 +640,7 @@ function AdminUserManagement({ session, profile }) {
                   <th>Email</th>
                   <th>Role</th>
                   <th>Account Status</th>
+                  <th>Password Change</th>
                   <th>Update Role</th>
                   <th>Disable / Reactivate</th>
                   <th>Created</th>
@@ -642,6 +658,27 @@ function AdminUserManagement({ session, profile }) {
                         <strong>{String(item.role || "").toUpperCase()}</strong>
                       </td>
                       <td>{renderActiveBadge(item.is_active)}</td>
+                      <td>
+                        {item.must_change_password ? (
+                          <span
+                            style={{
+                              color: "#991b1b",
+                              fontWeight: "800",
+                            }}
+                          >
+                            REQUIRED
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              color: "#166534",
+                              fontWeight: "800",
+                            }}
+                          >
+                            COMPLETE
+                          </span>
+                        )}
+                      </td>
                       <td>
                         <select
                           value={item.role || "employee"}

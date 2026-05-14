@@ -4,6 +4,7 @@ import { supabase } from "./supabaseClient";
 import Login from "./auth/Login";
 import InventoryForm from "./components/InventoryForm";
 import AdminUserManagement from "./components/AdminUserManagement";
+import PasswordChangeRequired from "./components/PasswordChangeRequired";
 import intralLogo from "./assets/intral-logo.jpg";
 import * as XLSX from "xlsx";
 import "./App.css";
@@ -1978,6 +1979,26 @@ function App() {
   if (!session) {
     return <Login />;
   }
+  if (profile?.must_change_password) {
+  return (
+    <PasswordChangeRequired
+      session={session}
+      profile={profile}
+      onPasswordChanged={async () => {
+        const { data } = await supabase.auth.getSession();
+        setSession(data.session);
+
+        const { data: refreshedProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+
+        setProfile(refreshedProfile);
+      }}
+    />
+  );
+}
 
   return (
     <div className="page">
