@@ -5,12 +5,16 @@ function AdminUserManagement({ session, profile }) {
   const CREATE_USER_FUNCTION_URL =
     "https://yykbaayqwnewqljrywit.supabase.co/functions/v1/create-user";
 
+  const RESET_PASSWORD_FUNCTION_URL =
+    "https://yykbaayqwnewqljrywit.supabase.co/functions/v1/reset-user-password";
+
   const [profiles, setProfiles] = useState([]);
   const [userRequests, setUserRequests] = useState([]);
   const [message, setMessage] = useState("");
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [creatingUserId, setCreatingUserId] = useState("");
+  const [resettingUserId, setResettingUserId] = useState("");
 
   const [newUserForm, setNewUserForm] = useState({
     email: "",
@@ -365,6 +369,82 @@ function AdminUserManagement({ session, profile }) {
     }
   };
 
+  const forcePasswordReset = async (item) => {
+    if (!isAdmin) {
+      alert("Only Admin users can reset passwords.");
+      return;
+    }
+
+    if (!item?.id) {
+      alert("User ID is missing.");
+      return;
+    }
+
+    if (!item?.email && !item?.user_email) {
+      alert("User email is missing from profile.");
+      return;
+    }
+
+    const email = item.email || item.user_email;
+    const temporaryPassword = window.prompt(
+      `Enter a temporary password for ${email}. The user will be required to change it on next login.`
+    );
+
+    if (!temporaryPassword) return;
+
+    if (temporaryPassword.length < 8) {
+      alert("Temporary password must be at least 8 characters.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Reset password for ${email} and send notification email?`
+    );
+
+    if (!confirmed) return;
+
+    setResettingUserId(item.id);
+
+    try {
+      const response = await fetch(RESET_PASSWORD_FUNCTION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          userId: item.id,
+          email,
+          temporaryPassword,
+          role: item.role || "",
+          requestedByEmail: session?.user?.email || "",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Password reset failed.");
+      }
+
+      await loadProfiles();
+
+      if (result.emailSent) {
+        alert(`Password reset successfully and notification email sent to ${email}.`);
+      } else {
+        alert(
+          `Password reset successfully, but notification email was not sent.\n\nEmail Error: ${
+            result.emailError || "Unknown email error"
+          }`
+        );
+      }
+    } catch (error) {
+      alert(`Password reset failed: ${error.message}`);
+    } finally {
+      setResettingUserId("");
+    }
+  };
+
   const deleteUserRequest = async (requestId) => {
     if (!isAdmin) {
       alert("Only Admin users can delete user requests.");
@@ -439,11 +519,11 @@ function AdminUserManagement({ session, profile }) {
             marginBottom: "14px",
           }}
         >
-          <strong>Onboarding Email Integration</strong>
+          <strong>Phase 1B.7 — Admin Reset Password</strong>
           <p style={{ marginBottom: 0 }}>
-            Create Real User now creates the Supabase Auth account, populates the
-            profile record, requires first-login password change, and attempts to
-            send a branded onboarding email from the Edge Function.
+            Admins can create users, send onboarding emails, disable/reactivate
+            accounts, change roles, and now force a password reset with a new
+            temporary password.
           </p>
         </div>
 
@@ -643,6 +723,7 @@ function AdminUserManagement({ session, profile }) {
                   <th>Password Change</th>
                   <th>Update Role</th>
                   <th>Disable / Reactivate</th>
+                  <th>Force Password Reset</th>
                   <th>Created</th>
                 </tr>
               </thead>
@@ -721,6 +802,21 @@ function AdminUserManagement({ session, profile }) {
                             Reactivate
                           </button>
                         )}
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => forcePasswordReset(item)}
+                          disabled={resettingUserId === item.id}
+                          style={{
+                            background: "#f59e0b",
+                            color: "#111827",
+                            fontWeight: "800",
+                          }}
+                        >
+                          {resettingUserId === item.id
+                            ? "Resetting..."
+                            : "Force Reset"}
+                        </button>
                       </td>
                       <td>{item.created_at || "-"}</td>
                     </tr>

@@ -19,23 +19,23 @@ serve(async (req) => {
     const body = await req.json();
 
     const {
+      userId,
       email,
-      password,
+      temporaryPassword,
       role,
-      notes,
       requestedByEmail,
     } = body;
+
+    if (!userId) {
+      throw new Error("User ID is required.");
+    }
 
     if (!email) {
       throw new Error("Email is required.");
     }
 
-    if (!password) {
+    if (!temporaryPassword) {
       throw new Error("Temporary password is required.");
-    }
-
-    if (!role) {
-      throw new Error("Role is required.");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
@@ -56,38 +56,22 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    const { data: authData, error: authError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          role,
-          created_from: "INTRAL_CONNECT_ADMIN",
-        },
+    const { error: authError } =
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password: temporaryPassword,
       });
 
     if (authError) {
       throw authError;
     }
 
-    const userId = authData.user.id;
-
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
-      .upsert(
-        {
-          id: userId,
-          email,
-          role,
-          notes: notes || "",
-          is_active: true,
-          must_change_password: true,
-        },
-        {
-          onConflict: "id",
-        }
-      );
+      .update({
+        must_change_password: true,
+        is_active: true,
+      })
+      .eq("id", userId);
 
     if (profileError) {
       throw profileError;
@@ -95,12 +79,12 @@ serve(async (req) => {
 
     const loginUrl = "https://3pl-ops.vercel.app/";
 
-    const emailSubject = "Your INTRAL Connect profile has been created";
+    const emailSubject = "Your INTRAL Connect password has been reset";
 
     const emailText = `
 Hello,
 
-Your INTRAL Connect profile has been created.
+Your INTRAL Connect password has been reset by an administrator.
 
 Login URL:
 ${loginUrl}
@@ -109,15 +93,15 @@ Username:
 ${email}
 
 Temporary Password:
-${password}
+${temporaryPassword}
 
 Role:
 ${String(role || "").toUpperCase()}
 
 Important:
-You will be required to change your password the first time you log in.
+You will be required to change your password the next time you log in.
 
-If you did not expect this account, please contact your INTRAL administrator.
+If you did not expect this reset, please contact your INTRAL administrator.
 
 Thank you,
 INTRAL Connect Admin
@@ -125,11 +109,11 @@ INTRAL Connect Admin
 
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.5;">
-        <h2>INTRAL Connect Profile Created</h2>
+        <h2>INTRAL Connect Password Reset</h2>
 
         <p>Hello,</p>
 
-        <p>Your INTRAL Connect profile has been created.</p>
+        <p>Your INTRAL Connect password has been reset by an administrator.</p>
 
         <div style="background:#f8fafc;border:1px solid #cbd5e1;padding:14px;border-radius:10px;margin:18px 0;">
           <p><strong>Login URL:</strong><br />
@@ -139,15 +123,15 @@ INTRAL Connect Admin
           ${email}</p>
 
           <p><strong>Temporary Password:</strong><br />
-          ${password}</p>
+          ${temporaryPassword}</p>
 
           <p><strong>Role:</strong><br />
           ${String(role || "").toUpperCase()}</p>
         </div>
 
-        <p><strong>Important:</strong> You will be required to change your password the first time you log in.</p>
+        <p><strong>Important:</strong> You will be required to change your password the next time you log in.</p>
 
-        <p>If you did not expect this account, please contact your INTRAL administrator.</p>
+        <p>If you did not expect this reset, please contact your INTRAL administrator.</p>
 
         <p>Thank you,<br />
         INTRAL Connect Admin</p>
@@ -197,20 +181,15 @@ INTRAL Connect Admin
     return new Response(
       JSON.stringify({
         success: true,
-        user: authData.user,
-        profile: {
-          id: userId,
-          email,
-          role,
-          is_active: true,
-          must_change_password: true,
-        },
+        userId,
+        email,
+        must_change_password: true,
         emailSent,
         emailError,
         requestedByEmail: requestedByEmail || "",
         message: emailSent
-          ? "User created, profile populated, password change required, and onboarding email sent."
-          : "User created and profile populated, but onboarding email failed.",
+          ? "Password reset successfully and notification email sent."
+          : "Password reset successfully, but notification email failed.",
       }),
       {
         headers: {
