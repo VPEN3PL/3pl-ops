@@ -44,6 +44,59 @@ export const moduleActions = {
       tab: "inventory-history",
     },
   ],
+
+  jobs: [
+    {
+      label: "Movement",
+      tab: "jobs-request-movement",
+    },
+    {
+      label: "Shipping",
+      tab: "jobs-request-shipping",
+    },
+    {
+      label: "Logistics",
+      tab: "jobs-request-logistics",
+    },
+    {
+      label: "Track Request",
+      tab: "jobs-track",
+    },
+  ],
+
+  orders: [
+    {
+      label: "Open Orders",
+      tab: "orders-open",
+    },
+    {
+      label: "Active Orders",
+      tab: "orders-active",
+    },
+    {
+      label: "Closed Orders",
+      tab: "orders-closed",
+    },
+    {
+      label: "Order Release",
+      tab: "orders-release",
+    },
+  ],
+
+  shipping: [
+    {
+      label: "Released Orders",
+      tab: "shipping",
+    },
+    {
+      label: "Started Orders",
+      tab: "shipping-started",
+    },
+    {
+      label: "Completed Orders",
+      tab: "shipping-complete",
+    },
+  ],
 };
 
 export const getModuleKeyFromTab = (tab) => {
@@ -65,6 +118,34 @@ export const getModuleKeyFromTab = (tab) => {
     tab === "inventory-history"
   ) {
     return "inventory";
+  }
+
+  if (
+    tab === "jobs" ||
+    tab === "jobs-request-movement" ||
+    tab === "jobs-request-shipping" ||
+    tab === "jobs-request-logistics" ||
+    tab === "jobs-track"
+  ) {
+    return "jobs";
+  }
+
+  if (
+    tab === "orders" ||
+    tab === "orders-open" ||
+    tab === "orders-active" ||
+    tab === "orders-closed" ||
+    tab === "orders-release"
+  ) {
+    return "orders";
+  }
+
+  if (
+    tab === "shipping" ||
+    tab === "shipping-started" ||
+    tab === "shipping-complete"
+  ) {
+    return "shipping";
   }
 
   return null;

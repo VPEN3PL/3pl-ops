@@ -11,6 +11,7 @@ import {
   Home,
   LogOut,
   ChevronDown,
+  Ship,
 } from "lucide-react";
 
 import logo from "../assets/intral-logo.jpg";
@@ -66,8 +67,15 @@ function WorkspacePortal({
     {
       key: "orders",
       title: "Order Central",
-      subtitle: "Customer orders and fulfillment operations",
+      subtitle: "Operational review and order release control",
       icon: <ShoppingCart size={38} />,
+      allowed: true,
+    },
+    {
+      key: "shipping",
+      title: "Shipping Operations",
+      subtitle: "Released order execution and outbound operations",
+      icon: <Ship size={38} />,
       allowed: true,
     },
     {
