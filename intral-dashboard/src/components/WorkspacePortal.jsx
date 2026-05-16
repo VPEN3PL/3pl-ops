@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   LayoutDashboard,
   Package,
@@ -10,9 +10,15 @@ import {
   BarChart3,
   Home,
   LogOut,
+  ChevronDown,
 } from "lucide-react";
 
 import logo from "../assets/intral-logo.jpg";
+
+import {
+  moduleActions,
+  getModuleKeyFromTab,
+} from "../config/moduleActions";
 
 function WorkspacePortal({
   setTab,
@@ -24,6 +30,8 @@ function WorkspacePortal({
   handleLogout,
   children,
 }) {
+  const [operationsOpen, setOperationsOpen] = useState(false);
+
   const role = String(profile?.role || "").toLowerCase();
 
   const cards = [
@@ -85,38 +93,129 @@ function WorkspacePortal({
     },
   ];
 
+  const operations = cards.filter((card) => card.allowed);
+
+  const goToTab = (key) => {
+    setOperationsOpen(false);
+    setTab(key);
+  };
+
+  const showOperationalShell = tab !== "portal";
+
+  const moduleKey = getModuleKeyFromTab(tab);
+
+  const currentActions = moduleKey
+    ? moduleActions[moduleKey]
+    : [];
+
   return (
     <div className="workspace-portal">
       <div className="workspace-overlay">
         <header className="workspace-header">
-          <img src={logo} alt="INTRAL Logo" className="workspace-logo" />
+          <img
+            src={logo}
+            alt="INTRAL Logo"
+            className="workspace-logo"
+          />
 
           <div>
             <h1>INTRAL CONNECT</h1>
-            <p>Warehouse Operations • Logistics Visibility • Customer Portal</p>
+
+            <p>
+              Warehouse Operations • Logistics Visibility • Customer Portal
+            </p>
           </div>
         </header>
 
         <nav className="workspace-topbar">
           <div className="workspace-topbar-left">
-            <button className="topbar-button" onClick={() => setTab("portal")}>
-              <Home size={18} />
-              Home
-            </button>
+            {showOperationalShell && (
+              <button
+                className="topbar-button"
+                onClick={() => {
+                  setOperationsOpen(false);
+                  setTab("portal");
+                }}
+              >
+                <Home size={18} />
+                Home
+              </button>
+            )}
           </div>
 
           <div className="workspace-topbar-center">
-            <strong>{currentDate}</strong>
-            <span>{liveTime}</span>
+            {currentActions.map((action) => (
+              <button
+                key={action.tab}
+                className={
+                  tab === action.tab
+                    ? "topbar-button active-topbar-button"
+                    : "topbar-button"
+                }
+                onClick={() => setTab(action.tab)}
+              >
+                {action.label}
+              </button>
+            ))}
           </div>
 
           <div className="workspace-topbar-right">
+            {showOperationalShell && (
+              <div className="operations-menu">
+                <button
+                  className="operations-button"
+                  onClick={() =>
+                    setOperationsOpen((open) => !open)
+                  }
+                >
+                  Operations
+                  <ChevronDown size={16} />
+                </button>
+
+                {operationsOpen && (
+                  <div className="operations-dropdown-menu">
+                    {operations.map((item) => (
+                      <button
+                        key={item.key}
+                        className={
+                          tab === item.key ? "active" : ""
+                        }
+                        onClick={() => goToTab(item.key)}
+                      >
+                        <span className="operations-dropdown-icon">
+                          {item.icon}
+                        </span>
+
+                        <span>
+                          <strong>{item.title}</strong>
+
+                          <small>{item.subtitle}</small>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="topbar-datetime">
+              <strong>{liveTime}</strong>
+
+              <span>{currentDate}</span>
+            </div>
+
             <div className="workspace-user">
-              <strong>{String(profile?.role || "USER").toUpperCase()}</strong>
+              <strong>
+                {String(profile?.role || "USER").toUpperCase()}
+              </strong>
+
               <span>{userEmail || "No Email"}</span>
             </div>
 
-            <button className="logout-button" onClick={handleLogout}>
+            <button
+              className="logout-button"
+              onClick={handleLogout}
+            >
               <LogOut size={18} />
               Logout
             </button>
@@ -133,14 +232,20 @@ function WorkspacePortal({
                   className="workspace-card"
                   onClick={() => setTab(card.key)}
                 >
-                  <div className="workspace-icon">{card.icon}</div>
+                  <div className="workspace-icon">
+                    {card.icon}
+                  </div>
+
                   <h2>{card.title}</h2>
+
                   <p>{card.subtitle}</p>
                 </button>
               ))}
           </section>
         ) : (
-          <section className="workspace-module">{children}</section>
+          <section className="workspace-module">
+            {children}
+          </section>
         )}
       </div>
     </div>

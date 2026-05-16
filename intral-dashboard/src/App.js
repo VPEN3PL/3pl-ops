@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 
 import { supabase } from "./supabaseClient";
+
 import WorkspacePortal from "./components/WorkspacePortal";
+import DashboardWorkspace from "./components/DashboardWorkspace";
+import InventoryWorkspace from "./components/InventoryWorkspace";
+import ReceivingWorkspace from "./components/ReceivingWorkspace";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -94,6 +98,7 @@ function App() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+
     setTab("portal");
     setEmail("");
     setPassword("");
@@ -104,7 +109,15 @@ function App() {
     const names = {
       dashboard: "Dashboard",
       receiving: "Receiving",
+      "receiving-inbound": "Inbound Queue",
+      "receiving-putaway": "Putaway",
+      "receiving-reprint": "Reprint Labels",
+      "receiving-dock": "Dock Queue",
       inventory: "Inventory",
+      "inventory-lookup": "Inventory Lookup",
+      "inventory-move": "Inventory Move",
+      allocation: "Inventory Allocation",
+      "inventory-history": "Transfer History",
       jobs: "Job Request",
       orders: "Order Central",
       scorecards: "Score Cards",
@@ -115,6 +128,83 @@ function App() {
     return names[tab] || "Workspace";
   };
 
+  const renderWorkspace = () => {
+    if (tab === "dashboard") {
+      return <DashboardWorkspace />;
+    }
+
+    if (tab === "receiving") {
+      return <ReceivingWorkspace receivingView="dashboard" />;
+    }
+
+    if (tab === "receiving-inbound") {
+      return <ReceivingWorkspace receivingView="inbound" />;
+    }
+
+    if (tab === "receiving-putaway") {
+      return <ReceivingWorkspace receivingView="putaway" />;
+    }
+
+    if (tab === "receiving-reprint") {
+      return <ReceivingWorkspace receivingView="reprint" />;
+    }
+
+    if (tab === "receiving-dock") {
+      return <ReceivingWorkspace receivingView="dock" />;
+    }
+
+    if (tab === "inventory") {
+      return <InventoryWorkspace inventoryView="dashboard" />;
+    }
+
+    if (tab === "inventory-lookup") {
+      return <InventoryWorkspace inventoryView="lookup" />;
+    }
+
+    if (tab === "inventory-move") {
+      return <InventoryWorkspace inventoryView="move" />;
+    }
+
+    if (tab === "allocation") {
+      return <InventoryWorkspace inventoryView="allocation" />;
+    }
+
+    if (tab === "inventory-history") {
+      return <InventoryWorkspace inventoryView="history" />;
+    }
+
+    return (
+      <div className="module-panel">
+        <div className="module-panel-header">
+          <div>
+            <h1>{getModuleTitle()}</h1>
+
+            <p>
+              This workspace will connect to the existing INTRAL CONNECT module
+              during the next layout integration step.
+            </p>
+          </div>
+
+          <button
+            className="module-home-button"
+            onClick={() => setTab("portal")}
+          >
+            ← Back to Home
+          </button>
+        </div>
+
+        <div className="module-placeholder-card">
+          <h2>{getModuleTitle()} Workspace</h2>
+
+          <p>
+            Layout shell is active. Background, logo, and navigation remain
+            fixed while moving between modules.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   if (!session) {
     return (
       <div className="workspace-portal">
@@ -122,7 +212,10 @@ function App() {
           <div className="login-panel">
             <div className="login-header">
               <h1>INTRAL CONNECT</h1>
-              <p>Warehouse Operations • Logistics Visibility • Customer Portal</p>
+
+              <p>
+                Warehouse Operations • Logistics Visibility • Customer Portal
+              </p>
             </div>
 
             <div className="login-form">
@@ -139,7 +232,9 @@ function App() {
                 onChange={(e) => setPassword(e.target.value)}
               />
 
-              <button onClick={handleLogin}>Login</button>
+              <button onClick={handleLogin}>
+                Login
+              </button>
             </div>
           </div>
         </div>
@@ -157,29 +252,7 @@ function App() {
       userEmail={session?.user?.email}
       handleLogout={handleLogout}
     >
-      <div className="module-panel">
-        <div className="module-panel-header">
-          <div>
-            <h1>{getModuleTitle()}</h1>
-            <p>
-              This workspace will connect to the existing INTRAL CONNECT module
-              during the next layout integration step.
-            </p>
-          </div>
-
-          <button className="module-home-button" onClick={() => setTab("portal")}>
-            ← Back to Home
-          </button>
-        </div>
-
-        <div className="module-placeholder-card">
-          <h2>{getModuleTitle()} Workspace</h2>
-          <p>
-            Layout shell is active. Background, logo, and navigation remain fixed
-            while moving between modules.
-          </p>
-        </div>
-      </div>
+      {renderWorkspace()}
     </WorkspacePortal>
   );
 }

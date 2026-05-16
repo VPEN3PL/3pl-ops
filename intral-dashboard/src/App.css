@@ -14,6 +14,10 @@ button {
   font-family: inherit;
 }
 
+/* =========================================
+   INTRAL CONNECT PORTAL SHELL
+========================================= */
+
 .workspace-portal {
   min-height: 100vh;
   background-image: url("./assets/intral-background.png");
@@ -56,15 +60,22 @@ button {
   text-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
 }
 
+/* =========================================
+   ENTERPRISE TOPBAR ARCHITECTURE
+   LEFT = HOME
+   CENTER = DOMAIN ACTIONS
+   RIGHT = OPERATIONS / TIME / USER / LOGOUT
+========================================= */
+
 .workspace-topbar {
   min-height: 86px;
   display: grid;
-  grid-template-columns: 220px 1fr 320px;
+  grid-template-columns: 150px minmax(260px, 1fr) minmax(520px, auto);
   align-items: center;
-  gap: 18px;
-  padding: 16px 22px;
+  gap: 16px;
+  padding: 16px 24px;
   border-radius: 18px;
-  background: rgba(15, 65, 105, 0.72);
+  background: rgba(15, 65, 105, 0.74);
   border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(14px);
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
@@ -73,26 +84,27 @@ button {
 
 .workspace-topbar-left {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
 }
 
 .workspace-topbar-center {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 22px;
-  color: white;
-  font-size: 16px;
-  font-weight: 800;
-  text-align: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .workspace-topbar-right {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .topbar-button,
@@ -104,12 +116,13 @@ button {
   gap: 8px;
   border: none;
   min-height: 42px;
-  padding: 10px 18px;
+  padding: 10px 16px;
   border-radius: 12px;
   font-weight: 800;
   cursor: pointer;
   transition: 0.2s ease;
   color: white;
+  white-space: nowrap;
 }
 
 .topbar-button {
@@ -120,12 +133,43 @@ button {
   background: rgba(255, 255, 255, 0.22);
 }
 
+.operations-button {
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.9),
+    rgba(30, 64, 175, 0.9)
+  );
+  color: white;
+  font-weight: 800;
+  padding: 10px 16px;
+  min-height: 42px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24);
+  white-space: nowrap;
+}
+
+.operations-button:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.95),
+    rgba(37, 99, 235, 0.95)
+  );
+}
+
 .logout-button {
-  background: #dc2626;
+  background: linear-gradient(
+    135deg,
+    rgba(220, 38, 38, 0.95),
+    rgba(153, 27, 27, 0.95)
+  );
 }
 
 .logout-button:hover {
-  background: #b91c1c;
+  transform: translateY(-1px);
 }
 
 .workspace-user {
@@ -134,16 +178,45 @@ button {
   align-items: flex-end;
   gap: 4px;
   color: white;
+  min-width: 112px;
+  max-width: 160px;
+  overflow: hidden;
 }
 
 .workspace-user strong {
   font-size: 15px;
+  letter-spacing: 0.5px;
 }
 
 .workspace-user span {
   font-size: 12px;
   color: #dbeafe;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.topbar-datetime {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  color: white;
+  min-width: 135px;
+}
+
+.topbar-datetime strong {
+  font-size: 15px;
+}
+
+.topbar-datetime span {
+  font-size: 12px;
+  color: #dbeafe;
+}
+
+/* =========================================
+   HOME WORKSPACE CARDS
+========================================= */
 
 .workspace-grid {
   display: grid;
@@ -186,6 +259,10 @@ button {
   line-height: 1.6;
   font-size: 15px;
 }
+
+/* =========================================
+   MODULE SHELL
+========================================= */
 
 .workspace-module {
   width: 100%;
@@ -240,6 +317,10 @@ button {
   color: #475569;
 }
 
+/* =========================================
+   LOGIN
+========================================= */
+
 .login-panel {
   max-width: 460px;
   margin: 100px auto;
@@ -293,6 +374,434 @@ button {
   background: #1d4ed8;
 }
 
+/* =========================================
+   DASHBOARD WORKSPACE
+========================================= */
+
+.dashboard-workspace {
+  width: 100%;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+  font-size: 34px;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.dashboard-header p {
+  color: #475569;
+  font-weight: 600;
+  max-width: 850px;
+}
+
+.dashboard-refresh-button {
+  border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dashboard-refresh-button:hover {
+  background: #1d4ed8;
+}
+
+.dashboard-message {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  font-weight: 700;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.kpi-card {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.kpi-card span {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-card h2 {
+  font-size: 34px;
+  margin: 10px 0 6px;
+  color: #1d4ed8;
+}
+
+.kpi-card p {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+}
+
+.dashboard-panel {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-panel h2 {
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.large-panel {
+  grid-row: span 2;
+}
+
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.dashboard-table th {
+  text-align: left;
+  background: #1d4ed8;
+  color: white;
+  padding: 12px;
+}
+
+.dashboard-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.status-badge.open {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.status-badge.released {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.picking {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.status-badge.complete {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.shipped {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.panel-note {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mini-list-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.mini-list-row span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.health-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.health-row span {
+  color: #475569;
+  font-weight: 700;
+}
+
+.health-row strong {
+  color: #1d4ed8;
+  font-size: 20px;
+}
+
+/* ========================================
+   PHASE 4 — INVENTORY ALLOCATION WORKSPACE
+======================================== */
+
+.allocation-workspace {
+  width: 100%;
+}
+
+.allocation-header {
+  margin-bottom: 24px;
+}
+
+.allocation-header h1 {
+  font-size: 34px;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.allocation-header p {
+  color: #475569;
+  font-weight: 600;
+}
+
+.allocation-searchbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.allocation-searchbar input,
+.allocation-searchbar select {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  background: white;
+}
+
+.allocation-searchbar button {
+  border: none;
+  border-radius: 12px;
+  background: #2563eb;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 46px;
+}
+
+.allocation-searchbar button:hover {
+  background: #1d4ed8;
+}
+
+.allocation-main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.allocation-table-panel,
+.allocation-action-panel,
+.allocation-history-panel {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid #dbeafe;
+  padding: 22px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.allocation-panel-header {
+  margin-bottom: 18px;
+}
+
+.allocation-panel-header h2 {
+  font-size: 22px;
+  color: #0f172a;
+}
+
+.allocation-table,
+.allocation-history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.allocation-table th,
+.allocation-history-table th {
+  background: #1d4ed8;
+  color: white;
+  text-align: left;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.allocation-table td,
+.allocation-history-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.allocation-table tbody tr {
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.allocation-table tbody tr:hover {
+  background: #eff6ff;
+}
+
+.selected-row {
+  background: #dbeafe !important;
+}
+
+.allocation-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.allocation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.allocation-form input,
+.allocation-form textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  resize: none;
+}
+
+.allocation-selected-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.allocation-selected-info div {
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.allocation-selected-info span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.allocation-selected-info strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.allocation-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.allocate-button,
+.release-button,
+.history-button {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.allocate-button {
+  background: #16a34a;
+}
+
+.allocate-button:hover {
+  background: #15803d;
+}
+
+.release-button {
+  background: #dc2626;
+}
+
+.release-button:hover {
+  background: #b91c1c;
+}
+
+.history-button {
+  background: #475569;
+}
+
+.history-button:hover {
+  background: #334155;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
 @media (max-width: 950px) {
   .workspace-overlay {
     padding: 18px;
@@ -313,11 +822,351 @@ button {
     justify-content: flex-start;
   }
 
-  .workspace-user {
+  .workspace-topbar-right {
+    flex-wrap: wrap;
+  }
+
+  .workspace-user,
+  .topbar-datetime {
     align-items: flex-start;
   }
 
-  .module-panel-header {
+  .module-panel-header,
+  .dashboard-header {
     flex-direction: column;
   }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .large-panel {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 1100px) {
+  .allocation-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .allocation-selected-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+   PHASE 4B — OPERATIONS DROPDOWN
+========================================= */
+
+.operations-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.operations-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.operations-dropdown-menu {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 360px;
+  max-height: 520px;
+  overflow-y: auto;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  border-radius: 18px;
+  padding: 10px;
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.operations-dropdown-menu button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  border-radius: 14px;
+  padding: 12px;
+  background: transparent;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.operations-dropdown-menu button:hover,
+.operations-dropdown-menu button.active {
+  background: rgba(59, 130, 246, 0.22);
+}
+
+.operations-dropdown-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #60a5fa;
+}
+
+.operations-dropdown-menu strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.operations-dropdown-menu small {
+  display: block;
+  color: #cbd5e1;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+/* Phase 4C — Operations Dropdown Layer Fix */
+
+.operations-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  z-index: 9999;
+}
+
+.operations-dropdown-menu {
+  position: absolute;
+  top: 54px;
+  right: 0;
+  width: 360px;
+  max-height: 520px;
+  overflow-y: auto;
+  z-index: 99999;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  border-radius: 18px;
+  padding: 10px;
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.operations-dropdown-menu button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  border-radius: 14px;
+  padding: 12px;
+  background: transparent;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.operations-dropdown-menu button:hover,
+.operations-dropdown-menu button.active {
+  background: rgba(59, 130, 246, 0.22);
+}
+
+.operations-dropdown-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #60a5fa;
+}
+
+.operations-dropdown-menu strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.operations-dropdown-menu small {
+  display: block;
+  color: #cbd5e1;
+  font-size: 11px;
+  line-height: 1.35;
+}
+/* =========================================
+   PHASE 4D — INVENTORY ECOSYSTEM WORKSPACE
+========================================= */
+
+.inventory-workspace {
+  width: 100%;
+}
+
+.inventory-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.inventory-subnav button {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.inventory-subnav button:hover,
+.inventory-subnav button.active {
+  background: #2563eb;
+  color: white;
+}
+
+.inventory-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.inventory-header-row h1 {
+  font-size: 34px;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.inventory-header-row p {
+  color: #475569;
+  font-weight: 600;
+  max-width: 900px;
+}
+
+.inventory-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.inventory-kpi-card {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.inventory-kpi-card span {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inventory-kpi-card h2 {
+  font-size: 34px;
+  margin: 10px 0 6px;
+  color: #1d4ed8;
+}
+
+.inventory-kpi-card p {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.inventory-panel {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.inventory-panel h2 {
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.inventory-searchbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.inventory-searchbar input {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.inventory-searchbar button,
+.inventory-primary-button {
+  border: none;
+  border-radius: 12px;
+  background: #2563eb;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 46px;
+  padding: 12px 18px;
+}
+
+.inventory-searchbar button:hover,
+.inventory-primary-button:hover {
+  background: #1d4ed8;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.inventory-table th {
+  text-align: left;
+  background: #1d4ed8;
+  color: white;
+  padding: 12px;
+}
+
+.inventory-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.inventory-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.inventory-form-grid input,
+.inventory-form-grid textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.inventory-form-grid textarea {
+  grid-column: 1 / -1;
+  resize: none;
+}
+.active-topbar-button {
+  background: rgba(96, 165, 250, 0.38) !important;
+  border: 1px solid rgba(147, 197, 253, 0.55);
 }
