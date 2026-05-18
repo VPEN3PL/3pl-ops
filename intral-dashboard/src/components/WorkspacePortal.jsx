@@ -32,6 +32,7 @@ function WorkspacePortal({
   children,
 }) {
   const [operationsOpen, setOperationsOpen] = useState(false);
+  const [actionDropdownOpen, setActionDropdownOpen] = useState("");
 
   const role = String(profile?.role || "").toLowerCase();
 
@@ -102,36 +103,37 @@ function WorkspacePortal({
   ];
 
   const operations = cards.filter((card) => card.allowed);
+  const showOperationalShell = tab !== "portal";
+  const moduleKey = getModuleKeyFromTab(tab);
+  const currentActions = moduleKey ? moduleActions[moduleKey] : [];
 
   const goToTab = (key) => {
     setOperationsOpen(false);
+    setActionDropdownOpen("");
     setTab(key);
   };
 
-  const showOperationalShell = tab !== "portal";
+  const isActionActive = (action) => {
+    if (action.tab && tab === action.tab) {
+      return true;
+    }
 
-  const moduleKey = getModuleKeyFromTab(tab);
+    if (action.items) {
+      return action.items.some((item) => item.tab === tab);
+    }
 
-  const currentActions = moduleKey
-    ? moduleActions[moduleKey]
-    : [];
+    return false;
+  };
 
   return (
     <div className="workspace-portal">
       <div className="workspace-overlay">
         <header className="workspace-header">
-          <img
-            src={logo}
-            alt="INTRAL Logo"
-            className="workspace-logo"
-          />
+          <img src={logo} alt="INTRAL Logo" className="workspace-logo" />
 
           <div>
             <h1>INTRAL CONNECT</h1>
-
-            <p>
-              Warehouse Operations • Logistics Visibility • Customer Portal
-            </p>
+            <p>Warehouse Operations • Logistics Visibility • Customer Portal</p>
           </div>
         </header>
 
@@ -140,10 +142,7 @@ function WorkspacePortal({
             {showOperationalShell && (
               <button
                 className="topbar-button"
-                onClick={() => {
-                  setOperationsOpen(false);
-                  setTab("portal");
-                }}
+                onClick={() => goToTab("portal")}
               >
                 <Home size={18} />
                 Home
@@ -152,19 +151,57 @@ function WorkspacePortal({
           </div>
 
           <div className="workspace-topbar-center">
-            {currentActions.map((action) => (
-              <button
-                key={action.tab}
-                className={
-                  tab === action.tab
-                    ? "topbar-button active-topbar-button"
-                    : "topbar-button"
-                }
-                onClick={() => setTab(action.tab)}
-              >
-                {action.label}
-              </button>
-            ))}
+            {currentActions.map((action) => {
+              if (action.dropdown) {
+                return (
+                  <div key={action.label} className="module-action-menu">
+                    <button
+                      className={
+                        isActionActive(action)
+                          ? "topbar-button active-topbar-button"
+                          : "topbar-button"
+                      }
+                      onClick={() =>
+                        setActionDropdownOpen((open) =>
+                          open === action.label ? "" : action.label
+                        )
+                      }
+                    >
+                      {action.label}
+                      <ChevronDown size={16} />
+                    </button>
+
+                    {actionDropdownOpen === action.label && (
+                      <div className="module-action-dropdown">
+                        {action.items.map((item) => (
+                          <button
+                            key={item.tab}
+                            className={tab === item.tab ? "active" : ""}
+                            onClick={() => goToTab(item.tab)}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={action.tab}
+                  className={
+                    tab === action.tab
+                      ? "topbar-button active-topbar-button"
+                      : "topbar-button"
+                  }
+                  onClick={() => goToTab(action.tab)}
+                >
+                  {action.label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="workspace-topbar-right">
@@ -172,9 +209,7 @@ function WorkspacePortal({
               <div className="operations-menu">
                 <button
                   className="operations-button"
-                  onClick={() =>
-                    setOperationsOpen((open) => !open)
-                  }
+                  onClick={() => setOperationsOpen((open) => !open)}
                 >
                   Operations
                   <ChevronDown size={16} />
@@ -185,9 +220,7 @@ function WorkspacePortal({
                     {operations.map((item) => (
                       <button
                         key={item.key}
-                        className={
-                          tab === item.key ? "active" : ""
-                        }
+                        className={tab === item.key ? "active" : ""}
                         onClick={() => goToTab(item.key)}
                       >
                         <span className="operations-dropdown-icon">
@@ -196,7 +229,6 @@ function WorkspacePortal({
 
                         <span>
                           <strong>{item.title}</strong>
-
                           <small>{item.subtitle}</small>
                         </span>
                       </button>
@@ -208,22 +240,15 @@ function WorkspacePortal({
 
             <div className="topbar-datetime">
               <strong>{liveTime}</strong>
-
               <span>{currentDate}</span>
             </div>
 
             <div className="workspace-user">
-              <strong>
-                {String(profile?.role || "USER").toUpperCase()}
-              </strong>
-
+              <strong>{String(profile?.role || "USER").toUpperCase()}</strong>
               <span>{userEmail || "No Email"}</span>
             </div>
 
-            <button
-              className="logout-button"
-              onClick={handleLogout}
-            >
+            <button className="logout-button" onClick={handleLogout}>
               <LogOut size={18} />
               Logout
             </button>
@@ -238,22 +263,16 @@ function WorkspacePortal({
                 <button
                   key={card.key}
                   className="workspace-card"
-                  onClick={() => setTab(card.key)}
+                  onClick={() => goToTab(card.key)}
                 >
-                  <div className="workspace-icon">
-                    {card.icon}
-                  </div>
-
+                  <div className="workspace-icon">{card.icon}</div>
                   <h2>{card.title}</h2>
-
                   <p>{card.subtitle}</p>
                 </button>
               ))}
           </section>
         ) : (
-          <section className="workspace-module">
-            {children}
-          </section>
+          <section className="workspace-module">{children}</section>
         )}
       </div>
     </div>

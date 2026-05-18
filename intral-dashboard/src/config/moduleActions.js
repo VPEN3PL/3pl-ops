@@ -1,101 +1,44 @@
 export const moduleActions = {
   receiving: [
-    {
-      label: "Receiving Dashboard",
-      tab: "receiving",
-    },
-    {
-      label: "Inbound",
-      tab: "receiving-inbound",
-    },
-    {
-      label: "Putaway",
-      tab: "receiving-putaway",
-    },
-    {
-      label: "Reprint Labels",
-      tab: "receiving-reprint",
-    },
-    {
-      label: "Dock Queue",
-      tab: "receiving-dock",
-    },
+    { label: "Receiving Dashboard", tab: "receiving" },
+    { label: "Inbound", tab: "receiving-inbound" },
+    { label: "Putaway", tab: "receiving-putaway" },
+    { label: "Reprint Labels", tab: "receiving-reprint" },
+    { label: "Dock Queue", tab: "receiving-dock" },
   ],
 
   inventory: [
-    {
-      label: "Inventory Dashboard",
-      tab: "inventory",
-    },
-    {
-      label: "Lookup",
-      tab: "inventory-lookup",
-    },
-    {
-      label: "Move",
-      tab: "inventory-move",
-    },
-    {
-      label: "Allocation",
-      tab: "allocation",
-    },
-    {
-      label: "Transfer History",
-      tab: "inventory-history",
-    },
+    { label: "Inventory Dashboard", tab: "inventory" },
+    { label: "Lookup", tab: "inventory-lookup" },
+    { label: "Move", tab: "inventory-move" },
+    { label: "Allocation", tab: "allocation" },
+    { label: "Transfer History", tab: "inventory-history" },
   ],
 
   jobs: [
     {
-      label: "Movement",
-      tab: "jobs-request-movement",
+      label: "Request",
+      dropdown: true,
+      items: [
+        { label: "Movement", tab: "jobs-request-movement" },
+        { label: "Shipping", tab: "jobs-request-shipping" },
+        { label: "Logistics", tab: "jobs-request-logistics" },
+      ],
     },
-    {
-      label: "Shipping",
-      tab: "jobs-request-shipping",
-    },
-    {
-      label: "Logistics",
-      tab: "jobs-request-logistics",
-    },
-    {
-      label: "Track Request",
-      tab: "jobs-track",
-    },
+    { label: "Track Request", tab: "jobs-track" },
   ],
 
   orders: [
-    {
-      label: "Open Orders",
-      tab: "orders-open",
-    },
-    {
-      label: "Active Orders",
-      tab: "orders-active",
-    },
-    {
-      label: "Closed Orders",
-      tab: "orders-closed",
-    },
-    {
-      label: "Order Release",
-      tab: "orders-release",
-    },
+    { label: "Open Orders", tab: "orders-open" },
+    { label: "Active Orders", tab: "orders-active" },
+    { label: "Closed Orders", tab: "orders-closed" },
+    { label: "Order Release", tab: "orders-release" },
   ],
 
   shipping: [
-    {
-      label: "Released Orders",
-      tab: "shipping",
-    },
-    {
-      label: "Started Orders",
-      tab: "shipping-started",
-    },
-    {
-      label: "Completed Orders",
-      tab: "shipping-complete",
-    },
+    { label: "Released Orders", tab: "shipping" },
+    { label: "Started Orders", tab: "shipping-started" },
+    { label: "Completed Orders", tab: "shipping-complete" },
   ],
 };
 

@@ -14,6 +14,21 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     setSubmittedJobOrder("JO-000100");
   };
 
+  const renderAdditionalDetails = () => {
+    return (
+      <div className="inventory-panel">
+        <h2>Additional Details</h2>
+
+        <div className="inventory-form-grid">
+          <textarea
+            rows="6"
+            placeholder="Enter any special instructions, handling requirements, timing concerns, contact notes, or other details needed to complete this request."
+          ></textarea>
+        </div>
+      </div>
+    );
+  };
+
   if (requestMode === "track") {
     return (
       <div className="inventory-subview">
@@ -22,7 +37,8 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
             <h1>Track Request</h1>
 
             <p>
-              Enter the Job Order reference number to view the latest request status.
+              Enter the Job Order reference number to view the latest request
+              status.
             </p>
           </div>
         </div>
@@ -53,14 +69,16 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
           <h1>Request</h1>
 
           <p>
-            Submit operational requests into Order Central for review and release.
+            Submit operational requests into Order Central for review and
+            release.
           </p>
         </div>
       </div>
 
       {submittedJobOrder && (
         <div className="dashboard-message">
-          Job Order {submittedJobOrder} has been successfully submitted. Please retain this reference number for tracking purposes.
+          Job Order {submittedJobOrder} has been successfully submitted. Please
+          retain this reference number for tracking purposes.
         </div>
       )}
 
@@ -83,15 +101,19 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
       </div>
 
       {requestMode === "movement" && (
-        <div className="inventory-panel">
-          <h2>Movement Information</h2>
+        <>
+          <div className="inventory-panel">
+            <h2>Movement Information</h2>
 
-          <div className="inventory-form-grid">
-            <input placeholder="Moving From" />
-            <input placeholder="Deliver To" />
-            <textarea rows="4" placeholder="Movement Notes"></textarea>
+            <div className="inventory-form-grid">
+              <input placeholder="Moving From" />
+              <input placeholder="Deliver To" />
+              <textarea rows="4" placeholder="Movement Notes"></textarea>
+            </div>
           </div>
-        </div>
+
+          {renderAdditionalDetails()}
+        </>
       )}
 
       {requestMode === "shipping" && (
@@ -161,19 +183,28 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
               </div>
             </div>
           )}
+
+          {renderAdditionalDetails()}
         </>
       )}
 
       {requestMode === "logistics" && (
-        <div className="inventory-panel">
-          <h2>Logistics Information</h2>
+        <>
+          <div className="inventory-panel">
+            <h2>Logistics Information</h2>
 
-          <div className="inventory-form-grid">
-            <input placeholder="Current Goods Location" />
-            <input placeholder="Vendor / Site Destination" />
-            <textarea rows="4" placeholder="Logistics Coordination Notes"></textarea>
+            <div className="inventory-form-grid">
+              <input placeholder="Current Goods Location" />
+              <input placeholder="Vendor / Site Destination" />
+              <textarea
+                rows="4"
+                placeholder="Logistics Coordination Notes"
+              ></textarea>
+            </div>
           </div>
-        </div>
+
+          {renderAdditionalDetails()}
+        </>
       )}
 
       <div className="inventory-panel">
