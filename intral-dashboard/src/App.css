@@ -1212,3 +1212,175 @@ button {
 .module-action-dropdown button.active {
   background: rgba(59, 130, 246, 0.22);
 }
+/* =========================================
+   PHASE 8A — ORDER CENTRAL
+========================================= */
+
+.order-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.order-success-button,
+.order-release-button {
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 46px;
+  padding: 12px 18px;
+}
+
+.order-success-button {
+  background: #16a34a;
+}
+
+.order-success-button:hover {
+  background: #15803d;
+}
+
+.order-release-button {
+  background: #dc2626;
+}
+
+.order-release-button:hover {
+  background: #b91c1c;
+}
+/* =========================================
+   PHASE 8B — ORDER CENTRAL DETAIL VIEW
+========================================= */
+
+.order-detail-card {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.order-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.order-detail-header h2 {
+  font-size: 26px;
+  margin-bottom: 6px;
+  color: #0f172a;
+}
+
+.order-detail-header p {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.order-detail-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  background: #eff6ff;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.order-detail-field {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.order-detail-field span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.order-detail-field strong {
+  display: block;
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.order-detail-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.order-detail-section h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #0f172a;
+}
+
+.order-detail-section p {
+  color: #334155;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.order-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 4px;
+}
+/* =========================================
+   PHASE 8C — ORDER ADD WORK CHECKBOXES
+========================================= */
+
+.order-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.order-checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 14px;
+  color: #0f172a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.order-checkbox-card input {
+  width: 18px;
+  height: 18px;
+}
+
+.order-checkbox-card:hover {
+  background: #eff6ff;
+}

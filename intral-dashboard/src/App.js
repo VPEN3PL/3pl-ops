@@ -15,9 +15,17 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [tab, setTab] = useState("portal");
+
+  const [tab, setTab] = useState(() => {
+    return localStorage.getItem("intral-connect-active-tab") || "portal";
+  });
+
   const [liveTime, setLiveTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("intral-connect-active-tab", tab);
+  }, [tab]);
 
   useEffect(() => {
     const updateClock = () => {
@@ -98,6 +106,7 @@ function App() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setTab("portal");
+    localStorage.setItem("intral-connect-active-tab", "portal");
     setEmail("");
     setPassword("");
     setProfile(null);
@@ -134,14 +143,32 @@ function App() {
       return <JobRequestWorkspace requestMode="track" />;
     }
 
-    if (
-      tab === "orders" ||
-      tab === "orders-open" ||
-      tab === "orders-active" ||
-      tab === "orders-closed" ||
-      tab === "orders-release"
-    ) {
-      return <OrderCentralWorkspace />;
+    if (tab === "orders") {
+      return <OrderCentralWorkspace orderMode="dashboard" />;
+    }
+
+    if (tab === "orders-open") {
+      return <OrderCentralWorkspace orderMode="open" />;
+    }
+
+    if (tab === "orders-released") {
+      return <OrderCentralWorkspace orderMode="released" />;
+    }
+
+    if (tab === "orders-closed") {
+      return <OrderCentralWorkspace orderMode="closed" />;
+    }
+
+    if (tab === "orders-action-view") {
+      return <OrderCentralWorkspace orderMode="view" />;
+    }
+
+    if (tab === "orders-action-add-work") {
+      return <OrderCentralWorkspace orderMode="addWork" />;
+    }
+
+    if (tab === "orders-action-release") {
+      return <OrderCentralWorkspace orderMode="release" />;
     }
 
     if (

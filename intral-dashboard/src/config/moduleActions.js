@@ -20,19 +20,33 @@ export const moduleActions = {
       label: "Request",
       dropdown: true,
       items: [
-        { label: "Movement", tab: "jobs-request-movement" },
+        { label: "Inventory Movement", tab: "jobs-request-movement" },
         { label: "Shipping", tab: "jobs-request-shipping" },
-        { label: "Logistics", tab: "jobs-request-logistics" },
+        { label: "Logistics Support", tab: "jobs-request-logistics" },
       ],
     },
     { label: "Track Request", tab: "jobs-track" },
   ],
 
   orders: [
-    { label: "Open Orders", tab: "orders-open" },
-    { label: "Active Orders", tab: "orders-active" },
-    { label: "Closed Orders", tab: "orders-closed" },
-    { label: "Order Release", tab: "orders-release" },
+    {
+      label: "View Orders",
+      dropdown: true,
+      items: [
+        { label: "Open Orders", tab: "orders-open" },
+        { label: "Released Orders", tab: "orders-released" },
+        { label: "Closed Orders", tab: "orders-closed" },
+      ],
+    },
+    {
+      label: "Action",
+      dropdown: true,
+      items: [
+        { label: "View", tab: "orders-action-view" },
+        { label: "Add Additional Work", tab: "orders-action-add-work" },
+        { label: "Release", tab: "orders-action-release" },
+      ],
+    },
   ],
 
   shipping: [
@@ -76,9 +90,11 @@ export const getModuleKeyFromTab = (tab) => {
   if (
     tab === "orders" ||
     tab === "orders-open" ||
-    tab === "orders-active" ||
+    tab === "orders-released" ||
     tab === "orders-closed" ||
-    tab === "orders-release"
+    tab === "orders-action-view" ||
+    tab === "orders-action-add-work" ||
+    tab === "orders-action-release"
   ) {
     return "orders";
   }
