@@ -1384,3 +1384,315 @@ button {
 .order-checkbox-card:hover {
   background: #eff6ff;
 }
+
+/* =========================================
+   PHASE 9B — COMPACT RELEASE WORKSPACE
+========================================= */
+
+.order-release-compact {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.order-release-card {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.order-release-main-card {
+  grid-column: 1 / -1;
+}
+
+.order-release-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.order-release-card h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.order-release-card-header p,
+.order-release-card p {
+  color: #475569;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.order-release-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(145px, 1fr));
+  gap: 12px;
+}
+
+.order-release-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(145px, 1fr));
+  gap: 12px;
+}
+
+.order-release-mini-grid div {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.order-release-mini-grid span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.order-release-mini-grid strong {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.compact-order-section {
+  margin-bottom: 12px;
+  padding: 14px;
+}
+
+.order-release-action-card {
+  position: sticky;
+  top: 18px;
+}
+
+@media (max-width: 1100px) {
+  .order-release-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .order-release-summary-grid {
+    grid-template-columns: repeat(2, minmax(145px, 1fr));
+  }
+
+  .order-release-action-card {
+    position: static;
+  }
+}
+/* =========================================
+   PHASE 10A — SHIPPING EXECUTION WORKSPACE
+========================================= */
+
+.shipping-execution-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.shipping-execution-card {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.shipping-execution-wide {
+  grid-column: 1 / -1;
+}
+
+.shipping-execution-card h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.shipping-action-card {
+  position: sticky;
+  top: 18px;
+}
+
+.shipping-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.shipping-action-row button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+  .shipping-execution-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shipping-action-card {
+    position: static;
+  }
+}
+/* =========================================
+   PHASE 10C — SHIPPING STATION FOCUS MODE
+========================================= */
+
+.shipping-station-load-panel {
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, 520px);
+  gap: 18px;
+  align-items: center;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.shipping-station-load-panel h2 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.shipping-station-load-panel p {
+  color: #475569;
+  font-weight: 650;
+}
+
+.shipping-station-load-controls {
+  display: grid;
+  grid-template-columns: 1fr 130px;
+  gap: 12px;
+}
+
+.shipping-station-load-controls input {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.shipping-station-workspace {
+  width: 100%;
+}
+
+.shipping-station-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.shipping-station-header-card h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.shipping-station-header-card p {
+  color: #475569;
+  font-weight: 650;
+}
+
+.shipping-station-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.shipping-station-status span {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.shipping-station-status strong {
+  color: #0f172a;
+  font-size: 22px;
+}
+
+.shipping-station-main-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.shipping-station-card {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.shipping-station-card h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.shipping-station-large {
+  grid-column: 1 / -1;
+}
+
+.shipping-station-action-card {
+  position: sticky;
+  top: 18px;
+}
+
+.shipping-station-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.shipping-station-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+  .shipping-station-load-panel,
+  .shipping-station-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shipping-station-action-card {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  .shipping-station-load-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .shipping-station-header-card {
+    flex-direction: column;
+  }
+
+  .shipping-station-status {
+    align-items: flex-start;
+  }
+}

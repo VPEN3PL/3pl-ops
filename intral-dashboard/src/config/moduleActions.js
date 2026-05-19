@@ -34,7 +34,7 @@ export const moduleActions = {
       dropdown: true,
       items: [
         { label: "Open Orders", tab: "orders-open" },
-        { label: "Released Orders", tab: "orders-released" },
+        { label: "Active Orders", tab: "orders-released" },
         { label: "Closed Orders", tab: "orders-closed" },
       ],
     },
@@ -50,7 +50,7 @@ export const moduleActions = {
   ],
 
   shipping: [
-    { label: "Released Orders", tab: "shipping" },
+    { label: "Active Orders", tab: "shipping" },
     { label: "Started Orders", tab: "shipping-started" },
     { label: "Completed Orders", tab: "shipping-complete" },
   ],
