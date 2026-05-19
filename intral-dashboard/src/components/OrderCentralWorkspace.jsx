@@ -308,41 +308,6 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     );
   };
 
-  const renderPickListSubInventory = (job) => {
-    if (!job?.inventoryDetails) return null;
-
-    return (
-      <div className="order-detail-section">
-        <h3>Pick List / Sub-Inventory Detail</h3>
-
-        <table className="inventory-table">
-          <thead>
-            <tr>
-              <th>Inventory ID</th>
-              <th>Part #</th>
-              <th>Sub-Inventory</th>
-              <th>Original Pull From</th>
-              <th>STG Location</th>
-              <th>Qty</th>
-              <th>Deliver To</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr>
-              <td>{job.inventoryDetails.inventoryId}</td>
-              <td>{job.inventoryDetails.partNumber}</td>
-              <td>{job.inventoryDetails.subInventory}</td>
-              <td>{job.inventoryDetails.pullFromLocation}</td>
-              <td>{job.stagingLocation || "Generated at release"}</td>
-              <td>{job.inventoryDetails.requestedQty}</td>
-              <td>{job.inventoryDetails.destinationLocation}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    );
-  };
 
   const renderSelectedJobSummary = (title = "Selected Job Order") => {
     if (!selectedJob) return null;
