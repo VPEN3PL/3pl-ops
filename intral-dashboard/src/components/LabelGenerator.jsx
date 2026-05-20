@@ -17,6 +17,7 @@ function LabelGenerator({ initialData }) {
   });
 
   const [isReprintMode, setIsReprintMode] = useState(false);
+  const [labelPrintQty, setLabelPrintQty] = useState("1");
 
   useEffect(() => {
     if (initialData) {
@@ -167,6 +168,7 @@ function LabelGenerator({ initialData }) {
     const amTag = truncate(label.amTag, 34);
     const squareFeet = truncate(label.squareFeet, 18);
     const date = truncate(label.date, 18);
+    const printQty = Math.max(1, Number(labelPrintQty || 1));
 
     const isAmSite = site === "AM" || site === "A&M";
     const locationLabel = isAmSite ? "A&M TAG:" : "SITE:";
@@ -225,6 +227,7 @@ ${logoZpl}
 ^FO45,800^A0N,24,24^FDDATE: ${date}^FS
 ^FO625,800^A0N,24,24^FD4.25 x 4.25^FS
 
+^PQ${printQty}
 ^XZ
 `;
   };
@@ -232,6 +235,11 @@ ${logoZpl}
   const printLabel = async () => {
     if (!label.inventoryId) {
       alert("Inventory ID is required before printing.");
+      return;
+    }
+
+    if (!labelPrintQty || Number(labelPrintQty) <= 0) {
+      alert("Qty of Labels must be greater than zero.");
       return;
     }
 
@@ -286,6 +294,8 @@ ${logoZpl}
 
   const clearLabel = () => {
     setIsReprintMode(false);
+
+    setLabelPrintQty("1");
 
     setLabel({
       inventoryId: "",
@@ -533,6 +543,17 @@ ${logoZpl}
         >
           *{label.inventoryId || "SCAN-ID"}*
         </div>
+      </div>
+
+      <div style={{ marginBottom: "14px" }}>
+        <label>Qty of Labels</label>
+        <input
+          type="number"
+          min="1"
+          value={labelPrintQty}
+          onChange={(e) => setLabelPrintQty(e.target.value)}
+          placeholder="Qty of Labels"
+        />
       </div>
 
       <button onClick={printLabel}>

@@ -302,10 +302,9 @@ function App() {
     if (tab === "dashboard") return <DashboardWorkspace />;
 
     if (tab === "receiving") return <ReceivingWorkspace receivingView="dashboard" />;
-    if (tab === "receiving-inbound") return <ReceivingWorkspace receivingView="inbound" />;
+    if (tab === "receiving-create") return <ReceivingWorkspace receivingView="create" />;
     if (tab === "receiving-putaway") return <ReceivingWorkspace receivingView="putaway" />;
     if (tab === "receiving-reprint") return <ReceivingWorkspace receivingView="reprint" />;
-    if (tab === "receiving-dock") return <ReceivingWorkspace receivingView="dock" />;
 
     if (tab === "inventory") return <InventoryWorkspace inventoryView="dashboard" />;
     if (tab === "inventory-lookup") return <InventoryWorkspace inventoryView="lookup" />;

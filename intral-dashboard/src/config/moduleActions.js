@@ -1,10 +1,15 @@
 export const moduleActions = {
   receiving: [
     { label: "Receiving Dashboard", tab: "receiving" },
-    { label: "Inbound", tab: "receiving-inbound" },
-    { label: "Putaway", tab: "receiving-putaway" },
-    { label: "Reprint Labels", tab: "receiving-reprint" },
-    { label: "Dock Queue", tab: "receiving-dock" },
+    {
+      label: "Action",
+      dropdown: true,
+      items: [
+        { label: "Receiving", tab: "receiving-create" },
+        { label: "Putaway", tab: "receiving-putaway" },
+        { label: "Reprint Labels", tab: "receiving-reprint" },
+      ],
+    },
   ],
 
   inventory: [
@@ -59,10 +64,9 @@ export const moduleActions = {
 export const getModuleKeyFromTab = (tab) => {
   if (
     tab === "receiving" ||
-    tab === "receiving-inbound" ||
+    tab === "receiving-create" ||
     tab === "receiving-putaway" ||
-    tab === "receiving-reprint" ||
-    tab === "receiving-dock"
+    tab === "receiving-reprint"
   ) {
     return "receiving";
   }
