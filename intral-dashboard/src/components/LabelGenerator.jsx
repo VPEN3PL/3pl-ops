@@ -80,8 +80,8 @@ function LabelGenerator({ initialData }) {
       image.crossOrigin = "anonymous";
 
       image.onload = () => {
-        const targetWidth = 330;
-        const targetHeight = 105;
+        const targetWidth = 350;
+        const targetHeight = 118;
         const canvas = document.createElement("canvas");
 
         canvas.width = targetWidth;
@@ -156,16 +156,16 @@ function LabelGenerator({ initialData }) {
   const buildZplLabel = async () => {
     const logoGraphic = await convertLogoToZplGraphic();
 
-    const inventoryId = truncate(label.inventoryId, 36);
-    const customer = truncate(label.customer, 32);
+    const inventoryId = truncate(label.inventoryId, 34);
+    const customer = truncate(label.customer, 30);
     const partNumber = truncate(label.partNumber, 32);
     const quantity = truncate(label.quantity, 18);
-    const descriptionLine1 = truncate(label.description, 44);
-    const descriptionLine2 = truncate(String(label.description || "").slice(44), 44);
+    const descriptionLine1 = truncate(label.description, 42);
+    const descriptionLine2 = truncate(String(label.description || "").slice(42), 42);
     const poNumber = truncate(label.poNumber, 28);
     const countryOfOrigin = truncate(label.countryOfOrigin, 28);
     const site = truncate(label.site, 18);
-    const amTag = truncate(label.amTag, 34);
+    const amTag = truncate(label.amTag, 28);
     const squareFeet = truncate(label.squareFeet, 18);
     const date = truncate(label.date, 18);
     const printQty = Math.max(1, Number(labelPrintQty || 1));
@@ -175,8 +175,8 @@ function LabelGenerator({ initialData }) {
     const locationValue = isAmSite ? amTag || "N/A" : site || "INTRAL";
 
     const logoZpl = logoGraphic
-      ? `^FO45,28${logoGraphic.graphicCommand}^FS`
-      : "^FO55,48^A0N,54,54^FDINTRAL^FS";
+      ? `^FO38,30${logoGraphic.graphicCommand}^FS`
+      : "^FO55,48^A0N,58,58^FDINTRAL^FS";
 
     return `
 ^XA
@@ -185,47 +185,49 @@ function LabelGenerator({ initialData }) {
 ^LL863
 ^LH0,0
 
-^FO30,25^GB803,813,4^FS
+^FO24,22^GB815,818,4^FS
 
 ${logoZpl}
-^FO405,48^A0N,34,34^FDINTRAL INVENTORY LABEL^FS
-^FO405,88^A0N,24,24^FD3PL Warehouse Operations^FS
-^FO45,140^GB773,3,3^FS
+^FO430,42^A0N,34,34^FDINTRAL INVENTORY LABEL^FS
+^FO430,82^A0N,22,22^FD3PL Warehouse Operations^FS
+^FO38,152^GB785,3,3^FS
 
-^FO45,166^A0N,29,29^FDCUSTOMER:^FS
-^FO245,166^A0N,29,29^FD${customer}^FS
+^FO45,176^A0N,28,28^FDPART #:^FS
+^FO205,176^A0N,30,30^FD${partNumber}^FS
 
-^FO45,209^A0N,29,29^FDPART #:^FS
-^FO245,209^A0N,29,29^FD${partNumber}^FS
+^FO45,218^A0N,28,28^FDDESC:^FS
+^FO205,218^A0N,25,25^FD${descriptionLine1}^FS
+^FO205,250^A0N,25,25^FD${descriptionLine2}^FS
 
-^FO45,252^A0N,29,29^FDQTY:^FS
-^FO245,252^A0N,29,29^FD${quantity}^FS
+^FO45,295^A0N,28,28^FDCUSTOMER:^FS
+^FO205,295^A0N,28,28^FD${customer}^FS
 
-^FO45,295^A0N,29,29^FDPO #:^FS
-^FO245,295^A0N,29,29^FD${poNumber}^FS
+^FO45,337^A0N,28,28^FDPO #:^FS
+^FO205,337^A0N,28,28^FD${poNumber}^FS
 
-^FO45,338^A0N,29,29^FDCOO:^FS
-^FO245,338^A0N,29,29^FD${countryOfOrigin}^FS
+^FO45,379^A0N,28,28^FDCOO:^FS
+^FO205,379^A0N,31,31^FD${countryOfOrigin}^FS
 
-^FO45,381^A0N,29,29^FD${locationLabel}^FS
-^FO245,381^A0N,29,29^FD${locationValue}^FS
+^FO45,421^A0N,28,28^FDQTY:^FS
+^FO205,421^A0N,34,34^FD${quantity}^FS
 
-^FO45,424^A0N,29,29^FDSQ FT:^FS
-^FO245,424^A0N,29,29^FD${squareFeet}^FS
+^FO445,337^A0N,28,28^FD${locationLabel}^FS
+^FO600,337^A0N,28,28^FD${locationValue}^FS
 
-^FO45,469^A0N,26,26^FDDESC:^FS
-^FO45,503^A0N,25,25^FD${descriptionLine1}^FS
-^FO45,535^A0N,25,25^FD${descriptionLine2}^FS
+^FO445,379^A0N,28,28^FDSQ FT:^FS
+^FO600,379^A0N,28,28^FD${squareFeet}^FS
 
-^FO45,582^A0N,30,30^FDINV ID:^FS
-^FO245,582^A0N,30,30^FD${inventoryId}^FS
+^FO45,485^GB775,3,3^FS
 
-^FO85,642^BY3,2,112
-^BCN,112,Y,N,N
+^FO45,515^A0N,32,32^FDINV ID:^FS
+^FO205,515^A0N,34,34^FD${inventoryId}^FS
+
+^FO105,585^BY3,2,130
+^BCN,130,Y,N,N
 ^FD${inventoryId}^FS
 
 ^FO45,800^A0N,24,24^FDDATE: ${date}^FS
-^FO625,800^A0N,24,24^FD4.25 x 4.25^FS
+^FO570,800^A0N,24,24^FDLABEL: 4.25 x 4.25^FS
 
 ^PQ${printQty}
 ^XZ
@@ -294,7 +296,6 @@ ${logoZpl}
 
   const clearLabel = () => {
     setIsReprintMode(false);
-
     setLabelPrintQty("1");
 
     setLabel({
@@ -316,7 +317,9 @@ ${logoZpl}
 
   return (
     <div className="card">
-      <h2>{isReprintMode ? "Reprint Inventory Label" : "Inventory Label Generator"}</h2>
+      <h2>
+        {isReprintMode ? "Reprint Inventory Label" : "Inventory Label Generator"}
+      </h2>
 
       <div
         style={{
@@ -351,7 +354,8 @@ ${logoZpl}
             fontWeight: "700",
           }}
         >
-          Reprint mode: fields are locked. This screen is for reprinting the existing inventory label only.
+          Reprint mode: fields are locked. This screen is for reprinting the
+          existing inventory label only.
         </div>
       )}
 
@@ -467,7 +471,7 @@ ${logoZpl}
           width: "4.25in",
           minHeight: "4.25in",
           border: "2px solid #111827",
-          padding: "12px",
+          padding: "10px",
           marginTop: "20px",
           marginBottom: "20px",
           background: "#ffffff",
@@ -478,67 +482,79 @@ ${logoZpl}
       >
         <div
           style={{
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "190px 1fr",
+            gap: "10px",
             alignItems: "center",
-            gap: "12px",
             borderBottom: "2px solid #111827",
-            paddingBottom: "8px",
-            marginBottom: "8px",
+            paddingBottom: "7px",
+            marginBottom: "7px",
           }}
         >
           <img
             src={intralLogo}
             alt="INTRAL Logo"
             style={{
-              height: "62px",
-              maxWidth: "185px",
+              height: "72px",
+              maxWidth: "190px",
               objectFit: "contain",
             }}
           />
           <div>
-            <h3 style={{ margin: 0, fontSize: "18px" }}>INTRAL</h3>
-            <div style={{ fontWeight: "bold", fontSize: "13px" }}>
-              3PL INVENTORY LABEL
+            <h3 style={{ margin: 0, fontSize: "17px", lineHeight: "18px" }}>
+              INTRAL INVENTORY LABEL
+            </h3>
+            <div style={{ fontWeight: "bold", fontSize: "12px" }}>
+              3PL Warehouse Operations
             </div>
           </div>
         </div>
 
-        <p style={{ margin: "4px 0" }}>
-          <strong>Customer:</strong> {label.customer}
-        </p>
-        <p style={{ margin: "4px 0" }}>
-          <strong>Part #:</strong> {label.partNumber}
-        </p>
-        <p style={{ margin: "4px 0" }}>
-          <strong>Qty:</strong> {label.quantity}
-        </p>
-        <p style={{ margin: "4px 0" }}>
-          <strong>PO #:</strong> {label.poNumber}
-        </p>
-        <p style={{ margin: "4px 0" }}>
-          <strong>COO:</strong> {label.countryOfOrigin}
-        </p>
-        <p style={{ margin: "4px 0" }}>
-          <strong>{isAmPreview ? "A&M Tag:" : "Site:"}</strong>{" "}
-          {isAmPreview ? label.amTag : label.site}
-        </p>
-        <p style={{ margin: "4px 0" }}>
-          <strong>Sq Ft:</strong> {label.squareFeet}
-        </p>
-        <p style={{ margin: "4px 0" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 10px" }}>
+          <p style={{ margin: "3px 0" }}>
+            <strong>Part #:</strong> {label.partNumber}
+          </p>
+          <p style={{ margin: "3px 0" }}>
+            <strong>Qty:</strong> {label.quantity}
+          </p>
+          <p style={{ margin: "3px 0" }}>
+            <strong>Customer:</strong> {label.customer}
+          </p>
+          <p style={{ margin: "3px 0" }}>
+            <strong>PO #:</strong> {label.poNumber}
+          </p>
+          <p style={{ margin: "3px 0", fontWeight: "700" }}>
+            <strong>COO:</strong> {label.countryOfOrigin}
+          </p>
+          <p style={{ margin: "3px 0" }}>
+            <strong>{isAmPreview ? "A&M Tag:" : "Site:"}</strong>{" "}
+            {isAmPreview ? label.amTag : label.site}
+          </p>
+          <p style={{ margin: "3px 0" }}>
+            <strong>Sq Ft:</strong> {label.squareFeet}
+          </p>
+          <p style={{ margin: "3px 0" }}>
+            <strong>Date:</strong> {label.date}
+          </p>
+        </div>
+
+        <p style={{ margin: "6px 0 3px 0" }}>
           <strong>Description:</strong> {label.description}
         </p>
-        <p style={{ margin: "10px 0 4px 0", fontSize: "18px" }}>
+
+        <p style={{ margin: "8px 0 4px 0", fontSize: "17px" }}>
           <strong>Inventory ID:</strong> {label.inventoryId}
         </p>
+
         <div
           style={{
-            marginTop: "10px",
+            marginTop: "6px",
             padding: "8px",
             border: "1px solid #111827",
             textAlign: "center",
             fontWeight: "bold",
             letterSpacing: "2px",
+            minHeight: "48px",
           }}
         >
           *{label.inventoryId || "SCAN-ID"}*
