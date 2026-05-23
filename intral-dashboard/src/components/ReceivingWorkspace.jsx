@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { supabase } from "../supabaseClient";
 import LabelGenerator from "./LabelGenerator";
 
 const receivingLocations = ["RCV-01", "RCV-02", "RCV-03", "RCV-04"];
@@ -18,41 +19,10 @@ const floorOnlyLocations = ["Basement", "A&M", "DCIC", "M-Building", "1L"];
 function ReceivingWorkspace({ receivingView = "dashboard" }) {
   const [message, setMessage] = useState("");
   const [labelData, setLabelData] = useState(null);
+  const [putawayLabelDataList, setPutawayLabelDataList] = useState([]);
 
-  const [receipts, setReceipts] = useState([
-    {
-      receiptNumber: "RCV-000101",
-      purchaseOrder: "PO-45821",
-      vendor: "Vendor A",
-      partNumber: "PN-45882",
-      description: "Sample received material",
-      quantity: 20,
-      countryOfOrigin: "USA",
-      isAM: false,
-      squareFeet: "",
-      tagNumber: "",
-      receivingLocation: "RCV-01",
-      status: "In Receiving",
-      finalStorageLocation: "",
-      putawayQty: "",
-    },
-    {
-      receiptNumber: "RCV-000102",
-      purchaseOrder: "PO-77811",
-      vendor: "A&M",
-      partNumber: "PN-77811",
-      description: "Crating material",
-      quantity: 12,
-      countryOfOrigin: "USA",
-      isAM: true,
-      squareFeet: "144",
-      tagNumber: "TAG-77811",
-      receivingLocation: "RCV-02",
-      status: "In Receiving",
-      finalStorageLocation: "",
-      putawayQty: "",
-    },
-  ]);
+  const [receipts, setReceipts] = useState([]);
+  const [loadingReceipts, setLoadingReceipts] = useState(false);
 
   const [receiptForm, setReceiptForm] = useState({
     purchaseOrder: "",
@@ -73,6 +43,51 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
   const [aisleLocation, setAisleLocation] = useState("");
   const [reprintSearch, setReprintSearch] = useState("");
   const [labelQty, setLabelQty] = useState("1");
+
+  useEffect(() => {
+    loadReceipts();
+  }, []);
+
+  const mapDbReceiptToUi = (row) => {
+    return {
+      id: row.id,
+      receiptNumber: row.receipt_number || "",
+      purchaseOrder: row.purchase_order || "",
+      vendor: row.vendor || "",
+      partNumber: row.part_number || "",
+      description: row.description || "",
+      quantity: row.quantity || 0,
+      countryOfOrigin: row.country_of_origin || "",
+      isAM: row.is_am || false,
+      squareFeet: row.square_feet || "",
+      tagNumber: row.tag_number || "",
+      receivingLocation: row.receiving_location || "",
+      status: row.status || "In Receiving",
+      finalStorageLocation: row.inventory_location || "",
+      putawayQty: row.putaway_qty || "",
+      createdAt: row.created_at || "",
+    };
+  };
+
+  const loadReceipts = async () => {
+    setLoadingReceipts(true);
+
+    const { data, error } = await supabase
+      .from("receiving_receipts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Receiving load error:", error.message);
+      setMessage(`Receiving load error: ${error.message}`);
+      setLoadingReceipts(false);
+      return;
+    }
+
+    setReceipts((data || []).map(mapDbReceiptToUi));
+    setLoadingReceipts(false);
+  };
+
 
   const selectedLocationIsFloorOnly = floorOnlyLocations.includes(inventoryLocation);
 
@@ -111,7 +126,15 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
   };
 
   const getNextReceiptNumber = () => {
-    const nextNumber = receipts.length + 101;
+    const existingNumbers = receipts
+      .map((receipt) => receipt.receiptNumber)
+      .filter((number) => number && number.startsWith("RCV-"))
+      .map((number) => Number(number.replace("RCV-", "")))
+      .filter((number) => !Number.isNaN(number));
+
+    const nextNumber =
+      existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 101;
+
     return `RCV-${String(nextNumber).padStart(6, "0")}`;
   };
 
@@ -134,7 +157,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     });
   };
 
-  const confirmReceipt = () => {
+  const confirmReceipt = async () => {
     if (!receiptForm.purchaseOrder.trim()) {
       alert("Purchase Order is required.");
       return;
@@ -176,38 +199,52 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     }
 
     const newReceipt = {
-      receiptNumber: getNextReceiptNumber(),
-      purchaseOrder: receiptForm.purchaseOrder.trim(),
+      receipt_number: getNextReceiptNumber(),
+      purchase_order: receiptForm.purchaseOrder.trim(),
       vendor: receiptForm.vendor.trim(),
-      partNumber: receiptForm.partNumber.trim(),
+      part_number: receiptForm.partNumber.trim(),
       description: receiptForm.description.trim(),
       quantity: Number(receiptForm.quantity),
-      countryOfOrigin: receiptForm.countryOfOrigin.trim(),
-      isAM: receiptForm.isAM,
-      squareFeet: receiptForm.squareFeet.trim(),
-      tagNumber: receiptForm.tagNumber.trim(),
-      receivingLocation: getNextReceivingLocation(),
+      country_of_origin: receiptForm.countryOfOrigin.trim(),
+      is_am: receiptForm.isAM,
+      square_feet: receiptForm.squareFeet.trim(),
+      tag_number: receiptForm.tagNumber.trim(),
+      receiving_location: getNextReceivingLocation(),
+      inventory_location: "",
       status: "In Receiving",
-      finalStorageLocation: "",
-      putawayQty: "",
+      putaway_qty: 0,
     };
 
-    setReceipts((prev) => [...prev, newReceipt]);
+    const { data, error } = await supabase
+      .from("receiving_receipts")
+      .insert([newReceipt])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Receipt save error:", error.message);
+      alert(`Receipt save failed: ${error.message}`);
+      return;
+    }
+
+    const savedReceipt = mapDbReceiptToUi(data);
+
+    setReceipts((prev) => [savedReceipt, ...prev]);
     setMessage(
-      `${newReceipt.receiptNumber} confirmed and assigned to ${newReceipt.receivingLocation}. Label is ready for printing.`
+      `${savedReceipt.receiptNumber} confirmed and assigned to ${savedReceipt.receivingLocation}. Label is ready for printing.`
     );
 
     setLabelData({
-      inventoryId: newReceipt.receiptNumber,
-      customer: newReceipt.vendor,
-      partNumber: newReceipt.partNumber,
-      quantity: newReceipt.quantity,
-      description: newReceipt.description,
-      poNumber: newReceipt.purchaseOrder,
-      countryOfOrigin: newReceipt.countryOfOrigin,
-      site: newReceipt.isAM ? "AM" : "INTRAL",
-      amTag: newReceipt.tagNumber,
-      squareFeet: newReceipt.squareFeet,
+      inventoryId: savedReceipt.receiptNumber,
+      customer: savedReceipt.vendor,
+      partNumber: savedReceipt.partNumber,
+      quantity: savedReceipt.quantity,
+      description: savedReceipt.description,
+      poNumber: savedReceipt.purchaseOrder,
+      countryOfOrigin: savedReceipt.countryOfOrigin,
+      site: savedReceipt.isAM ? "AM" : "INTRAL",
+      amTag: savedReceipt.tagNumber,
+      squareFeet: savedReceipt.squareFeet,
       date: new Date().toISOString().slice(0, 10),
     });
 
@@ -222,7 +259,19 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     );
   };
 
-  const transferToStorage = () => {
+  const generateInventoryId = (receiptNumber, index = 0) => {
+    const numericValue = String(receiptNumber || "")
+      .replace("RCV-", "")
+      .replace(/[^0-9]/g, "");
+
+    const timeSuffix = String(Date.now()).slice(-6);
+    const randomSuffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+    const splitSuffix = String(index + 1).padStart(2, "0");
+
+    return `INV-${numericValue || timeSuffix}-${timeSuffix}-${splitSuffix}-${randomSuffix}`;
+  };
+
+  const transferToStorage = async () => {
     if (selectedReceiptNumbers.length === 0) {
       alert("Select at least one receipt to transfer.");
       return;
@@ -249,28 +298,157 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     }
 
     const finalStorageLocation = buildFinalStorageLocation();
+    const transferQty = Number(putawayQty);
+
+    const selectedReceipts = receipts.filter((receipt) =>
+      selectedReceiptNumbers.includes(receipt.receiptNumber)
+    );
+
+    const invalidReceipt = selectedReceipts.find(
+      (receipt) => transferQty > Number(receipt.quantity)
+    );
+
+    if (invalidReceipt) {
+      alert(
+        `Putaway quantity cannot exceed received quantity for ${invalidReceipt.receiptNumber}.`
+      );
+      return;
+    }
+
+    const inventoryRows = selectedReceipts.map((receipt, index) => ({
+      inventory_id: generateInventoryId(receipt.receiptNumber, index),
+      receipt_number: receipt.receiptNumber,
+      purchase_order: receipt.purchaseOrder,
+      customer: receipt.vendor,
+      vendor: receipt.vendor,
+      part_number: receipt.partNumber,
+      description: receipt.description,
+      quantity: transferQty,
+      country_of_origin: receipt.countryOfOrigin,
+      warehouse_location: inventoryLocation,
+      aisle_location:
+        inventoryLocation === "1K" || inventoryLocation === "6K"
+          ? aisleLocation.trim()
+          : "",
+      bin_location:
+        inventoryLocation === "1K" || inventoryLocation === "6K"
+          ? binLocation.trim()
+          : "",
+      final_location: finalStorageLocation,
+      status: "Available",
+      is_am: receipt.isAM,
+      square_feet: receipt.squareFeet,
+      tag_number: receipt.tagNumber,
+    }));
+
+    const { error: inventoryError } = await supabase
+      .from("inventory_items")
+      .insert(inventoryRows);
+
+    if (inventoryError) {
+      console.error("Inventory create error:", inventoryError.message);
+      alert(
+        `Inventory creation failed: ${inventoryError.message}. Receipt was NOT marked Putaway Complete.`
+      );
+      return;
+    }
+
+    const receiptUpdateResults = await Promise.all(
+      selectedReceipts.map((receipt) => {
+        const remainingQty = Number(receipt.quantity) - transferQty;
+        const isFullPutaway = remainingQty === 0;
+
+        return supabase
+          .from("receiving_receipts")
+          .update({
+            quantity: remainingQty,
+            status: isFullPutaway ? "Putaway Complete" : "In Receiving",
+            inventory_location: isFullPutaway ? finalStorageLocation : "",
+            putaway_qty: isFullPutaway ? transferQty : 0,
+          })
+          .eq("receipt_number", receipt.receiptNumber);
+      })
+    );
+
+    const receiptUpdateError = receiptUpdateResults.find((result) => result.error);
+
+    if (receiptUpdateError) {
+      console.error("Receipt update error:", receiptUpdateError.error.message);
+      alert(
+        `Inventory was created, but receipt update failed: ${receiptUpdateError.error.message}`
+      );
+      return;
+    }
+
+    const generatedLabels = [];
 
     const updatedReceipts = receipts.map((receipt) => {
       if (!selectedReceiptNumbers.includes(receipt.receiptNumber)) {
         return receipt;
       }
 
-      if (Number(putawayQty) > Number(receipt.quantity)) {
-        alert(`Putaway quantity cannot exceed received quantity for ${receipt.receiptNumber}.`);
-        return receipt;
+      const remainingQty = Number(receipt.quantity) - transferQty;
+      const inventoryRow = inventoryRows.find(
+        (row) => row.receipt_number === receipt.receiptNumber
+      );
+
+      generatedLabels.push({
+        title: "New Inventory Label",
+        data: {
+          inventoryId: inventoryRow.inventory_id,
+          customer: receipt.vendor,
+          partNumber: receipt.partNumber,
+          quantity: transferQty,
+          description: receipt.description,
+          poNumber: receipt.purchaseOrder,
+          countryOfOrigin: receipt.countryOfOrigin,
+          site: receipt.isAM ? "AM" : "INTRAL",
+          amTag: receipt.tagNumber,
+          squareFeet: receipt.squareFeet,
+          date: new Date().toISOString().slice(0, 10),
+        },
+      });
+
+      if (remainingQty > 0) {
+        generatedLabels.push({
+          title: "Remaining Receiving Label",
+          data: {
+            inventoryId: receipt.receiptNumber,
+            customer: receipt.vendor,
+            partNumber: receipt.partNumber,
+            quantity: remainingQty,
+            description: receipt.description,
+            poNumber: receipt.purchaseOrder,
+            countryOfOrigin: receipt.countryOfOrigin,
+            site: receipt.isAM ? "AM" : "INTRAL",
+            amTag: receipt.tagNumber,
+            squareFeet: receipt.squareFeet,
+            date: new Date().toISOString().slice(0, 10),
+          },
+        });
+
+        return {
+          ...receipt,
+          quantity: remainingQty,
+          status: "In Receiving",
+          finalStorageLocation: "",
+          putawayQty: "",
+        };
       }
 
       return {
         ...receipt,
+        quantity: 0,
         status: "Putaway Complete",
         finalStorageLocation,
-        putawayQty: Number(putawayQty),
+        putawayQty: transferQty,
       };
     });
 
     setReceipts(updatedReceipts);
+    setPutawayLabelDataList(generatedLabels);
     setMessage(
-      `${selectedReceiptNumbers.length} receipt(s) transferred to ${finalStorageLocation}.`
+      `${selectedReceiptNumbers.length} receipt(s) transferred to ${finalStorageLocation}. Partial balances remain in Receiving when applicable.`
     );
     setSelectedReceiptNumbers([]);
     setPutawayQty("");
@@ -305,6 +483,20 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       alert("Label quantity must be greater than zero.");
       return;
     }
+
+    setLabelData({
+      inventoryId: receipt.receiptNumber,
+      customer: receipt.vendor,
+      partNumber: receipt.partNumber,
+      quantity: receipt.quantity,
+      description: receipt.description,
+      poNumber: receipt.purchaseOrder,
+      countryOfOrigin: receipt.countryOfOrigin,
+      site: receipt.isAM ? "AM" : "INTRAL",
+      amTag: receipt.tagNumber,
+      squareFeet: receipt.squareFeet,
+      date: new Date().toISOString().slice(0, 10),
+    });
 
     setMessage(
       `${labelQty} label(s) prepared for ${receipt.receiptNumber} / ${receipt.partNumber}.`
@@ -355,7 +547,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
         <div className="inventory-panel">
           <h2>Current Receiving Activity</h2>
 
-          <table className="inventory-table">
+          {loadingReceipts ? <p className="panel-note">Loading receiving records...</p> : <table className="inventory-table">
             <thead>
               <tr>
                 <th>Receipt #</th>
@@ -383,7 +575,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table>}
         </div>
       </div>
     );
@@ -566,6 +758,23 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
             Transfer to Storage
           </button>
         </div>
+
+        {putawayLabelDataList.length > 0 && (
+          <div className="inventory-panel">
+            <h2>Putaway Labels Ready</h2>
+
+            <p className="panel-note">
+              Print labels for the new inventory item and any remaining receiving balance.
+            </p>
+
+            {putawayLabelDataList.map((labelItem, index) => (
+              <div key={`${labelItem.title}-${index}`} className="order-detail-section">
+                <h3>{labelItem.title}</h3>
+                <LabelGenerator initialData={labelItem.data} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -612,6 +821,13 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
           <button className="inventory-primary-button" onClick={reprintLabel}>
             Reprint Label
           </button>
+
+          {labelData && (
+            <div className="inventory-panel">
+              <h2>Reprint Label Ready</h2>
+              <LabelGenerator initialData={labelData} />
+            </div>
+          )}
         </div>
       </div>
     );

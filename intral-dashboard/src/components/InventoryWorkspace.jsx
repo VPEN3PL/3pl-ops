@@ -1,65 +1,188 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { supabase } from "../supabaseClient";
 import InventoryAllocationWorkspace from "./InventoryAllocationWorkspace";
 
 function InventoryWorkspace({ inventoryView = "dashboard" }) {
+  const [inventoryRows, setInventoryRows] = useState([]);
+  const [loadingInventory, setLoadingInventory] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const [filters, setFilters] = useState({
+    inventoryId: "",
+    partNumber: "",
+    customer: "",
+    location: "",
+  });
+
+  useEffect(() => {
+    loadInventory();
+  }, []);
+
+  const mapDbInventoryToUi = (row) => {
+    return {
+      id: row.inventory_id || "",
+      receiptNumber: row.receipt_number || "",
+      purchaseOrder: row.purchase_order || "",
+      partNumber: row.part_number || "",
+      customer: row.customer || row.vendor || "",
+      vendor: row.vendor || "",
+      description: row.description || "",
+      qty: row.quantity || 0,
+      allocated: 0,
+      available: row.status === "Available" ? row.quantity || 0 : 0,
+      site: row.warehouse_location || "",
+      aisle: row.aisle_location || "",
+      bin: row.bin_location || "",
+      location: row.final_location || "",
+      status: row.status || "Available",
+      countryOfOrigin: row.country_of_origin || "",
+      isAM: row.is_am || false,
+      squareFeet: row.square_feet || "",
+      tagNumber: row.tag_number || "",
+      createdAt: row.created_at || "",
+      updatedAt: row.updated_at || "",
+    };
+  };
+
+  const loadInventory = async () => {
+    setLoadingInventory(true);
+
+    const { data, error } = await supabase
+      .from("inventory_items")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Inventory load error:", error.message);
+      setMessage(`Inventory load error: ${error.message}`);
+      setLoadingInventory(false);
+      return;
+    }
+
+    setInventoryRows((data || []).map(mapDbInventoryToUi));
+    setLoadingInventory(false);
+  };
+
+  const updateFilter = (field, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      inventoryId: "",
+      partNumber: "",
+      customer: "",
+      location: "",
+    });
+  };
+
+  const filteredInventoryRows = useMemo(() => {
+    return inventoryRows.filter((row) => {
+      const inventoryIdMatch = row.id
+        .toLowerCase()
+        .includes(filters.inventoryId.toLowerCase());
+
+      const partNumberMatch = row.partNumber
+        .toLowerCase()
+        .includes(filters.partNumber.toLowerCase());
+
+      const customerMatch = row.customer
+        .toLowerCase()
+        .includes(filters.customer.toLowerCase());
+
+      const locationSearch = `${row.site} ${row.location} ${row.aisle} ${row.bin}`.toLowerCase();
+
+      const locationMatch = locationSearch.includes(filters.location.toLowerCase());
+
+      return inventoryIdMatch && partNumberMatch && customerMatch && locationMatch;
+    });
+  }, [inventoryRows, filters]);
+
+  const totalLines = inventoryRows.length;
+
+  const totalQty = inventoryRows.reduce((sum, row) => {
+    return sum + Number(row.qty || 0);
+  }, 0);
+
+  const availableQty = inventoryRows.reduce((sum, row) => {
+    return sum + Number(row.available || 0);
+  }, 0);
+
+  const uniqueSites = new Set(
+    inventoryRows
+      .map((row) => row.site)
+      .filter((site) => site && site.trim())
+  ).size;
+
   const inventoryKpis = [
     {
       title: "Inventory Lines",
-      value: "3",
-      note: "Current demo inventory records",
+      value: totalLines,
+      note: "Live inventory records",
     },
     {
       title: "Available Qty",
-      value: "395",
+      value: availableQty,
       note: "Inventory available for use",
     },
     {
-      title: "Allocated Qty",
-      value: "35",
-      note: "Reserved inventory quantity",
+      title: "Total Qty",
+      value: totalQty,
+      note: "Total quantity in inventory",
     },
     {
       title: "Sites",
-      value: "3",
-      note: "1K, 6K, and A&M",
+      value: uniqueSites,
+      note: "Active warehouse locations",
     },
   ];
 
-  const inventoryRows = [
-    {
-      id: "INV-1001",
-      partNumber: "PN-45882",
-      customer: "Gillette",
-      qty: 120,
-      allocated: 20,
-      available: 100,
-      site: "1K",
-      location: "1K-22-A1",
-      status: "Available",
-    },
-    {
-      id: "INV-1002",
-      partNumber: "PN-77811",
-      customer: "Gillette",
-      qty: 60,
-      allocated: 15,
-      available: 45,
-      site: "A&M",
-      location: "AM-14-C2",
-      status: "Allocated",
-    },
-    {
-      id: "INV-1003",
-      partNumber: "PN-99021",
-      customer: "P&G",
-      qty: 250,
-      allocated: 0,
-      available: 250,
-      site: "6K",
-      location: "6K-88-D1",
-      status: "Available",
-    },
-  ];
+  const renderInventoryTable = (rows, emptyMessage = "No inventory records found.") => {
+    return (
+      <table className="inventory-table">
+        <thead>
+          <tr>
+            <th>Inventory ID</th>
+            <th>Receipt #</th>
+            <th>Part #</th>
+            <th>Customer</th>
+            <th>Total Qty</th>
+            <th>Available</th>
+            <th>Site</th>
+            <th>Location</th>
+            <th>COO</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan="10">{emptyMessage}</td>
+            </tr>
+          ) : (
+            rows.map((row) => (
+              <tr key={row.id}>
+                <td>{row.id}</td>
+                <td>{row.receiptNumber || "-"}</td>
+                <td>{row.partNumber}</td>
+                <td>{row.customer}</td>
+                <td>{row.qty}</td>
+                <td>{row.available}</td>
+                <td>{row.site}</td>
+                <td>{row.location}</td>
+                <td>{row.countryOfOrigin}</td>
+                <td>{row.status}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    );
+  };
 
   if (inventoryView === "allocation") {
     return <InventoryAllocationWorkspace />;
@@ -73,51 +196,51 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
             <h1>Inventory Lookup</h1>
 
             <p>
-              Search inventory by inventory ID, part number, customer,
+              Search live inventory by inventory ID, part number, customer,
               location, site, or status.
             </p>
           </div>
         </div>
 
-        <div className="inventory-searchbar">
-          <input placeholder="Inventory ID" />
-          <input placeholder="Part Number" />
-          <input placeholder="Customer" />
-          <input placeholder="Site / Location" />
+        {message && <div className="dashboard-message">{message}</div>}
 
-          <button>Search</button>
+        <div className="inventory-searchbar">
+          <input
+            value={filters.inventoryId}
+            onChange={(e) => updateFilter("inventoryId", e.target.value)}
+            placeholder="Inventory ID"
+          />
+
+          <input
+            value={filters.partNumber}
+            onChange={(e) => updateFilter("partNumber", e.target.value)}
+            placeholder="Part Number"
+          />
+
+          <input
+            value={filters.customer}
+            onChange={(e) => updateFilter("customer", e.target.value)}
+            placeholder="Customer"
+          />
+
+          <input
+            value={filters.location}
+            onChange={(e) => updateFilter("location", e.target.value)}
+            placeholder="Site / Location"
+          />
+
+          <button onClick={loadInventory}>Refresh</button>
+          <button onClick={clearFilters}>Clear</button>
         </div>
 
         <div className="inventory-panel">
           <h2>Lookup Results</h2>
 
-          <table className="inventory-table">
-            <thead>
-              <tr>
-                <th>Inventory ID</th>
-                <th>Part #</th>
-                <th>Customer</th>
-                <th>Available</th>
-                <th>Site</th>
-                <th>Location</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {inventoryRows.map((row) => (
-                <tr key={row.id}>
-                  <td>{row.id}</td>
-                  <td>{row.partNumber}</td>
-                  <td>{row.customer}</td>
-                  <td>{row.available}</td>
-                  <td>{row.site}</td>
-                  <td>{row.location}</td>
-                  <td>{row.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {loadingInventory ? (
+            <p className="panel-note">Loading live inventory...</p>
+          ) : (
+            renderInventoryTable(filteredInventoryRows)
+          )}
         </div>
       </div>
     );
@@ -187,23 +310,13 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
 
             <tbody>
               <tr>
-                <td>05/15/2026</td>
-                <td>INV-1002</td>
-                <td>Allocated</td>
-                <td>15</td>
-                <td>AM-14-C2</td>
-                <td>JOB-8821</td>
-                <td>Admin</td>
-              </tr>
-
-              <tr>
-                <td>05/14/2026</td>
-                <td>INV-1001</td>
-                <td>Moved</td>
-                <td>20</td>
-                <td>1K-20-A1</td>
-                <td>1K-22-A1</td>
-                <td>Manager</td>
+                <td>Live history pending</td>
+                <td>-</td>
+                <td>Coming soon</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
               </tr>
             </tbody>
           </table>
@@ -219,10 +332,17 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
           <h1>Inventory Workspace</h1>
 
           <p>
-            Inventory visibility, movement, allocation, and transfer history.
+            Live inventory visibility, movement, allocation, and transfer
+            history powered by putaway completion.
           </p>
         </div>
+
+        <button className="inventory-primary-button" onClick={loadInventory}>
+          Refresh Inventory
+        </button>
       </div>
+
+      {message && <div className="dashboard-message">{message}</div>}
 
       <div className="inventory-kpi-grid">
         {inventoryKpis.map((kpi) => (
@@ -239,37 +359,11 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
       <div className="inventory-panel">
         <h2>Inventory Snapshot</h2>
 
-        <table className="inventory-table">
-          <thead>
-            <tr>
-              <th>Inventory ID</th>
-              <th>Part #</th>
-              <th>Customer</th>
-              <th>Total Qty</th>
-              <th>Allocated</th>
-              <th>Available</th>
-              <th>Site</th>
-              <th>Location</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {inventoryRows.map((row) => (
-              <tr key={row.id}>
-                <td>{row.id}</td>
-                <td>{row.partNumber}</td>
-                <td>{row.customer}</td>
-                <td>{row.qty}</td>
-                <td>{row.allocated}</td>
-                <td>{row.available}</td>
-                <td>{row.site}</td>
-                <td>{row.location}</td>
-                <td>{row.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {loadingInventory ? (
+          <p className="panel-note">Loading live inventory...</p>
+        ) : (
+          renderInventoryTable(inventoryRows)
+        )}
       </div>
     </div>
   );
