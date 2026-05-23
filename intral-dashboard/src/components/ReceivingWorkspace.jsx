@@ -45,8 +45,9 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
   const [labelQty, setLabelQty] = useState("1");
 
   useEffect(() => {
-    loadReceipts();
-  }, []);
+  loadReceipts();
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   const mapDbReceiptToUi = (row) => {
     return {

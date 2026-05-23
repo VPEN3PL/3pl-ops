@@ -15,8 +15,9 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
   });
 
   useEffect(() => {
-    loadInventory();
-  }, []);
+  loadInventory();
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   const mapDbInventoryToUi = (row) => {
     return {
