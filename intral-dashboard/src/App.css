@@ -1696,3 +1696,2676 @@ button {
     align-items: flex-start;
   }
 }
+
+
+/* =========================================
+   PHASE 13B-1 — ORACLE STYLE COMPACT SHELL
+   Dashboard stays INTRAL branded.
+   Operational modules gain compact transaction density.
+========================================= */
+
+.workspace-overlay {
+  padding: 18px 28px 34px;
+}
+
+.workspace-header {
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.workspace-logo {
+  width: 88px;
+}
+
+.workspace-header h1 {
+  font-size: 34px;
+  margin-bottom: 4px;
+}
+
+.workspace-header p {
+  font-size: 13px;
+  color: #dbeafe;
+}
+
+/* Compact transaction command strip */
+.workspace-topbar,
+.compact-transaction-topbar {
+  min-height: 56px;
+  grid-template-columns: 112px minmax(360px, 1fr) minmax(430px, auto);
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  background: rgba(10, 38, 68, 0.86);
+  border: 1px solid rgba(147, 197, 253, 0.24);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+}
+
+.workspace-topbar-center {
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow: visible;
+}
+
+.transaction-module-label {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 128px;
+  height: 36px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(147, 197, 253, 0.22);
+  color: #ffffff;
+}
+
+.transaction-module-label span {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #93c5fd;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.transaction-module-label strong {
+  font-size: 12px;
+  line-height: 1.25;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+.transaction-action-strip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.topbar-button,
+.logout-button,
+.module-home-button,
+.operations-button {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  gap: 6px;
+  letter-spacing: 0.01em;
+}
+
+.topbar-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(226, 232, 240, 0.13);
+}
+
+.topbar-button:hover {
+  background: rgba(96, 165, 250, 0.22);
+}
+
+.active-topbar-button {
+  background: rgba(96, 165, 250, 0.32) !important;
+  border: 1px solid rgba(147, 197, 253, 0.6);
+  box-shadow: inset 0 -2px 0 rgba(191, 219, 254, 0.65);
+}
+
+.operations-button {
+  background: rgba(37, 99, 235, 0.88);
+  box-shadow: none;
+}
+
+.logout-button {
+  background: rgba(185, 28, 28, 0.9);
+}
+
+.workspace-topbar-right {
+  gap: 8px;
+}
+
+.topbar-datetime {
+  min-width: 112px;
+}
+
+.topbar-datetime strong {
+  font-size: 12px;
+}
+
+.topbar-datetime span {
+  font-size: 10px;
+}
+
+.workspace-user {
+  min-width: 94px;
+  max-width: 130px;
+  gap: 2px;
+}
+
+.workspace-user strong {
+  font-size: 11px;
+}
+
+.workspace-user span {
+  font-size: 10px;
+  max-width: 130px;
+}
+
+/* Compact dropdowns */
+.module-action-dropdown {
+  top: 40px;
+  min-width: 190px;
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.module-action-dropdown button {
+  border-radius: 8px;
+  padding: 8px 9px;
+  font-size: 12px;
+}
+
+.operations-dropdown-menu {
+  top: 42px;
+  width: 315px;
+  max-height: 465px;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.operations-dropdown-menu button {
+  grid-template-columns: 34px 1fr;
+  gap: 9px;
+  border-radius: 10px;
+  padding: 9px;
+}
+
+.operations-dropdown-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.operations-dropdown-menu strong {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.operations-dropdown-menu small {
+  font-size: 10px;
+}
+
+/* More visible workspace above the fold */
+.workspace-module {
+  margin-top: 0;
+}
+
+.module-panel,
+.dashboard-panel,
+.inventory-panel,
+.order-detail-card,
+.order-release-card,
+.shipping-station-card,
+.shipping-station-load-panel,
+.shipping-station-header-card {
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-header,
+.inventory-header-row,
+.module-panel-header,
+.order-detail-header,
+.shipping-station-header-card {
+  margin-bottom: 12px;
+}
+
+.dashboard-header h1,
+.inventory-header-row h1,
+.module-panel-header h1,
+.allocation-header h1 {
+  font-size: 26px;
+  margin-bottom: 4px;
+}
+
+.dashboard-header p,
+.inventory-header-row p,
+.module-panel-header p,
+.allocation-header p {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.inventory-kpi-grid,
+.kpi-grid {
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.inventory-kpi-card,
+.kpi-card {
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.inventory-kpi-card span,
+.kpi-card span {
+  font-size: 10px;
+}
+
+.inventory-kpi-card h2,
+.kpi-card h2 {
+  font-size: 26px;
+  margin: 5px 0 3px;
+}
+
+.inventory-kpi-card p,
+.kpi-card p {
+  font-size: 11px;
+}
+
+.inventory-panel h2,
+.dashboard-panel h2,
+.order-release-card h2,
+.shipping-station-card h2,
+.shipping-station-load-panel h2 {
+  font-size: 17px;
+  margin-bottom: 8px;
+}
+
+/* Compact operational fields */
+.inventory-form-grid,
+.inventory-searchbar,
+.allocation-searchbar {
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.inventory-form-grid input,
+.inventory-form-grid textarea,
+.inventory-form-grid select,
+.inventory-searchbar input,
+.inventory-searchbar select,
+
+.allocation-searchbar input,
+.allocation-searchbar select,
+.allocation-form input,
+.allocation-form textarea,
+.shipping-station-load-controls input {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.inventory-searchbar button,
+.inventory-primary-button,
+.order-success-button,
+.order-release-button,
+.history-button,
+.allocate-button,
+.release-button,
+.dashboard-refresh-button,
+.allocation-searchbar button {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.inventory-table,
+.dashboard-table,
+.allocation-table,
+.allocation-history-table {
+  font-size: 12px;
+}
+
+.inventory-table th,
+.dashboard-table th,
+.allocation-table th,
+.allocation-history-table th {
+  padding: 8px;
+}
+
+.inventory-table td,
+.dashboard-table td,
+.allocation-table td,
+.allocation-history-table td {
+  padding: 8px;
+}
+
+.order-detail-grid {
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.order-detail-field,
+.order-release-mini-grid div,
+.order-detail-section {
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.order-detail-field span,
+.order-release-mini-grid span {
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+
+.order-detail-field strong,
+.order-release-mini-grid strong {
+  font-size: 12px;
+}
+
+.order-release-summary-grid {
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  gap: 9px;
+}
+
+.order-release-mini-grid {
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+  gap: 9px;
+}
+
+.shipping-station-main-grid,
+.shipping-execution-grid,
+.order-release-compact,
+.allocation-main-grid,
+.dashboard-grid {
+  gap: 10px;
+}
+
+.shipping-station-load-panel {
+  grid-template-columns: 1fr minmax(290px, 460px);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.shipping-station-header-card {
+  align-items: center;
+}
+
+.shipping-station-header-card h2 {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.shipping-station-header-card p {
+  font-size: 12px;
+}
+
+.shipping-station-status span {
+  padding: 5px 9px;
+  font-size: 10px;
+}
+
+.shipping-station-status strong {
+  font-size: 16px;
+}
+
+/* Home cards remain executive, but slightly tighter */
+.workspace-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.workspace-card {
+  min-height: 170px;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.workspace-icon {
+  margin-bottom: 12px;
+}
+
+.workspace-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.workspace-card h2 {
+  font-size: 21px;
+  margin-bottom: 8px;
+}
+
+.workspace-card p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1200px) {
+  .workspace-topbar,
+  .compact-transaction-topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-topbar-left,
+  .workspace-topbar-center,
+  .workspace-topbar-right {
+    justify-content: flex-start;
+  }
+
+  .workspace-topbar-right {
+    flex-wrap: wrap;
+  }
+
+  .transaction-action-strip {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .workspace-overlay {
+    padding: 14px;
+  }
+
+  .workspace-header h1 {
+    font-size: 28px;
+  }
+
+  .transaction-module-label {
+    width: 100%;
+  }
+}
+
+
+/* =========================================
+   PHASE 13B-1 HOTFIX — OPERATIONS DROPDOWN WIDTH
+   Fixes cutoff titles/descriptions in the Operations dropdown.
+   Keeps compact Oracle-style command strip intact.
+========================================= */
+
+.operations-dropdown-menu {
+  top: 42px !important;
+  left: 0 !important;
+  right: auto !important;
+  width: 440px !important;
+  max-width: calc(100vw - 40px) !important;
+  max-height: 520px !important;
+  overflow-x: hidden !important;
+}
+
+.operations-dropdown-menu button {
+  grid-template-columns: 40px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  border-radius: 10px !important;
+  padding: 12px 14px !important;
+  min-height: 58px !important;
+  overflow: visible !important;
+}
+
+.operations-dropdown-menu button span:last-child {
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+.operations-dropdown-menu strong {
+  font-size: 14px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.operations-dropdown-menu small {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.operations-dropdown-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+
+/* =========================================
+   PHASE 13B-2 — JOB REQUEST TRANSACTION SCREEN
+   Oracle-style compact request workspace.
+   Preserves existing workflow logic.
+========================================= */
+
+.job-request-workspace {
+  width: 100%;
+}
+
+.job-transaction-header {
+  margin-bottom: 10px !important;
+}
+
+.job-request-transaction-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 12px;
+  align-items: start;
+}
+
+.job-request-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.job-request-side-column {
+  min-width: 0;
+}
+
+.job-transaction-panel {
+  margin-bottom: 0;
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.job-transaction-panel h2 {
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.job-transaction-panel .panel-note {
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.job-compact-form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+  gap: 8px !important;
+  margin-bottom: 0 !important;
+}
+
+.job-compact-form-grid input,
+.job-compact-form-grid select,
+.job-compact-form-grid textarea {
+  min-height: 34px !important;
+  border-radius: 8px !important;
+  padding: 8px 9px !important;
+  font-size: 12px !important;
+}
+
+.job-compact-form-grid textarea {
+  min-height: 72px;
+}
+
+.job-request-summary-panel {
+  position: sticky;
+  top: 74px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
+}
+
+.job-summary-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.job-summary-header span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+
+.job-summary-header strong {
+  display: block;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.job-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.job-summary-grid div,
+.job-summary-success {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 8px;
+}
+
+.job-summary-grid span,
+.job-summary-success span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+
+.job-summary-grid strong,
+.job-summary-success strong {
+  display: block;
+  color: #0f172a;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.job-summary-success {
+  border-color: #86efac;
+  background: #ecfdf5;
+  margin-bottom: 10px;
+}
+
+.job-summary-success strong {
+  color: #166534;
+  font-size: 16px;
+}
+
+.job-submit-button {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.job-summary-note {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 650;
+  margin-top: 10px;
+}
+
+.job-request-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.job-request-kpi {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.job-request-kpi span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 4px;
+}
+
+.job-request-kpi strong {
+  display: block;
+  color: #1d4ed8;
+  font-size: 24px;
+  margin-bottom: 3px;
+}
+
+.job-request-kpi p {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.job-request-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 12px;
+}
+
+.job-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.job-directory-grid div {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.job-directory-grid strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.job-directory-grid p {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 650;
+}
+
+.job-flow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.job-flow-steps span {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  border-radius: 9px;
+  padding: 9px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@media (max-width: 1100px) {
+  .job-request-transaction-grid,
+  .job-request-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .job-request-summary-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  .job-compact-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* =========================================
+   PHASE 13B-3 — ORDER CENTRAL TRANSACTION REDESIGN
+   Oracle-style order governance layout.
+   Preserves existing JO / SO / STG workflow logic.
+========================================= */
+
+.order-central-workspace {
+  width: 100%;
+}
+
+.order-central-header {
+  margin-bottom: 10px !important;
+}
+
+.order-central-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 2px;
+}
+
+.order-central-transaction-panel,
+.order-central-queue-panel {
+  padding: 12px !important;
+  border-radius: 12px !important;
+  margin-bottom: 0 !important;
+}
+
+.order-central-transaction-panel h2,
+.order-central-queue-panel h2 {
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.order-central-flow-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(110px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.order-central-flow-row span {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 9px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.order-central-side-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.order-central-side-summary div {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 8px;
+}
+
+.order-central-side-summary span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+
+.order-central-side-summary strong {
+  display: block;
+  color: #0f172a;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+/* Order queues: more rows visible, less scrolling */
+.order-central-queue-panel .panel-note {
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.order-central-queue-panel .inventory-table {
+  font-size: 11px;
+}
+
+.order-central-queue-panel .inventory-table th,
+.order-central-queue-panel .inventory-table td {
+  padding: 7px;
+  vertical-align: top;
+}
+
+.order-central-queue-panel .inventory-table td:nth-child(5) {
+  max-width: 280px;
+  line-height: 1.25;
+}
+
+/* Detail View: split selected JO and governance */
+.order-central-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 12px;
+  align-items: start;
+}
+
+.order-central-detail-main {
+  min-width: 0;
+}
+
+.order-central-governance-panel {
+  position: sticky;
+  top: 74px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.1);
+}
+
+.order-central-governance-panel h2 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.order-central-governance-panel .order-detail-section {
+  margin-bottom: 0;
+}
+
+/* Release page: tighter three-zone governance */
+.order-central-release-layout {
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr) 300px;
+  gap: 10px;
+}
+
+.order-central-release-layout .order-release-main-card {
+  grid-column: 1 / -1;
+}
+
+.order-central-release-layout .order-release-card {
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.order-central-release-layout .order-release-card-header {
+  margin-bottom: 10px;
+  padding-bottom: 0;
+}
+
+.order-central-release-layout .order-release-card h2 {
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.order-central-release-layout .order-release-card p {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.order-central-release-layout .order-release-summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 8px;
+}
+
+.order-central-release-layout .order-release-mini-grid {
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 8px;
+}
+
+.order-central-release-layout .order-release-action-card {
+  position: sticky;
+  top: 74px;
+}
+
+.order-central-release-layout .order-detail-section {
+  padding: 9px !important;
+  margin-bottom: 8px !important;
+}
+
+.order-central-release-layout .order-detail-section h3 {
+  font-size: 13px !important;
+  margin-bottom: 5px !important;
+}
+
+.order-central-release-layout .order-release-button {
+  width: 100%;
+  min-height: 38px;
+}
+
+.order-pagination-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.order-pagination-row span {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Additional Work: compact checklist */
+.order-checkbox-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.order-checkbox-card {
+  border-radius: 9px !important;
+  padding: 9px !important;
+  font-size: 12px;
+}
+
+/* Existing detail cards compressed only inside Order Central context */
+.order-central-workspace .order-detail-card {
+  border-radius: 12px !important;
+  padding: 12px !important;
+}
+
+.order-central-workspace .order-detail-header {
+  margin-bottom: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+.order-central-workspace .order-detail-header h2 {
+  font-size: 18px !important;
+}
+
+.order-central-workspace .order-detail-grid {
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)) !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+.order-central-workspace .order-detail-field {
+  padding: 8px !important;
+  border-radius: 9px !important;
+}
+
+.order-central-workspace .order-detail-field span {
+  font-size: 10px !important;
+  margin-bottom: 3px !important;
+}
+
+.order-central-workspace .order-detail-field strong {
+  font-size: 12px !important;
+}
+
+.order-central-workspace .order-detail-section {
+  border-radius: 9px !important;
+  padding: 9px !important;
+  margin-bottom: 8px !important;
+}
+
+.order-central-workspace .order-detail-section h3 {
+  font-size: 14px !important;
+  margin-bottom: 5px !important;
+}
+
+.order-central-workspace .order-detail-section p {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+@media (max-width: 1200px) {
+  .order-central-release-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .order-central-release-layout .order-release-action-card {
+    position: static;
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1000px) {
+  .order-central-dashboard-grid,
+  .order-central-detail-layout,
+  .order-central-release-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .order-central-governance-panel {
+    position: static;
+  }
+
+  .order-central-flow-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* PHASE 13B-4 SHIPPING TRANSACTION REDESIGN */
+
+.shipping-operations-workspace{
+width:100%;
+}
+
+.shipping-operations-header{
+margin-bottom:10px!important;
+}
+
+.shipping-transaction-grid{
+display:grid!important;
+grid-template-columns:1.35fr 1fr 320px!important;
+gap:12px!important;
+align-items:start;
+}
+
+.shipping-station-card{
+padding:12px!important;
+border-radius:12px!important;
+}
+
+.shipping-station-action-card{
+position:sticky;
+top:74px;
+}
+
+.shipping-station-actions button{
+width:100%;
+margin-bottom:8px;
+min-height:38px;
+}
+
+.shipping-station-load-panel{
+padding:12px!important;
+border-radius:12px!important;
+}
+
+.shipping-station-load-controls{
+display:grid;
+grid-template-columns:1fr 180px;
+gap:10px;
+}
+
+.shipping-station-status{
+min-width:180px;
+text-align:right;
+}
+
+.shipping-station-status span{
+display:block;
+font-size:12px;
+font-weight:800;
+}
+
+.shipping-station-status strong{
+font-size:18px;
+}
+
+@media(max-width:1200px){
+.shipping-transaction-grid{
+grid-template-columns:1fr 1fr!important;
+}
+.shipping-station-action-card{
+position:static;
+grid-column:1/-1;
+}
+}
+
+@media(max-width:900px){
+.shipping-transaction-grid{
+grid-template-columns:1fr!important;
+}
+}
+
+/* PHASE 13B-5 RECEIVING TRANSACTION REDESIGN */
+
+.receiving-transaction-workspace{
+width:100%;
+}
+
+.receiving-transaction-header{
+margin-bottom:10px!important;
+}
+
+.receiving-transaction-grid{
+display:grid;
+grid-template-columns:1.3fr 1fr 320px;
+gap:12px;
+}
+
+.receiving-subview .inventory-panel{
+padding:12px!important;
+border-radius:12px!important;
+}
+
+.receiving-subview .inventory-kpi-grid{
+gap:10px!important;
+}
+
+.receiving-subview .inventory-kpi-card{
+padding:12px!important;
+min-height:auto!important;
+}
+
+.receiving-subview .inventory-table th,
+.receiving-subview .inventory-table td{
+padding:7px!important;
+font-size:11px;
+}
+
+.receiving-subview .inventory-form-grid{
+gap:10px!important;
+}
+
+.receiving-subview .inventory-primary-button{
+min-height:38px;
+}
+
+.receiving-subview .order-detail-section{
+padding:10px!important;
+border-radius:10px!important;
+}
+
+@media(max-width:1000px){
+.receiving-transaction-grid{
+grid-template-columns:1fr;
+}
+}
+
+
+/* =========================================
+   PHASE 13B-6 — INVENTORY TRANSACTION REDESIGN
+   Oracle-style compact inventory workspace.
+   Preserves live Supabase inventory loading and allocation routing.
+========================================= */
+
+.inventory-transaction-workspace {
+  width: 100%;
+}
+
+.inventory-transaction-header {
+  margin-bottom: 10px !important;
+}
+
+.inventory-transaction-panel {
+  padding: 12px !important;
+  border-radius: 12px !important;
+  margin-bottom: 0 !important;
+}
+
+.inventory-transaction-panel h2 {
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.inventory-transaction-panel .panel-note {
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.inventory-transaction-workspace .inventory-kpi-grid {
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+}
+
+.inventory-transaction-workspace .inventory-kpi-card {
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.inventory-transaction-workspace .inventory-kpi-card span {
+  font-size: 10px !important;
+}
+
+.inventory-transaction-workspace .inventory-kpi-card h2 {
+  font-size: 24px !important;
+  margin: 4px 0 3px !important;
+}
+
+.inventory-transaction-workspace .inventory-kpi-card p {
+  font-size: 11px !important;
+}
+
+.inventory-dashboard-transaction-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.inventory-command-flow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(100px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.inventory-command-flow span {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 9px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.inventory-location-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.inventory-location-grid div {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 9px;
+}
+
+.inventory-location-grid span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.inventory-location-grid strong {
+  display: block;
+  color: #0f172a;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Lookup transaction bar */
+.inventory-transaction-searchbar {
+  grid-template-columns: repeat(4, minmax(150px, 1fr)) 90px 80px !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.inventory-transaction-searchbar input {
+  min-height: 34px !important;
+  border-radius: 8px !important;
+  padding: 8px 9px !important;
+  font-size: 12px !important;
+}
+
+.inventory-transaction-searchbar button {
+  min-height: 34px !important;
+  border-radius: 8px !important;
+  padding: 8px 9px !important;
+  font-size: 12px !important;
+}
+
+/* Tables: denser inventory records */
+.inventory-transaction-workspace .inventory-table {
+  font-size: 11px !important;
+}
+
+.inventory-transaction-workspace .inventory-table th,
+.inventory-transaction-workspace .inventory-table td {
+  padding: 7px !important;
+  vertical-align: top;
+}
+
+.inventory-transaction-workspace .inventory-table td:first-child,
+.inventory-transaction-workspace .inventory-table td:nth-child(2) {
+  font-weight: 800;
+}
+
+/* Move workspace split layout */
+.inventory-move-transaction-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) 360px;
+  gap: 12px;
+  align-items: start;
+}
+
+.inventory-move-panel {
+  position: sticky;
+  top: 74px;
+}
+
+.inventory-move-panel .inventory-form-grid {
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+}
+
+.inventory-move-panel input,
+.inventory-move-panel textarea {
+  min-height: 34px !important;
+  border-radius: 8px !important;
+  padding: 8px 9px !important;
+  font-size: 12px !important;
+}
+
+.inventory-move-panel textarea {
+  min-height: 72px;
+}
+
+/* Snapshot/history compression */
+.inventory-snapshot-panel,
+.inventory-results-panel,
+.inventory-history-panel-compact {
+  overflow-x: auto;
+}
+
+.inventory-snapshot-panel h2,
+.inventory-results-panel h2,
+.inventory-history-panel-compact h2 {
+  font-size: 16px !important;
+}
+
+/* Allocation workspace inherits compact shell without changing component logic */
+.allocation-workspace .allocation-header {
+  margin-bottom: 10px !important;
+}
+
+.allocation-workspace .allocation-header h1 {
+  font-size: 24px !important;
+  margin-bottom: 4px !important;
+}
+
+.allocation-workspace .allocation-header p {
+  font-size: 12px !important;
+  line-height: 1.35;
+}
+
+.allocation-workspace .allocation-searchbar {
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+.allocation-workspace .allocation-table-panel,
+.allocation-workspace .allocation-action-panel,
+.allocation-workspace .allocation-history-panel {
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.allocation-workspace .allocation-table th,
+.allocation-workspace .allocation-table td,
+.allocation-workspace .allocation-history-table th,
+.allocation-workspace .allocation-history-table td {
+  padding: 7px !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 1200px) {
+  .inventory-transaction-searchbar {
+    grid-template-columns: repeat(2, minmax(150px, 1fr)) !important;
+  }
+
+  .inventory-dashboard-transaction-grid,
+  .inventory-move-transaction-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-move-panel {
+    position: static;
+  }
+
+  .inventory-command-flow {
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .inventory-transaction-searchbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .inventory-command-flow {
+    grid-template-columns: 1fr;
+  }
+}
+/* =========================================
+   PHASE 13C-1 — DASHBOARD CONTROL TOWER
+   Executive dashboard redesign using existing live Supabase metrics.
+========================================= */
+
+.dashboard-control-tower {
+  width: 100%;
+}
+
+.dashboard-control-header {
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.1);
+}
+
+.dashboard-eyebrow {
+  display: inline-block;
+  color: #1d4ed8;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+
+.dashboard-control-header h1 {
+  font-size: 28px !important;
+  margin-bottom: 4px !important;
+}
+
+.dashboard-control-header p {
+  font-size: 12px !important;
+  line-height: 1.35;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-health-card {
+  min-width: 160px;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  padding: 9px 10px;
+}
+
+.dashboard-health-card span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+
+.dashboard-health-card strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.dashboard-control-kpi-grid {
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)) !important;
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+}
+
+.dashboard-control-kpi-card {
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.dashboard-control-kpi-card span {
+  font-size: 10px !important;
+}
+
+.dashboard-control-kpi-card h2 {
+  font-size: 26px !important;
+  margin: 5px 0 3px !important;
+}
+
+.dashboard-control-kpi-card p {
+  font-size: 11px !important;
+}
+
+.dashboard-command-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.85fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dashboard-command-panel {
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.dashboard-command-panel h2 {
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.dashboard-command-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.dashboard-command-row div {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 9px;
+}
+
+.dashboard-command-row span {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.dashboard-command-row strong {
+  display: block;
+  color: #1d4ed8;
+  font-size: 22px;
+  margin-bottom: 3px;
+}
+
+.dashboard-command-row p {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.dashboard-control-grid {
+  grid-template-columns: 1.45fr 0.85fr;
+  gap: 12px !important;
+}
+
+.dashboard-queue-panel {
+  padding: 12px !important;
+  border-radius: 12px !important;
+}
+
+.dashboard-queue-panel h2 {
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.dashboard-queue-panel .panel-note {
+  font-size: 11px;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.dashboard-control-tower .dashboard-table {
+  font-size: 11px !important;
+}
+
+.dashboard-control-tower .dashboard-table th,
+.dashboard-control-tower .dashboard-table td {
+  padding: 7px !important;
+}
+
+.dashboard-control-tower .mini-list {
+  gap: 7px;
+}
+
+.dashboard-control-tower .mini-list-row {
+  padding: 8px 9px;
+  border-radius: 9px;
+}
+
+.dashboard-control-tower .mini-list-row strong {
+  font-size: 12px;
+}
+
+.dashboard-control-tower .mini-list-row span {
+  font-size: 11px;
+}
+
+.dashboard-control-tower .health-row {
+  padding: 8px 9px;
+  border-radius: 9px;
+  margin-bottom: 7px;
+}
+
+.dashboard-control-tower .health-row span {
+  font-size: 11px;
+}
+
+.dashboard-control-tower .health-row strong {
+  font-size: 18px;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-command-grid,
+  .dashboard-control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-command-row {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .dashboard-header-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-command-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-health-card {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+
+/* =========================================
+   PHASE 13D — UNIFIED GLOBAL COMMAND BAR
+   Removes floating operations/date rectangle.
+   Adds global module buttons and Favorites dropdown.
+========================================= */
+
+.workspace-overlay {
+  padding-top: 14px !important;
+}
+
+.unified-command-header {
+  position: sticky;
+  top: 10px;
+  z-index: 5000;
+  display: grid !important;
+  grid-template-columns: auto minmax(420px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px !important;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: rgba(10, 38, 68, 0.9);
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(15px);
+}
+
+.unified-command-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 230px;
+}
+
+.unified-command-brand .workspace-logo {
+  width: 56px !important;
+}
+
+.unified-command-brand h1 {
+  font-size: 20px !important;
+  margin: 0 !important;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.unified-command-brand p {
+  font-size: 10px !important;
+  margin-top: 4px;
+  color: #dbeafe;
+  white-space: nowrap;
+}
+
+.unified-command-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.unified-command-nav .topbar-button {
+  min-height: 32px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.unified-command-nav .topbar-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.unified-command-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-width: 0;
+}
+
+.unified-user-pill {
+  min-width: 95px !important;
+  max-width: 135px !important;
+  align-items: flex-end !important;
+  padding: 5px 7px;
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.42);
+  border: 1px solid rgba(147, 197, 253, 0.18);
+}
+
+.unified-user-pill strong {
+  font-size: 10px !important;
+}
+
+.unified-user-pill span {
+  font-size: 9px !important;
+}
+
+.unified-logout-button {
+  min-height: 32px !important;
+  padding: 6px 9px !important;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+}
+
+/* Hide old detached topbar structure if any older JSX/CSS remains */
+.workspace-topbar.compact-transaction-topbar {
+  display: none !important;
+}
+
+/* New module action strip sits directly under global command bar */
+.module-command-strip {
+  position: sticky;
+  top: 78px;
+  z-index: 4500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  margin-bottom: 12px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  background: rgba(15, 65, 105, 0.72);
+  border: 1px solid rgba(147, 197, 253, 0.22);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(13px);
+}
+
+.module-command-label {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 126px;
+  height: 31px;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(147, 197, 253, 0.2);
+  color: white;
+}
+
+.module-command-label span {
+  font-size: 8px;
+  line-height: 1;
+  color: #93c5fd;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.module-command-label strong {
+  font-size: 11px;
+  line-height: 1.15;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+.module-command-actions {
+  flex: 1;
+}
+
+.module-inline-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.favorite-star-button {
+  width: 24px;
+  height: 24px;
+  min-height: 24px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(250, 204, 21, 0.28) !important;
+  background: rgba(15, 23, 42, 0.35) !important;
+  color: #cbd5e1 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorite-star-button:hover,
+.favorite-star-button.active {
+  color: #facc15 !important;
+  background: rgba(250, 204, 21, 0.16) !important;
+  border-color: rgba(250, 204, 21, 0.6) !important;
+}
+
+.module-action-dropdown button {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.module-action-dropdown button .favorite-star-button {
+  flex: 0 0 auto;
+}
+
+/* Favorites dropdown */
+.favorites-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  z-index: 99999;
+}
+
+.favorites-button {
+  min-height: 32px;
+  padding: 6px 9px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(250, 204, 21, 0.18);
+  color: #fef3c7;
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.favorites-button:hover {
+  background: rgba(250, 204, 21, 0.26);
+}
+
+.favorites-dropdown-menu {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 330px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(250, 204, 21, 0.32);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.favorites-dropdown-header {
+  padding: 8px 9px 9px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 6px;
+}
+
+.favorites-dropdown-header strong {
+  display: block;
+  color: white;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.favorites-dropdown-header small {
+  display: block;
+  color: #cbd5e1;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.favorites-dropdown-menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: none;
+  border-radius: 9px;
+  padding: 9px;
+  background: transparent;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.favorites-dropdown-menu button:hover,
+.favorites-dropdown-menu button.active {
+  background: rgba(250, 204, 21, 0.14);
+}
+
+.favorites-dropdown-menu button strong {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.favorites-dropdown-menu button small {
+  display: block;
+  color: #cbd5e1;
+  font-size: 10px;
+}
+
+.favorites-dropdown-menu button svg {
+  color: #facc15;
+  flex: 0 0 auto;
+}
+
+.favorites-empty {
+  color: #cbd5e1;
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Remove old visual objects from layout */
+.topbar-datetime,
+.operations-menu,
+.operations-button,
+.operations-dropdown-menu {
+  display: none !important;
+}
+
+/* Home screen spacing after global bar */
+.workspace-grid {
+  margin-top: 12px;
+}
+
+/* Mobile behavior */
+@media (max-width: 1300px) {
+  .unified-command-header {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .unified-command-right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .module-command-strip {
+    top: 142px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .module-command-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 750px) {
+  .unified-command-brand {
+    min-width: 0;
+  }
+
+  .unified-command-brand p {
+    white-space: normal;
+  }
+
+  .unified-command-nav {
+    width: 100%;
+  }
+
+  .unified-command-nav .topbar-button {
+    flex: 1 1 145px;
+  }
+
+  .favorites-dropdown-menu {
+    right: auto;
+    left: 0;
+    width: min(330px, calc(100vw - 34px));
+  }
+
+  .module-command-label {
+    width: 100%;
+  }
+}
+/* =========================================
+   PHASE 13D HOTFIX — SINGLE TOP COMMAND BAR ONLY
+   Removes second/floating module rectangle completely.
+   All module buttons and functions align inside the top command bar.
+========================================= */
+
+.workspace-topbar,
+.compact-transaction-topbar,
+.module-command-strip,
+.transaction-module-label,
+.module-command-label {
+  display: none !important;
+}
+
+.single-command-header {
+  position: sticky !important;
+  top: 10px !important;
+  z-index: 9000 !important;
+  grid-template-columns: auto minmax(600px, 1fr) auto !important;
+  margin-bottom: 12px !important;
+}
+
+.single-command-nav {
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+.single-command-nav .topbar-button {
+  min-height: 31px !important;
+  padding: 6px 8px !important;
+  font-size: 10.5px !important;
+  border-radius: 8px !important;
+}
+
+.single-command-divider {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 8px;
+  border-left: 1px solid rgba(147, 197, 253, 0.3);
+  color: #93c5fd;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.single-command-divider span {
+  white-space: nowrap;
+}
+
+.single-command-action-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.single-command-dropdown {
+  top: 38px !important;
+  min-width: 215px !important;
+}
+
+.single-command-inline-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.single-command-inline-action .favorite-star-button {
+  width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+}
+
+/* Make sure any old right-side date/time block cannot appear */
+.topbar-datetime,
+.operations-menu,
+.operations-button,
+.operations-dropdown-menu {
+  display: none !important;
+}
+
+/* Keep workspace content close to the top */
+.workspace-module,
+.workspace-grid {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 1450px) {
+  .single-command-header {
+    grid-template-columns: 1fr !important;
+  }
+
+  .unified-command-right {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+}
+/* =========================================
+   PHASE 13E — ORACLE STYLE FLUSH TOP BAR
+   Append this to the bottom of src/App.css.
+========================================= */
+
+.oracle-layout-overlay {
+  padding: 0 18px 32px !important;
+}
+
+.workspace-header,
+.workspace-topbar,
+.compact-transaction-topbar,
+.module-command-strip,
+.single-command-header,
+.unified-command-header,
+.topbar-datetime,
+.operations-menu,
+.operations-button,
+.operations-dropdown-menu {
+  display: none !important;
+}
+
+.oracle-top-command-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: minmax(260px, auto) minmax(280px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin: 0 -18px 10px;
+  padding: 6px 16px;
+  background: rgba(14, 54, 67, 0.98);
+  border-bottom: 1px solid rgba(147, 197, 253, 0.25);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
+
+.oracle-top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.oracle-top-logo {
+  width: 46px;
+  height: 34px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.oracle-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.oracle-brand-text strong {
+  color: #ffffff;
+  font-size: 19px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.oracle-brand-text span {
+  color: #cbd5e1;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.oracle-quick-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 610px;
+  width: 100%;
+  justify-self: center;
+  background: rgba(15, 23, 42, 0.42);
+  border: 1px solid rgba(226, 232, 240, 0.18);
+  border-radius: 4px;
+  padding: 5px 9px;
+  color: #dbeafe;
+}
+
+.oracle-quick-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.oracle-quick-search input::placeholder {
+  color: #cbd5e1;
+}
+
+.oracle-search-results {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  z-index: 10005;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  border-radius: 8px;
+  padding: 7px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+}
+
+.oracle-search-results button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 6px 10px;
+  border: none;
+  border-radius: 7px;
+  padding: 8px;
+  background: transparent;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.oracle-search-results button:hover {
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.oracle-search-results span {
+  grid-row: span 2;
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.oracle-search-results strong {
+  font-size: 12px;
+}
+
+.oracle-search-results small {
+  color: #cbd5e1;
+  font-size: 10px;
+}
+
+.oracle-top-icons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-width: 0;
+}
+
+.oracle-icon-menu,
+.oracle-user-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.oracle-icon-button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.oracle-icon-button:hover,
+.oracle-icon-button.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.oracle-user-button {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 7px;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  max-width: 210px;
+}
+
+.oracle-user-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oracle-user-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.oracle-dropdown {
+  position: absolute;
+  top: 39px;
+  right: 0;
+  z-index: 10020;
+  width: 330px;
+  max-height: 520px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(147, 197, 253, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.45);
+}
+
+.oracle-dropdown-header {
+  padding: 8px 9px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  margin-bottom: 6px;
+}
+
+.oracle-dropdown-header strong {
+  display: block;
+  color: #ffffff;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.oracle-dropdown-header small {
+  color: #cbd5e1;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.oracle-dropdown button {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border: none;
+  border-radius: 7px;
+  padding: 8px;
+  background: transparent;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.oracle-dropdown button:hover,
+.oracle-dropdown button.active {
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.oracle-dropdown button strong {
+  font-size: 12px;
+}
+
+.oracle-dropdown button small {
+  color: #cbd5e1;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.oracle-user-dropdown {
+  width: 230px;
+}
+
+.oracle-user-dropdown button {
+  flex-direction: row;
+  align-items: center;
+}
+
+.oracle-empty-message {
+  padding: 10px;
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+/* Module action row below top bar, compact and not floating */
+.oracle-module-command-row {
+  position: sticky;
+  top: 48px;
+  z-index: 9000;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 -18px 12px;
+  padding: 5px 16px;
+  background: rgba(241, 245, 249, 0.96);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.45);
+  color: #0f172a;
+}
+
+.oracle-module-label {
+  min-width: 132px;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  padding-right: 10px;
+  border-right: 1px solid #cbd5e1;
+}
+
+.oracle-module-label span {
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.oracle-module-label strong {
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.oracle-module-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.oracle-module-actions .topbar-button {
+  min-height: 28px !important;
+  padding: 5px 8px !important;
+  border-radius: 4px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  font-size: 11px !important;
+  box-shadow: none !important;
+}
+
+.oracle-module-actions .topbar-button:hover,
+.oracle-module-actions .active-topbar-button {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+}
+
+.oracle-inline-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.oracle-module-action-menu {
+  position: relative;
+}
+
+.oracle-module-dropdown {
+  top: 34px !important;
+  min-width: 220px !important;
+}
+
+.favorite-star-button {
+  width: 23px !important;
+  height: 23px !important;
+  min-height: 23px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(202, 138, 4, 0.25) !important;
+  background: #ffffff !important;
+  color: #94a3b8 !important;
+}
+
+.favorite-star-button:hover,
+.favorite-star-button.active {
+  color: #ca8a04 !important;
+  background: #fef3c7 !important;
+  border-color: #facc15 !important;
+}
+
+.module-action-dropdown button {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Content spacing */
+.workspace-grid,
+.workspace-module {
+  margin-top: 0 !important;
+}
+
+.oracle-home-grid {
+  padding-top: 8px;
+}
+
+@media (max-width: 1250px) {
+  .oracle-top-command-bar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .oracle-quick-search {
+    max-width: none;
+    justify-self: stretch;
+  }
+
+  .oracle-top-icons {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .oracle-module-command-row {
+    top: 139px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .oracle-module-label {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 5px;
+  }
+}
+
+@media (max-width: 700px) {
+  .oracle-layout-overlay {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .oracle-top-command-bar,
+  .oracle-module-command-row {
+    margin-left: -12px;
+    margin-right: -12px;
+  }
+
+  .oracle-brand-text strong {
+    font-size: 16px;
+  }
+
+  .oracle-user-button {
+    max-width: 160px;
+  }
+
+  .oracle-dropdown {
+    right: auto;
+    left: 0;
+    width: min(330px, calc(100vw - 24px));
+  }
+}
+/* PHASE 13E HOTFIX — CENTER FAVORITE STAR ICON */
+
+.favorite-star-button {
+  width: 23px !important;
+  height: 23px !important;
+  min-height: 23px !important;
+  padding: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border-radius: 999px !important;
+  border: 1px solid rgba(202, 138, 4, 0.25) !important;
+  background: #ffffff !important;
+  color: #94a3b8 !important;
+}
+
+.favorite-star-button svg {
+  display: block !important;
+  margin: 0 auto !important;
+}

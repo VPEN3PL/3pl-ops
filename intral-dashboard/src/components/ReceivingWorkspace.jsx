@@ -506,8 +506,8 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
 
   const renderDashboard = () => {
     return (
-      <div className="receiving-subview">
-        <div className="receiving-header-row">
+      <div className="receiving-subview receiving-transaction-workspace">
+        <div className="receiving-header-row receiving-transaction-header">
           <div>
             <h1>Receiving Workspace</h1>
             <p>
@@ -584,8 +584,8 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
 
   const renderCreateReceipt = () => {
     return (
-      <div className="receiving-subview">
-        <div className="receiving-header-row">
+      <div className="receiving-subview receiving-transaction-workspace">
+        <div className="receiving-header-row receiving-transaction-header">
           <div>
             <h1>Create Inbound Receipt</h1>
             <p>
@@ -646,8 +646,8 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
 
   const renderPutaway = () => {
     return (
-      <div className="receiving-subview">
-        <div className="receiving-header-row">
+      <div className="receiving-subview receiving-transaction-workspace">
+        <div className="receiving-header-row receiving-transaction-header">
           <div>
             <h1>Putaway Workspace</h1>
             <p>
@@ -784,8 +784,8 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     const receipt = getReceiptForReprint();
 
     return (
-      <div className="receiving-subview">
-        <div className="receiving-header-row">
+      <div className="receiving-subview receiving-transaction-workspace">
+        <div className="receiving-header-row receiving-transaction-header">
           <div>
             <h1>Reprint Labels</h1>
             <p>

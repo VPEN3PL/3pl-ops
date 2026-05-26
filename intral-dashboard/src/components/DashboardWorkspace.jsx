@@ -63,6 +63,29 @@ function DashboardWorkspace() {
     return outboundKeywords.some((keyword) => combinedText.includes(keyword));
   }, []);
 
+  const isAMCratingJob = useCallback((job) => {
+    if (!isOpenJob(job)) return false;
+
+    const combinedText = [
+      job.request_category,
+      job.job_type,
+      job.request_source,
+      job.notes,
+      job.location,
+      job.ship_to,
+      job.destination,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return (
+      combinedText.includes("a&m") ||
+      combinedText.includes("am ") ||
+      combinedText.includes("crating") ||
+      combinedText.includes("crate")
+    );
+  }, []);
+
   const loadDashboardData = async () => {
     setLoading(true);
     setMessage("Loading dashboard data...");
@@ -114,6 +137,7 @@ function DashboardWorkspace() {
   const dashboardMetrics = useMemo(() => {
     const openJobs = jobs.filter(isOpenJob);
     const pendingShipments = jobs.filter(isPendingShipmentJob);
+    const amCratingQueue = jobs.filter(isAMCratingJob);
 
     const receivingToday = inventoryItems.filter((item) =>
       isToday(item.created_at)
@@ -135,14 +159,22 @@ function DashboardWorkspace() {
       return hoursOpen > 24;
     });
 
+    const activeInventory = inventoryItems.filter((item) => {
+      const status = String(item.status || "").toLowerCase();
+      return status === "available" || status === "active" || !status;
+    });
+
     return {
       openJobs: openJobs.length,
       receivingToday: receivingToday.length,
       openAllocations: openAllocations.length,
       pendingShipments: pendingShipments.length,
       over24Hours: over24Hours.length,
+      inventoryLines: inventoryItems.length,
+      activeInventory: activeInventory.length,
+      amCratingQueue: amCratingQueue.length,
     };
-  }, [jobs, inventoryItems, allocations, isPendingShipmentJob]);
+  }, [jobs, inventoryItems, allocations, isPendingShipmentJob, isAMCratingJob]);
 
   const recentOpenJobs = useMemo(() => {
     return jobs.filter(isOpenJob).slice(0, 8);
@@ -152,11 +184,15 @@ function DashboardWorkspace() {
     return jobs.filter(isPendingShipmentJob).slice(0, 8);
   }, [jobs, isPendingShipmentJob]);
 
+  const recentAMCratingJobs = useMemo(() => {
+    return jobs.filter(isAMCratingJob).slice(0, 6);
+  }, [jobs, isAMCratingJob]);
+
   const kpis = [
     {
       title: "Open Jobs",
       value: dashboardMetrics.openJobs,
-      note: "All active non-shipped work",
+      note: "Active non-shipped work",
     },
     {
       title: "Receiving Today",
@@ -166,17 +202,22 @@ function DashboardWorkspace() {
     {
       title: "Open Allocations",
       value: dashboardMetrics.openAllocations,
-      note: "Reserved inventory still active",
+      note: "Reserved inventory active",
     },
     {
       title: "Pending Shipments",
       value: dashboardMetrics.pendingShipments,
-      note: "Outbound / transport work only",
+      note: "Outbound / transport work",
     },
     {
       title: "Over 24 Hours",
       value: dashboardMetrics.over24Hours,
       note: "Aging active requests",
+    },
+    {
+      title: "A&M Crating",
+      value: dashboardMetrics.amCratingQueue,
+      note: "Crating related queue",
     },
   ];
 
@@ -203,32 +244,44 @@ function DashboardWorkspace() {
     return "status-badge open";
   };
 
+  const executiveHealthStatus =
+    dashboardMetrics.over24Hours > 0 ? "Attention Required" : "Healthy";
+
   return (
-    <div className="dashboard-workspace">
-      <div className="dashboard-header">
+    <div className="dashboard-workspace dashboard-control-tower">
+      <div className="dashboard-header dashboard-control-header">
         <div>
+          <span className="dashboard-eyebrow">INTRAL CONNECT COMMAND CENTER</span>
+
           <h1>Operational Dashboard</h1>
 
           <p>
-            Executive operational visibility across receiving, inventory,
-            allocations, pending outbound work, and aging requests.
+            Executive visibility across receiving, inventory, allocations,
+            outbound work, A&M crating activity, and aging operational requests.
           </p>
         </div>
 
-        <button
-          className="dashboard-refresh-button"
-          onClick={loadDashboardData}
-          disabled={loading}
-        >
-          {loading ? "Refreshing..." : "Refresh Dashboard"}
-        </button>
+        <div className="dashboard-header-actions">
+          <div className="dashboard-health-card">
+            <span>System Health</span>
+            <strong>{executiveHealthStatus}</strong>
+          </div>
+
+          <button
+            className="dashboard-refresh-button"
+            onClick={loadDashboardData}
+            disabled={loading}
+          >
+            {loading ? "Refreshing..." : "Refresh Dashboard"}
+          </button>
+        </div>
       </div>
 
       {message && <div className="dashboard-message">{message}</div>}
 
-      <div className="kpi-grid">
+      <div className="kpi-grid dashboard-control-kpi-grid">
         {kpis.map((kpi) => (
-          <div key={kpi.title} className="kpi-card">
+          <div key={kpi.title} className="kpi-card dashboard-control-kpi-card">
             <span>{kpi.title}</span>
             <h2>{kpi.value}</h2>
             <p>{kpi.note}</p>
@@ -236,8 +289,59 @@ function DashboardWorkspace() {
         ))}
       </div>
 
-      <div className="dashboard-grid">
-        <div className="dashboard-panel large-panel">
+      <div className="dashboard-command-grid">
+        <div className="dashboard-panel dashboard-command-panel">
+          <h2>Executive Action Queue</h2>
+
+          <div className="dashboard-command-row">
+            <div>
+              <span>Aging Alert</span>
+              <strong>{dashboardMetrics.over24Hours}</strong>
+              <p>Open work over 24 hours</p>
+            </div>
+
+            <div>
+              <span>Active Inventory</span>
+              <strong>{dashboardMetrics.activeInventory}</strong>
+              <p>Available inventory lines</p>
+            </div>
+
+            <div>
+              <span>Outbound Load</span>
+              <strong>{dashboardMetrics.pendingShipments}</strong>
+              <p>Shipping / transport work</p>
+            </div>
+
+            <div>
+              <span>Allocation Gate</span>
+              <strong>{dashboardMetrics.openAllocations}</strong>
+              <p>Active allocation records</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-panel dashboard-command-panel">
+          <h2>Manager Daily Summary</h2>
+
+          <div className="health-row">
+            <span>Inventory Lines</span>
+            <strong>{dashboardMetrics.inventoryLines}</strong>
+          </div>
+
+          <div className="health-row">
+            <span>Received Today</span>
+            <strong>{dashboardMetrics.receivingToday}</strong>
+          </div>
+
+          <div className="health-row">
+            <span>A&M Crating Queue</span>
+            <strong>{dashboardMetrics.amCratingQueue}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="dashboard-grid dashboard-control-grid">
+        <div className="dashboard-panel large-panel dashboard-queue-panel">
           <h2>Open Work Queue</h2>
 
           {recentOpenJobs.length === 0 ? (
@@ -273,12 +377,12 @@ function DashboardWorkspace() {
           )}
         </div>
 
-        <div className="dashboard-panel">
+        <div className="dashboard-panel dashboard-queue-panel">
           <h2>Pending Shipments</h2>
 
           <p className="panel-note">
-            Counts only outbound, transport, delivery, carrier, crating, or
-            facility move requests.
+            Outbound, transport, delivery, carrier, crating, or facility move
+            requests.
           </p>
 
           {recentPendingShipments.length === 0 ? (
@@ -295,28 +399,21 @@ function DashboardWorkspace() {
           )}
         </div>
 
-        <div className="dashboard-panel">
-          <h2>Inventory & Allocation Health</h2>
+        <div className="dashboard-panel dashboard-queue-panel">
+          <h2>A&M Crating Queue</h2>
 
-          <div className="health-row">
-            <span>Inventory Lines</span>
-            <strong>{inventoryItems.length}</strong>
-          </div>
-
-          <div className="health-row">
-            <span>Active Allocations</span>
-            <strong>{dashboardMetrics.openAllocations}</strong>
-          </div>
-
-          <div className="health-row">
-            <span>Received Today</span>
-            <strong>{dashboardMetrics.receivingToday}</strong>
-          </div>
-
-          <div className="health-row">
-            <span>Aging Work</span>
-            <strong>{dashboardMetrics.over24Hours}</strong>
-          </div>
+          {recentAMCratingJobs.length === 0 ? (
+            <p>No A&M crating related work currently found.</p>
+          ) : (
+            <div className="mini-list">
+              {recentAMCratingJobs.map((job) => (
+                <div key={job.id} className="mini-list-row">
+                  <strong>{job.job_number || "No Job #"}</strong>
+                  <span>{job.request_category || job.job_type || "A&M"}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

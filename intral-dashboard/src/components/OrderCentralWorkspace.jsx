@@ -439,7 +439,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
   const renderOrderList = () => {
     return (
-      <div className="inventory-panel">
+      <div className="inventory-panel order-central-queue-panel">
         <h2>{getViewTitle()}</h2>
 
         <p className="panel-note">
@@ -522,7 +522,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
   const renderNoJobPrompt = (actionLabel) => {
     return (
-      <div className="inventory-panel">
+      <div className="inventory-panel order-central-transaction-panel">
         <h2>{actionLabel}</h2>
 
         <p className="panel-note">
@@ -538,10 +538,16 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     if (!selectedJob) return renderNoJobPrompt("View");
 
     return (
-      <>
-        {renderSelectedJobSummary("Full Request Detail")}
-        {renderAllocationControls()}
-      </>
+      <div className="order-central-detail-layout">
+        <div className="order-central-detail-main">
+          {renderSelectedJobSummary("Full Request Detail")}
+        </div>
+
+        <aside className="order-central-governance-panel">
+          <h2>Governance</h2>
+          {renderAllocationControls()}
+        </aside>
+      </div>
     );
   };
 
@@ -552,7 +558,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       <div>
         {renderSelectedJobSummary("Add Additional Work")}
 
-        <div className="inventory-panel">
+        <div className="inventory-panel order-central-transaction-panel">
           <h2>Additional Work Checklist</h2>
 
           <p className="panel-note">
@@ -590,7 +596,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
     return (
       <div>
-        <div className="order-release-compact">
+        <div className="order-release-compact order-central-release-layout">
           <div className="order-release-card order-release-main-card">
             <div className="order-release-card-header">
               <div>
@@ -763,6 +769,63 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     );
   };
 
+
+  const renderOrderCentralDashboard = () => {
+    return (
+      <div className="order-central-dashboard-grid">
+        <div className="inventory-panel order-central-transaction-panel">
+          <h2>Order Central Control Queue</h2>
+
+          <p className="panel-note">
+            Use View Orders to select a JO, then use Action to view, add work,
+            confirm allocation, or generate SO/STG release.
+          </p>
+
+          <div className="order-central-flow-row">
+            <span>Open Orders</span>
+            <span>Allocation Review</span>
+            <span>Additional Work</span>
+            <span>Generate SO</span>
+            <span>Active Orders</span>
+          </div>
+        </div>
+
+        <div className="inventory-panel order-central-transaction-panel">
+          <h2>Selected JO Governance</h2>
+
+          {selectedJob ? (
+            <div className="order-central-side-summary">
+              <div>
+                <span>JO Number</span>
+                <strong>{selectedJob.joNumber}</strong>
+              </div>
+
+              <div>
+                <span>Customer</span>
+                <strong>{selectedJob.customer}</strong>
+              </div>
+
+              <div>
+                <span>Status</span>
+                <strong>{selectedJob.releaseStatus}</strong>
+              </div>
+
+              <div>
+                <span>Allocation</span>
+                <strong>{getAllocationDisplay(selectedJob)}</strong>
+              </div>
+            </div>
+          ) : (
+            <p className="panel-note">
+              No JO is currently selected. Select a JO from Open, Active, or
+              Closed Orders.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderMainContent = () => {
     if (
       orderMode === "open" ||
@@ -776,12 +839,12 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     if (orderMode === "addWork") return renderAddWork();
     if (orderMode === "release") return renderRelease();
 
-    return null;
+    return renderOrderCentralDashboard();
   };
 
   return (
-    <div className="inventory-subview">
-      <div className="inventory-header-row">
+    <div className="inventory-subview order-central-workspace">
+      <div className="inventory-header-row order-central-header">
         <div>
           <h1>Order Central</h1>
 

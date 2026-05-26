@@ -186,6 +186,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     if (requestMode === "movement") return "Inventory Movement";
     if (requestMode === "shipping") return "Shipping";
     if (requestMode === "logistics") return "Logistics Support";
+    if (requestMode === "dashboard") return "Job Request Dashboard";
 
     return "Request";
   };
@@ -361,12 +362,198 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     setSubmittedJobOrder(nextJobNumber);
   };
 
+  const getSummaryValue = (value, fallback = "Pending") => {
+    if (value === null || value === undefined || value === "") return fallback;
+    return value;
+  };
+
+  const renderJobRequestDashboard = () => {
+    return (
+      <div className="inventory-subview job-request-workspace">
+        <div className="inventory-header-row job-transaction-header">
+          <div>
+            <h1>Job Request Dashboard</h1>
+            <p>
+              Submit, track, and govern operational work requests before they
+              enter Order Central.
+            </p>
+          </div>
+        </div>
+
+        <div className="job-request-kpi-strip">
+          <div className="job-request-kpi">
+            <span>Request Types</span>
+            <strong>3</strong>
+            <p>Movement, Shipping, Logistics</p>
+          </div>
+
+          <div className="job-request-kpi">
+            <span>Tracking</span>
+            <strong>JO #</strong>
+            <p>Track requests by Job Order</p>
+          </div>
+
+          <div className="job-request-kpi">
+            <span>Order Flow</span>
+            <strong>Review</strong>
+            <p>Requests route into Order Central</p>
+          </div>
+
+          <div className="job-request-kpi">
+            <span>Governance</span>
+            <strong>Active</strong>
+            <p>Validation before submission</p>
+          </div>
+        </div>
+
+        <div className="job-request-dashboard-grid">
+          <div className="inventory-panel job-transaction-panel">
+            <h2>Request Directory</h2>
+
+            <div className="job-directory-grid">
+              <div>
+                <strong>Inventory Movement</strong>
+                <p>Use when an inventory ID must move from one location to another.</p>
+              </div>
+
+              <div>
+                <strong>Shipping</strong>
+                <p>Use for outbound shipments or A&M crating-supported shipment workflows.</p>
+              </div>
+
+              <div>
+                <strong>Logistics Support</strong>
+                <p>Use for labor, forklift, dock, vendor, appointment, or special handling coordination.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="inventory-panel job-transaction-panel">
+            <h2>How Requests Flow</h2>
+
+            <div className="job-flow-steps">
+              <span>Submit Request</span>
+              <span>Order Central Review</span>
+              <span>Allocation / Workload</span>
+              <span>Release to Operations</span>
+              <span>Track Completion</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSummaryPanel = () => {
+    return (
+      <div className="job-request-summary-panel">
+        <div className="job-summary-header">
+          <span>Request Summary</span>
+          <strong>{getRequestTitle()}</strong>
+        </div>
+
+        <div className="job-summary-grid">
+          <div>
+            <span>Requestor</span>
+            <strong>{getSummaryValue(requestorForm.requestorName)}</strong>
+          </div>
+
+          <div>
+            <span>Charge / PO</span>
+            <strong>{getSummaryValue(requestorForm.chargeNumber)}</strong>
+          </div>
+
+          <div>
+            <span>Email</span>
+            <strong>{getSummaryValue(requestorForm.email)}</strong>
+          </div>
+
+          {requestMode === "movement" && (
+            <>
+              <div>
+                <span>Inventory</span>
+                <strong>{getSummaryValue(movementForm.inventoryId)}</strong>
+              </div>
+
+              <div>
+                <span>Move Qty</span>
+                <strong>{getSummaryValue(movementForm.moveQty)}</strong>
+              </div>
+
+              <div>
+                <span>To Location</span>
+                <strong>{getSummaryValue(movementForm.toLocation)}</strong>
+              </div>
+            </>
+          )}
+
+          {requestMode === "shipping" && (
+            <>
+              <div>
+                <span>Workflow</span>
+                <strong>{getSummaryValue(shippingType)}</strong>
+              </div>
+
+              <div>
+                <span>PCS</span>
+                <strong>{getSummaryValue(shippingForm.pcs)}</strong>
+              </div>
+
+              <div>
+                <span>Destination</span>
+                <strong>{getSummaryValue(shippingForm.shipToCompany)}</strong>
+              </div>
+            </>
+          )}
+
+          {requestMode === "logistics" && (
+            <>
+              <div>
+                <span>Support Type</span>
+                <strong>{getSummaryValue(logisticsForm.supportType)}</strong>
+              </div>
+
+              <div>
+                <span>Location</span>
+                <strong>{getSummaryValue(logisticsForm.currentLocation)}</strong>
+              </div>
+
+              <div>
+                <span>Due Date</span>
+                <strong>{getSummaryValue(logisticsForm.dueDate)}</strong>
+              </div>
+            </>
+          )}
+        </div>
+
+        {submittedJobOrder && (
+          <div className="job-summary-success">
+            <span>Submitted JO</span>
+            <strong>{submittedJobOrder}</strong>
+          </div>
+        )}
+
+        <button
+          className="inventory-primary-button job-submit-button"
+          onClick={handleSubmitRequest}
+        >
+          Submit Job Request
+        </button>
+
+        <p className="job-summary-note">
+          Request will route to Order Central for review, allocation, and
+          operational release.
+        </p>
+      </div>
+    );
+  };
+
   const renderAdditionalDetails = () => {
     return (
-      <div className="inventory-panel">
+      <div className="inventory-panel job-transaction-panel">
         <h2>Additional Details</h2>
 
-        <div className="inventory-form-grid">
+        <div className="inventory-form-grid job-compact-form-grid">
           <textarea
             rows="6"
             value={additionalDetails}
@@ -380,10 +567,10 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
   const renderShippingSpecs = () => {
     return (
-      <div className="inventory-panel">
+      <div className="inventory-panel job-transaction-panel">
         <h2>Shipment Details</h2>
 
-        <div className="inventory-form-grid">
+        <div className="inventory-form-grid job-compact-form-grid">
           <input
             type="number"
             value={shippingForm.pcs}
@@ -409,10 +596,10 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
   const renderShipFrom = () => {
     return (
-      <div className="inventory-panel">
+      <div className="inventory-panel job-transaction-panel">
         <h2>Ship From</h2>
 
-        <div className="inventory-form-grid">
+        <div className="inventory-form-grid job-compact-form-grid">
           <input
             value={shippingForm.shipFromCompany}
             onChange={(e) =>
@@ -449,10 +636,10 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
   const renderShipTo = () => {
     return (
-      <div className="inventory-panel">
+      <div className="inventory-panel job-transaction-panel">
         <h2>Ship To</h2>
 
-        <div className="inventory-form-grid">
+        <div className="inventory-form-grid job-compact-form-grid">
           <input
             value={shippingForm.shipToCompany}
             onChange={(e) =>
@@ -511,10 +698,14 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     );
   };
 
+  if (requestMode === "dashboard") {
+    return renderJobRequestDashboard();
+  }
+
   if (requestMode === "track") {
     return (
-      <div className="inventory-subview">
-        <div className="inventory-header-row">
+      <div className="inventory-subview job-request-workspace">
+        <div className="inventory-header-row job-transaction-header">
           <div>
             <h1>Track Request</h1>
 
@@ -525,10 +716,10 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
           </div>
         </div>
 
-        <div className="inventory-panel">
+        <div className="inventory-panel job-transaction-panel">
           <h2>Request Tracking</h2>
 
-          <div className="inventory-form-grid">
+          <div className="inventory-form-grid job-compact-form-grid">
             <input
               placeholder="Enter JO Number, example JO-000100"
               value={trackingNumber}
@@ -543,8 +734,8 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
   }
 
   return (
-    <div className="inventory-subview">
-      <div className="inventory-header-row">
+    <div className="inventory-subview job-request-workspace">
+      <div className="inventory-header-row job-transaction-header">
         <div>
           <h1>{getRequestTitle()} Request</h1>
 
@@ -563,10 +754,12 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
         </div>
       )}
 
-      <div className="inventory-panel">
-        <h2>Requestor Information</h2>
+      <div className="job-request-transaction-grid">
+        <div className="job-request-main-column">
+          <div className="inventory-panel job-transaction-panel">
+            <h2>Requestor Information</h2>
 
-        <div className="inventory-form-grid">
+        <div className="inventory-form-grid job-compact-form-grid">
           <select
             value={requestorForm.chargeType}
             onChange={(e) => updateRequestorForm("chargeType", e.target.value)}
@@ -611,7 +804,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
       {requestMode === "movement" && (
         <>
-          <div className="inventory-panel">
+          <div className="inventory-panel job-transaction-panel">
             <h2>Inventory Movement Information</h2>
 
             <p className="panel-note">
@@ -619,7 +812,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
               the request can proceed.
             </p>
 
-            <div className="inventory-form-grid">
+            <div className="inventory-form-grid job-compact-form-grid">
               <select
                 value={movementForm.inventoryId}
                 onChange={(e) =>
@@ -691,7 +884,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
           </div>
 
           {selectedInventory && (
-            <div className="inventory-panel">
+            <div className="inventory-panel job-transaction-panel">
               <h2>Selected Inventory Validation</h2>
 
               <table className="inventory-table">
@@ -736,10 +929,10 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
       {requestMode === "shipping" && (
         <>
-          <div className="inventory-panel">
+          <div className="inventory-panel job-transaction-panel">
             <h2>Shipping Request Type</h2>
 
-            <div className="inventory-form-grid">
+            <div className="inventory-form-grid job-compact-form-grid">
               <select
                 value={shippingType}
                 onChange={(e) => setShippingType(e.target.value)}
@@ -755,7 +948,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
           {shippingType === "outbound" && (
             <>
-              <div className="inventory-panel">
+              <div className="inventory-panel job-transaction-panel">
                 <h2>Outbound Shipping Information</h2>
 
                 <p className="panel-note">
@@ -772,7 +965,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
           {shippingType === "am-crating" && (
             <>
-              <div className="inventory-panel">
+              <div className="inventory-panel job-transaction-panel">
                 <h2>Shipping with A&M Crating Support</h2>
 
                 <p className="panel-note">
@@ -780,7 +973,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                   then ships from A&M to the final destination.
                 </p>
 
-                <div className="inventory-form-grid">
+                <div className="inventory-form-grid job-compact-form-grid">
                   <select
                     value={shippingForm.amStoredAddress}
                     onChange={(e) =>
@@ -801,10 +994,10 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
               {renderShippingSpecs()}
               {renderShipFrom()}
 
-              <div className="inventory-panel">
+              <div className="inventory-panel job-transaction-panel">
                 <h2>A&M Destination</h2>
 
-                <div className="inventory-form-grid">
+                <div className="inventory-form-grid job-compact-form-grid">
                   <input
                     value={shippingForm.amStoredAddress}
                     placeholder="A&M Stored Address"
@@ -823,7 +1016,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
       {requestMode === "logistics" && (
         <>
-          <div className="inventory-panel">
+          <div className="inventory-panel job-transaction-panel">
             <h2>Logistics Support Information</h2>
 
             <p className="panel-note">
@@ -832,7 +1025,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
               Movement when an inventory ID must be moved.
             </p>
 
-            <div className="inventory-form-grid">
+            <div className="inventory-form-grid job-compact-form-grid">
               <select
                 value={logisticsForm.supportType}
                 onChange={(e) =>
@@ -892,13 +1085,11 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
         </>
       )}
 
-      <div className="inventory-panel">
-        <button
-          className="inventory-primary-button"
-          onClick={handleSubmitRequest}
-        >
-          Submit Job Request
-        </button>
+        </div>
+
+        <aside className="job-request-side-column">
+          {renderSummaryPanel()}
+        </aside>
       </div>
     </div>
   );

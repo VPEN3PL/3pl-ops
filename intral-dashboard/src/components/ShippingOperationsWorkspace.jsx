@@ -243,7 +243,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
           </div>
         </div>
 
-        <div className="shipping-station-main-grid">
+        <div className="shipping-station-main-grid shipping-transaction-grid">
           <div className="shipping-station-card shipping-station-large">
             <h2>Order Identity</h2>
 
@@ -410,8 +410,8 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
   };
 
   return (
-    <div className="inventory-subview">
-      <div className="inventory-header-row">
+    <div className="inventory-subview shipping-operations-workspace">
+      <div className="inventory-header-row shipping-operations-header">
         <div>
           <h1>Shipping Operations</h1>
 

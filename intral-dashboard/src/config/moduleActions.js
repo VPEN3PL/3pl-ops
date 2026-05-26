@@ -21,6 +21,7 @@ export const moduleActions = {
   ],
 
   jobs: [
+    { label: "Job Request Dashboard", tab: "jobs" },
     {
       label: "Request",
       dropdown: true,
@@ -34,6 +35,7 @@ export const moduleActions = {
   ],
 
   orders: [
+    { label: "Order Central Dashboard", tab: "orders" },
     {
       label: "View Orders",
       dropdown: true,
@@ -55,6 +57,7 @@ export const moduleActions = {
   ],
 
   shipping: [
+    { label: "Shipping Dashboard", tab: "shipping-dashboard" },
     { label: "Active Orders", tab: "shipping" },
     { label: "Started Orders", tab: "shipping-started" },
     { label: "Completed Orders", tab: "shipping-complete" },
@@ -104,6 +107,7 @@ export const getModuleKeyFromTab = (tab) => {
   }
 
   if (
+    tab === "shipping-dashboard" ||
     tab === "shipping" ||
     tab === "shipping-started" ||
     tab === "shipping-complete"

@@ -191,8 +191,8 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
 
   if (inventoryView === "lookup") {
     return (
-      <div className="inventory-subview">
-        <div className="inventory-header-row">
+      <div className="inventory-subview inventory-transaction-workspace">
+        <div className="inventory-header-row inventory-transaction-header">
           <div>
             <h1>Inventory Lookup</h1>
 
@@ -205,7 +205,7 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
 
         {message && <div className="dashboard-message">{message}</div>}
 
-        <div className="inventory-searchbar">
+        <div className="inventory-searchbar inventory-transaction-searchbar">
           <input
             value={filters.inventoryId}
             onChange={(e) => updateFilter("inventoryId", e.target.value)}
@@ -234,7 +234,7 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
           <button onClick={clearFilters}>Clear</button>
         </div>
 
-        <div className="inventory-panel">
+        <div className="inventory-panel inventory-transaction-panel inventory-results-panel">
           <h2>Lookup Results</h2>
 
           {loadingInventory ? (
@@ -249,8 +249,8 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
 
   if (inventoryView === "move") {
     return (
-      <div className="inventory-subview">
-        <div className="inventory-header-row">
+      <div className="inventory-subview inventory-transaction-workspace">
+        <div className="inventory-header-row inventory-transaction-header">
           <div>
             <h1>Inventory Move</h1>
 
@@ -260,7 +260,22 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
           </div>
         </div>
 
-        <div className="inventory-panel">
+        <div className="inventory-move-transaction-grid">
+          <div className="inventory-panel inventory-transaction-panel">
+            <h2>Live Inventory Source</h2>
+
+            <p className="panel-note">
+              Use Lookup to confirm Inventory ID, available quantity, and current location before submitting a move.
+            </p>
+
+            {loadingInventory ? (
+              <p className="panel-note">Loading live inventory...</p>
+            ) : (
+              renderInventoryTable(inventoryRows.slice(0, 6), "No live inventory records available.")
+            )}
+          </div>
+
+        <div className="inventory-panel inventory-transaction-panel inventory-move-panel">
           <h2>Move Request</h2>
 
           <div className="inventory-form-grid">
@@ -276,14 +291,15 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
             Submit Move
           </button>
         </div>
+        </div>
       </div>
     );
   }
 
   if (inventoryView === "history") {
     return (
-      <div className="inventory-subview">
-        <div className="inventory-header-row">
+      <div className="inventory-subview inventory-transaction-workspace">
+        <div className="inventory-header-row inventory-transaction-header">
           <div>
             <h1>Transfer History</h1>
 
@@ -293,7 +309,7 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
           </div>
         </div>
 
-        <div className="inventory-panel">
+        <div className="inventory-panel inventory-transaction-panel inventory-history-panel-compact">
           <h2>Recent Inventory Activity</h2>
 
           <table className="inventory-table">
@@ -327,8 +343,8 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
   }
 
   return (
-    <div className="inventory-subview">
-      <div className="inventory-header-row">
+    <div className="inventory-subview inventory-transaction-workspace">
+      <div className="inventory-header-row inventory-transaction-header">
         <div>
           <h1>Inventory Workspace</h1>
 
@@ -357,7 +373,42 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
         ))}
       </div>
 
-      <div className="inventory-panel">
+      <div className="inventory-dashboard-transaction-grid">
+        <div className="inventory-panel inventory-transaction-panel">
+          <h2>Inventory Command Center</h2>
+
+          <p className="panel-note">
+            Live inventory records created from Receiving putaway are visible here for lookup,
+            movement planning, allocation review, and transfer history.
+          </p>
+
+          <div className="inventory-command-flow">
+            <span>Receiving Putaway</span>
+            <span>Live Inventory</span>
+            <span>Lookup</span>
+            <span>Move</span>
+            <span>Allocate</span>
+          </div>
+        </div>
+
+        <div className="inventory-panel inventory-transaction-panel">
+          <h2>Location Governance</h2>
+
+          <div className="inventory-location-grid">
+            <div>
+              <span>Bin/Aisle</span>
+              <strong>1K / 6K</strong>
+            </div>
+
+            <div>
+              <span>Floor Only</span>
+              <strong>Basement / A&M / DCIC / M-Building / 1L</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="inventory-panel inventory-transaction-panel inventory-snapshot-panel">
         <h2>Inventory Snapshot</h2>
 
         {loadingInventory ? (

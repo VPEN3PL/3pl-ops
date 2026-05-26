@@ -312,6 +312,10 @@ function App() {
     if (tab === "allocation") return <InventoryWorkspace inventoryView="allocation" />;
     if (tab === "inventory-history") return <InventoryWorkspace inventoryView="history" />;
 
+    if (tab === "jobs") {
+      return <JobRequestWorkspace requestMode="dashboard" />;
+    }
+
     if (tab === "jobs-request-movement") {
       return <JobRequestWorkspace requestMode="movement" />;
     }
@@ -396,6 +400,10 @@ function App() {
           setOrders={setOrders}
         />
       );
+    }
+
+    if (tab === "shipping-dashboard") {
+      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} />;
     }
 
     if (
