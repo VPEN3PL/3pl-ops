@@ -26,6 +26,14 @@ import {
   getModuleKeyFromTab,
 } from "../config/moduleActions";
 
+const moduleLabels = {
+  receiving: "Receiving",
+  inventory: "Inventory",
+  jobs: "Job Request",
+  orders: "Order Central",
+  shipping: "Shipping Operations",
+};
+
 function WorkspacePortal({
   setTab,
   tab,
@@ -124,14 +132,6 @@ function WorkspacePortal({
   const moduleKey = getModuleKeyFromTab(tab);
   const currentActions = moduleKey ? moduleActions[moduleKey] : [];
 
-  const moduleLabels = {
-    receiving: "Receiving",
-    inventory: "Inventory",
-    jobs: "Job Request",
-    orders: "Order Central",
-    shipping: "Shipping Operations",
-  };
-
   const allModuleActions = useMemo(() => {
     return Object.entries(moduleActions).flatMap(([moduleName, actions]) =>
       actions.flatMap((action) => {
@@ -191,7 +191,9 @@ function WorkspacePortal({
 
     const moduleResults = operations
       .filter((item) => {
-        const text = `${item.title} ${item.subtitle} ${item.key} ${item.keywords || ""}`.toLowerCase();
+        const text = `${item.title} ${item.subtitle} ${item.key} ${
+          item.keywords || ""
+        }`.toLowerCase();
         return text.includes(query);
       })
       .map((item) => ({
@@ -203,14 +205,18 @@ function WorkspacePortal({
 
     const functionResults = allModuleActions
       .filter((item) => {
-        const text = `${item.label} ${item.groupLabel} ${item.moduleName} ${item.keywords || ""}`.toLowerCase();
+        const text = `${item.label} ${item.groupLabel} ${item.moduleName} ${
+          item.keywords || ""
+        }`.toLowerCase();
         return text.includes(query);
       })
       .slice(0, 8)
       .map((item) => ({
         type: "Function",
         label: item.label,
-        subtitle: `${moduleLabels[item.moduleName] || item.moduleName} • ${item.groupLabel}`,
+        subtitle: `${moduleLabels[item.moduleName] || item.moduleName} • ${
+          item.groupLabel
+        }`,
         tab: item.tab,
       }));
 
@@ -220,7 +226,8 @@ function WorkspacePortal({
   const notifications = [
     {
       title: "New Job Requests",
-      detail: "Notifications will connect to live request alerts in the next Supabase phase.",
+      detail:
+        "Notifications will connect to live request alerts in the next Supabase phase.",
       tab: "jobs",
     },
     {
@@ -232,7 +239,10 @@ function WorkspacePortal({
 
   const saveFavorites = (nextFavorites) => {
     setFavoriteTabs(nextFavorites);
-    localStorage.setItem("intral-connect-favorites", JSON.stringify(nextFavorites));
+    localStorage.setItem(
+      "intral-connect-favorites",
+      JSON.stringify(nextFavorites)
+    );
   };
 
   const toggleFavorite = (favoriteTab) => {
@@ -300,7 +310,9 @@ function WorkspacePortal({
 
             <div className="oracle-brand-text">
               <strong>INTRAL CONNECT</strong>
-              <span>{currentDate || "Date"} • {liveTime || "Time"}</span>
+              <span>
+                {currentDate || "Date"} • {liveTime || "Time"}
+              </span>
             </div>
           </div>
 
@@ -331,7 +343,9 @@ function WorkspacePortal({
 
           <div className="oracle-top-icons">
             <button
-              className={tab === "portal" ? "oracle-icon-button active" : "oracle-icon-button"}
+              className={
+                tab === "portal" ? "oracle-icon-button active" : "oracle-icon-button"
+              }
               title="Home"
               onClick={() => goToTab("portal")}
             >
@@ -356,7 +370,9 @@ function WorkspacePortal({
                 <div className="oracle-dropdown oracle-favorites-dropdown">
                   <div className="oracle-dropdown-header">
                     <strong>Favorites</strong>
-                    <small>Use star icons beside module functions to customize.</small>
+                    <small>
+                      Use star icons beside module functions to customize.
+                    </small>
                   </div>
 
                   {favoriteActions.length === 0 ? (
@@ -429,7 +445,9 @@ function WorkspacePortal({
                 <div className="oracle-dropdown oracle-action-dropdown">
                   <div className="oracle-dropdown-header">
                     <strong>Operations Actions</strong>
-                    <small>Quick access to module dashboards and action screens.</small>
+                    <small>
+                      Quick access to module dashboards and action screens.
+                    </small>
                   </div>
 
                   {operations.map((item) => (
@@ -489,7 +507,10 @@ function WorkspacePortal({
               {currentActions.map((action) => {
                 if (action.dropdown) {
                   return (
-                    <div key={action.label} className="module-action-menu oracle-module-action-menu">
+                    <div
+                      key={action.label}
+                      className="module-action-menu oracle-module-action-menu"
+                    >
                       <button
                         className={
                           isActionActive(action)
