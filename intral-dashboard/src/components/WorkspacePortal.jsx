@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   LayoutDashboard,
   Package,
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import logo from "../assets/intral-logo.jpg";
+import { supabase } from "../supabaseClient";
 
 import {
   moduleActions,
@@ -42,6 +43,7 @@ function WorkspacePortal({
   currentDate,
   userEmail,
   handleLogout,
+  operationalNotifications = [],
   children,
 }) {
   const [favoritesOpen, setFavoritesOpen] = useState(false);
@@ -176,6 +178,16 @@ function WorkspacePortal({
     }
   });
 
+  useEffect(() => {
+    if (Array.isArray(profile?.favorite_tabs)) {
+      setFavoriteTabs(profile.favorite_tabs);
+      localStorage.setItem(
+        "intral-connect-favorites",
+        JSON.stringify(profile.favorite_tabs)
+      );
+    }
+  }, [profile?.id, profile?.favorite_tabs]);
+
   const favoriteActions = useMemo(() => {
     return favoriteTabs
       .map((favoriteTab) =>
@@ -223,26 +235,52 @@ function WorkspacePortal({
     return [...moduleResults, ...functionResults].slice(0, 10);
   }, [quickSearch, operations, allModuleActions]);
 
-  const notifications = [
-    {
-      title: "New Job Requests",
-      detail:
-        "Notifications will connect to live request alerts in the next Supabase phase.",
-      tab: "jobs",
-    },
-    {
-      title: "Aging Work > 24 Hours",
-      detail: "Use Dashboard to review open work aging and manager action queue.",
-      tab: "dashboard",
-    },
-  ];
+  const notifications = useMemo(() => {
+    if (Array.isArray(operationalNotifications) && operationalNotifications.length > 0) {
+      return operationalNotifications;
+    }
 
-  const saveFavorites = (nextFavorites) => {
+    return [
+      {
+        id: "notifications-ready",
+        title: "Notification Center Ready",
+        detail:
+          "Live operational alerts will appear here when orders, requests, or aging work require action.",
+        tab: "dashboard",
+        severity: "normal",
+      },
+    ];
+  }, [operationalNotifications]);
+
+  const highPriorityNotificationCount = notifications.filter(
+    (item) => item.severity === "high"
+  ).length;
+
+  const notificationCount =
+    notifications.length === 1 && notifications[0]?.id === "notifications-ready"
+      ? 0
+      : notifications.length;
+
+  const saveFavorites = async (nextFavorites) => {
     setFavoriteTabs(nextFavorites);
+
     localStorage.setItem(
       "intral-connect-favorites",
       JSON.stringify(nextFavorites)
     );
+
+    if (!profile?.id) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ favorite_tabs: nextFavorites })
+      .eq("id", profile.id);
+
+    if (error) {
+      console.warn("Favorite persistence fallback active:", error.message);
+    }
   };
 
   const toggleFavorite = (favoriteTab) => {
@@ -408,6 +446,17 @@ function WorkspacePortal({
                 }}
               >
                 <Bell size={18} />
+                {notificationCount > 0 && (
+                  <span
+                    className={
+                      highPriorityNotificationCount > 0
+                        ? "oracle-notification-badge high"
+                        : "oracle-notification-badge"
+                    }
+                  >
+                    {notificationCount > 9 ? "9+" : notificationCount}
+                  </span>
+                )}
               </button>
 
               {notificationOpen && (
@@ -418,7 +467,11 @@ function WorkspacePortal({
                   </div>
 
                   {notifications.map((item) => (
-                    <button key={item.title} onClick={() => goToTab(item.tab)}>
+                    <button
+                      key={item.id || item.title}
+                      className={item.severity === "high" ? "alert-high" : ""}
+                      onClick={() => goToTab(item.tab)}
+                    >
                       <strong>{item.title}</strong>
                       <small>{item.detail}</small>
                     </button>

@@ -102,12 +102,14 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
   });
 
   const [additionalDetails, setAdditionalDetails] = useState("");
+  const [expandedSection, setExpandedSection] = useState("requestor");
 
   useEffect(() => {
     setSubmittedJobOrder("");
     setTrackingNumber("");
     setAdditionalDetails("");
     setShippingType("");
+    setExpandedSection("requestor");
 
     setMovementForm({
       inventoryId: "",
@@ -548,152 +550,441 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     );
   };
 
-  const renderAdditionalDetails = () => {
-    return (
-      <div className="inventory-panel job-transaction-panel">
-        <h2>Additional Details</h2>
 
-        <div className="inventory-form-grid job-compact-form-grid">
-          <textarea
-            rows="6"
-            value={additionalDetails}
-            onChange={(e) => setAdditionalDetails(e.target.value)}
-            placeholder="Enter any special instructions, handling requirements, timing concerns, contact notes, or other details needed to complete this request."
-          />
+  const toggleWorkbenchSection = (sectionKey) => {
+    setExpandedSection((current) => (current === sectionKey ? "" : sectionKey));
+  };
+
+  const renderAccordionHeader = (sectionKey, title, subtitle, status = "") => {
+    const isOpen = expandedSection === sectionKey;
+
+    return (
+      <button
+        type="button"
+        className={isOpen ? "phase17-accordion-header open" : "phase17-accordion-header"}
+        onClick={() => toggleWorkbenchSection(sectionKey)}
+      >
+        <div>
+          <strong>{title}</strong>
+          <span>{subtitle}</span>
         </div>
+
+        <div className="phase17-accordion-right">
+          {status && <small>{status}</small>}
+          <b>{isOpen ? "−" : "+"}</b>
+        </div>
+      </button>
+    );
+  };
+
+  const renderRequestorAccordion = () => {
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "requestor",
+          "Requestor Information",
+          "Charge / PO, requestor, contact",
+          requestorForm.requestorName ? "Started" : "Pending"
+        )}
+
+        {expandedSection === "requestor" && (
+          <div className="phase17-accordion-body">
+            <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+              <select
+                value={requestorForm.chargeType}
+                onChange={(e) => updateRequestorForm("chargeType", e.target.value)}
+              >
+                <option value="">Charge Number or PO Type</option>
+                <option value="Charge Number">Charge Number</option>
+                <option value="PO Number">PO Number</option>
+                <option value="No Charge / PO Available">
+                  No Charge / PO Available
+                </option>
+              </select>
+
+              <input
+                value={requestorForm.chargeNumber}
+                onChange={(e) => updateRequestorForm("chargeNumber", e.target.value)}
+                placeholder="Charge Number or PO"
+              />
+
+              <input
+                value={requestorForm.requestorName}
+                onChange={(e) => updateRequestorForm("requestorName", e.target.value)}
+                placeholder="Requestor Name"
+              />
+
+              <input
+                value={requestorForm.telephone}
+                onChange={(e) => updateRequestorForm("telephone", e.target.value)}
+                placeholder="Telephone"
+              />
+
+              <input
+                value={requestorForm.email}
+                onChange={(e) => updateRequestorForm("email", e.target.value)}
+                placeholder="Email"
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   };
 
-  const renderShippingSpecs = () => {
+  const renderMovementAccordion = () => {
     return (
-      <div className="inventory-panel job-transaction-panel">
-        <h2>Shipment Details</h2>
+      <>
+        <div className="phase17-accordion-section">
+          {renderAccordionHeader(
+            "movement",
+            "Inventory Movement Information",
+            "Inventory ID, quantity, destination",
+            movementForm.inventoryId ? "Started" : "Pending"
+          )}
 
-        <div className="inventory-form-grid job-compact-form-grid">
-          <input
-            type="number"
-            value={shippingForm.pcs}
-            onChange={(e) => updateShippingForm("pcs", e.target.value)}
-            placeholder="PCS"
-          />
+          {expandedSection === "movement" && (
+            <div className="phase17-accordion-body">
+              <p className="panel-note">
+                Inventory Movement requires a valid available Inventory ID before
+                the request can proceed.
+              </p>
 
-          <input
-            value={shippingForm.weight}
-            onChange={(e) => updateShippingForm("weight", e.target.value)}
-            placeholder="Weight"
-          />
+              <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+                <select
+                  value={movementForm.inventoryId}
+                  onChange={(e) => updateMovementForm("inventoryId", e.target.value)}
+                >
+                  <option value="">Select Inventory ID</option>
 
-          <input
-            value={shippingForm.dimensions}
-            onChange={(e) => updateShippingForm("dimensions", e.target.value)}
-            placeholder="Dimensions"
-          />
+                  {availableInventory.map((item) => (
+                    <option
+                      key={item.id}
+                      value={item.id}
+                      disabled={item.status !== "Available" || item.availableQty <= 0}
+                    >
+                      {item.id} | {item.customer} | {item.partNumber} |
+                      Available: {item.availableQty} | {item.location}
+                    </option>
+                  ))}
+                </select>
+
+                <input value={selectedInventory?.partNumber || ""} placeholder="Part Number" disabled />
+                <input value={selectedInventory?.customer || ""} placeholder="Customer" disabled />
+                <input value={selectedInventory?.availableQty ?? ""} placeholder="Available Qty" disabled />
+                <input value={selectedInventory?.location || ""} placeholder="Current Location / From Location" disabled />
+
+                <input
+                  type="number"
+                  value={movementForm.moveQty}
+                  onChange={(e) => updateMovementForm("moveQty", e.target.value)}
+                  placeholder="Move Qty"
+                />
+
+                <input
+                  value={movementForm.toLocation}
+                  onChange={(e) => updateMovementForm("toLocation", e.target.value)}
+                  placeholder="To Location"
+                />
+
+                <textarea
+                  rows="3"
+                  value={movementForm.reason}
+                  onChange={(e) => updateMovementForm("reason", e.target.value)}
+                  placeholder="Reason for movement"
+                />
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+
+        {selectedInventory && (
+          <div className="phase17-accordion-section">
+            {renderAccordionHeader(
+              "inventoryValidation",
+              "Selected Inventory Validation",
+              "Status, available quantity, location gate",
+              selectedInventory.status
+            )}
+
+            {expandedSection === "inventoryValidation" && (
+              <div className="phase17-accordion-body">
+                <table className="inventory-table">
+                  <tbody>
+                    <tr>
+                      <th>Inventory ID</th>
+                      <td>{selectedInventory.id}</td>
+                    </tr>
+                    <tr>
+                      <th>Status</th>
+                      <td>{selectedInventory.status}</td>
+                    </tr>
+                    <tr>
+                      <th>Available Qty</th>
+                      <td>{selectedInventory.availableQty}</td>
+                    </tr>
+                    <tr>
+                      <th>Current Location</th>
+                      <td>{selectedInventory.location}</td>
+                    </tr>
+                    <tr>
+                      <th>System Gate</th>
+                      <td>
+                        {selectedInventory.status === "Available" &&
+                        selectedInventory.availableQty > 0
+                          ? "Inventory available — request can proceed after qty/location validation."
+                          : "Inventory unavailable — request cannot proceed."}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {renderAdditionalDetailsAccordion()}
+      </>
     );
   };
 
-  const renderShipFrom = () => {
+  const renderShippingAccordion = () => {
     return (
-      <div className="inventory-panel job-transaction-panel">
-        <h2>Ship From</h2>
+      <>
+        <div className="phase17-accordion-section">
+          {renderAccordionHeader(
+            "shippingType",
+            "Shipping Request Type",
+            "Outbound or A&M crating-supported workflow",
+            shippingType ? "Selected" : "Pending"
+          )}
 
-        <div className="inventory-form-grid job-compact-form-grid">
-          <input
-            value={shippingForm.shipFromCompany}
-            onChange={(e) =>
-              updateShippingForm("shipFromCompany", e.target.value)
-            }
-            placeholder="Company Name"
-          />
-
-          <input
-            value={shippingForm.shipFromAddress}
-            onChange={(e) =>
-              updateShippingForm("shipFromAddress", e.target.value)
-            }
-            placeholder="Address"
-          />
-
-          <input
-            value={shippingForm.shipFromStreet}
-            onChange={(e) =>
-              updateShippingForm("shipFromStreet", e.target.value)
-            }
-            placeholder="Street"
-          />
-
-          <input
-            value={shippingForm.shipFromZip}
-            onChange={(e) => updateShippingForm("shipFromZip", e.target.value)}
-            placeholder="Zip Code"
-          />
+          {expandedSection === "shippingType" && (
+            <div className="phase17-accordion-body">
+              <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+                <select
+                  value={shippingType}
+                  onChange={(e) => {
+                    setShippingType(e.target.value);
+                    setExpandedSection("shipmentDetails");
+                  }}
+                >
+                  <option value="">Select Shipping Workflow</option>
+                  <option value="outbound">Outbound Shipping</option>
+                  <option value="am-crating">
+                    Shipping with A&M Crating Support
+                  </option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+
+        {shippingType === "am-crating" && (
+          <div className="phase17-accordion-section">
+            {renderAccordionHeader(
+              "amCrating",
+              "A&M Crating Support",
+              "Vendor to A&M crating, then final destination",
+              shippingForm.amStoredAddress ? "Selected" : "Pending"
+            )}
+
+            {expandedSection === "amCrating" && (
+              <div className="phase17-accordion-body">
+                <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+                  <select
+                    value={shippingForm.amStoredAddress}
+                    onChange={(e) => updateShippingForm("amStoredAddress", e.target.value)}
+                  >
+                    <option value="">Select A&M Stored Address</option>
+
+                    {amStoredAddresses.map((item) => (
+                      <option key={item.label} value={item.value}>
+                        {item.value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {shippingType && (
+          <>
+            <div className="phase17-accordion-section">
+              {renderAccordionHeader(
+                "shipmentDetails",
+                "Shipment Details",
+                "Pieces, weight, dimensions",
+                shippingForm.pcs ? "Started" : "Pending"
+              )}
+
+              {expandedSection === "shipmentDetails" && (
+                <div className="phase17-accordion-body">
+                  <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+                    <input
+                      type="number"
+                      value={shippingForm.pcs}
+                      onChange={(e) => updateShippingForm("pcs", e.target.value)}
+                      placeholder="PCS"
+                    />
+
+                    <input
+                      value={shippingForm.weight}
+                      onChange={(e) => updateShippingForm("weight", e.target.value)}
+                      placeholder="Weight"
+                    />
+
+                    <input
+                      value={shippingForm.dimensions}
+                      onChange={(e) => updateShippingForm("dimensions", e.target.value)}
+                      placeholder="Dimensions"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="phase17-accordion-section">
+              {renderAccordionHeader(
+                "shipFrom",
+                "Ship From",
+                "Origin company and address",
+                shippingForm.shipFromCompany ? "Started" : "Pending"
+              )}
+
+              {expandedSection === "shipFrom" && (
+                <div className="phase17-accordion-body">
+                  <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+                    <input value={shippingForm.shipFromCompany} onChange={(e) => updateShippingForm("shipFromCompany", e.target.value)} placeholder="Company Name" />
+                    <input value={shippingForm.shipFromAddress} onChange={(e) => updateShippingForm("shipFromAddress", e.target.value)} placeholder="Address" />
+                    <input value={shippingForm.shipFromStreet} onChange={(e) => updateShippingForm("shipFromStreet", e.target.value)} placeholder="Street" />
+                    <input value={shippingForm.shipFromZip} onChange={(e) => updateShippingForm("shipFromZip", e.target.value)} placeholder="Zip Code" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {shippingType === "am-crating" && (
+              <div className="phase17-accordion-section">
+                {renderAccordionHeader(
+                  "amDestination",
+                  "A&M Destination",
+                  "Stored crating address",
+                  shippingForm.amStoredAddress ? "Ready" : "Pending"
+                )}
+
+                {expandedSection === "amDestination" && (
+                  <div className="phase17-accordion-body">
+                    <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+                      <input value={shippingForm.amStoredAddress} placeholder="A&M Stored Address" disabled />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="phase17-accordion-section">
+              {renderAccordionHeader(
+                "shipTo",
+                "Ship To",
+                "Destination company, address, contact",
+                shippingForm.shipToCompany ? "Started" : "Pending"
+              )}
+
+              {expandedSection === "shipTo" && (
+                <div className="phase17-accordion-body">
+                  <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+                    <input value={shippingForm.shipToCompany} onChange={(e) => updateShippingForm("shipToCompany", e.target.value)} placeholder="Company Name" />
+                    <input value={shippingForm.shipToAddress} onChange={(e) => updateShippingForm("shipToAddress", e.target.value)} placeholder="Address" />
+                    <input value={shippingForm.shipToStreet} onChange={(e) => updateShippingForm("shipToStreet", e.target.value)} placeholder="Street" />
+                    <input value={shippingForm.shipToZip} onChange={(e) => updateShippingForm("shipToZip", e.target.value)} placeholder="Zip Code" />
+                    <input value={shippingForm.shipToContactName} onChange={(e) => updateShippingForm("shipToContactName", e.target.value)} placeholder="Contact Name" />
+                    <input value={shippingForm.shipToTelephone} onChange={(e) => updateShippingForm("shipToTelephone", e.target.value)} placeholder="Telephone" />
+                    <input value={shippingForm.shipToEmail} onChange={(e) => updateShippingForm("shipToEmail", e.target.value)} placeholder="Email" />
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {renderAdditionalDetailsAccordion()}
+      </>
     );
   };
 
-  const renderShipTo = () => {
+  const renderLogisticsAccordion = () => {
     return (
-      <div className="inventory-panel job-transaction-panel">
-        <h2>Ship To</h2>
+      <>
+        <div className="phase17-accordion-section">
+          {renderAccordionHeader(
+            "logistics",
+            "Logistics Support Information",
+            "Support type, location, equipment, timing",
+            logisticsForm.supportType ? "Started" : "Pending"
+          )}
 
-        <div className="inventory-form-grid job-compact-form-grid">
-          <input
-            value={shippingForm.shipToCompany}
-            onChange={(e) =>
-              updateShippingForm("shipToCompany", e.target.value)
-            }
-            placeholder="Company Name"
-          />
+          {expandedSection === "logistics" && (
+            <div className="phase17-accordion-body">
+              <p className="panel-note">
+                Use Logistics Support for labor, forklift, dock, vendor, carrier
+                appointment, or special handling coordination.
+              </p>
 
-          <input
-            value={shippingForm.shipToAddress}
-            onChange={(e) =>
-              updateShippingForm("shipToAddress", e.target.value)
-            }
-            placeholder="Address"
-          />
+              <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+                <select
+                  value={logisticsForm.supportType}
+                  onChange={(e) => updateLogisticsForm("supportType", e.target.value)}
+                >
+                  <option value="">Select Support Type</option>
+                  <option value="Forklift Support">Forklift Support</option>
+                  <option value="Labor Support">Labor Support</option>
+                  <option value="Dock Coordination">Dock Coordination</option>
+                  <option value="Vendor Coordination">Vendor Coordination</option>
+                  <option value="Carrier Appointment">Carrier Appointment</option>
+                  <option value="Special Handling">Special Handling</option>
+                  <option value="A&M Coordination">A&M Coordination</option>
+                </select>
 
-          <input
-            value={shippingForm.shipToStreet}
-            onChange={(e) =>
-              updateShippingForm("shipToStreet", e.target.value)
-            }
-            placeholder="Street"
-          />
-
-          <input
-            value={shippingForm.shipToZip}
-            onChange={(e) => updateShippingForm("shipToZip", e.target.value)}
-            placeholder="Zip Code"
-          />
-
-          <input
-            value={shippingForm.shipToContactName}
-            onChange={(e) =>
-              updateShippingForm("shipToContactName", e.target.value)
-            }
-            placeholder="Contact Name"
-          />
-
-          <input
-            value={shippingForm.shipToTelephone}
-            onChange={(e) =>
-              updateShippingForm("shipToTelephone", e.target.value)
-            }
-            placeholder="Telephone"
-          />
-
-          <input
-            value={shippingForm.shipToEmail}
-            onChange={(e) =>
-              updateShippingForm("shipToEmail", e.target.value)
-            }
-            placeholder="Email"
-          />
+                <input value={logisticsForm.currentLocation} onChange={(e) => updateLogisticsForm("currentLocation", e.target.value)} placeholder="Current Support Location" />
+                <input value={logisticsForm.supportDestination} onChange={(e) => updateLogisticsForm("supportDestination", e.target.value)} placeholder="Support Destination / Area" />
+                <input value={logisticsForm.equipmentNeeded} onChange={(e) => updateLogisticsForm("equipmentNeeded", e.target.value)} placeholder="Equipment / Labor Needed" />
+                <input type="date" value={logisticsForm.dueDate} onChange={(e) => updateLogisticsForm("dueDate", e.target.value)} />
+                <textarea rows="3" value={logisticsForm.notes} onChange={(e) => updateLogisticsForm("notes", e.target.value)} placeholder="Logistics Support Notes" />
+              </div>
+            </div>
+          )}
         </div>
+
+        {renderAdditionalDetailsAccordion()}
+      </>
+    );
+  };
+
+  const renderAdditionalDetailsAccordion = () => {
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "additional",
+          "Additional Details",
+          "Special instructions, references, timing",
+          additionalDetails ? "Started" : "Optional"
+        )}
+
+        {expandedSection === "additional" && (
+          <div className="phase17-accordion-body">
+            <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
+              <textarea
+                rows="3"
+                value={additionalDetails}
+                onChange={(e) => setAdditionalDetails(e.target.value)}
+                placeholder="Enter any special instructions, handling requirements, timing concerns, contact notes, or other details needed to complete this request."
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -734,15 +1025,10 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
   }
 
   return (
-    <div className="inventory-subview job-request-workspace">
+    <div className="inventory-subview job-request-workspace phase17-workbench-screen">
       <div className="inventory-header-row job-transaction-header">
         <div>
           <h1>{getRequestTitle()} Request</h1>
-
-          <p>
-            Submit operational requests into Order Central for review,
-            allocation confirmation, and release.
-          </p>
         </div>
       </div>
 
@@ -754,342 +1040,50 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
         </div>
       )}
 
-      <div className="job-request-transaction-grid">
-        <div className="job-request-main-column">
-          <div className="inventory-panel job-transaction-panel">
-            <h2>Requestor Information</h2>
+      <div className="phase17-smart-card-shell">
+        <div className="phase17-smart-card">
+          <div className="phase17-smart-card-header">
+            <div>
+              <span>Smart Request Card</span>
+              <strong>{getRequestTitle()} Request</strong>
+              <p>Create and review operational work before it routes to Order Central.</p>
+            </div>
 
-        <div className="inventory-form-grid job-compact-form-grid">
-          <select
-            value={requestorForm.chargeType}
-            onChange={(e) => updateRequestorForm("chargeType", e.target.value)}
-          >
-            <option value="">Charge Number or PO Type</option>
-            <option value="Charge Number">Charge Number</option>
-            <option value="PO Number">PO Number</option>
-            <option value="No Charge / PO Available">
-              No Charge / PO Available
-            </option>
-          </select>
+            <div className="phase17-progress">
+              <span className="active">1 Details</span>
+              <span>2 Review</span>
+              <span>3 Submit</span>
+            </div>
+          </div>
 
-          <input
-            value={requestorForm.chargeNumber}
-            onChange={(e) =>
-              updateRequestorForm("chargeNumber", e.target.value)
-            }
-            placeholder="Charge Number or PO"
-          />
+          <div className="phase17-smart-card-body">
+            <div className="phase17-smart-sections">
+              {renderRequestorAccordion()}
 
-          <input
-            value={requestorForm.requestorName}
-            onChange={(e) =>
-              updateRequestorForm("requestorName", e.target.value)
-            }
-            placeholder="Requestor Name"
-          />
+              {requestMode === "movement" && renderMovementAccordion()}
+              {requestMode === "shipping" && renderShippingAccordion()}
+              {requestMode === "logistics" && renderLogisticsAccordion()}
+            </div>
 
-          <input
-            value={requestorForm.telephone}
-            onChange={(e) => updateRequestorForm("telephone", e.target.value)}
-            placeholder="Telephone"
-          />
+            <aside className="phase17-smart-summary">
+              {renderSummaryPanel()}
+            </aside>
+          </div>
 
-          <input
-            value={requestorForm.email}
-            onChange={(e) => updateRequestorForm("email", e.target.value)}
-            placeholder="Email"
-          />
+          <div className="phase17-smart-footer">
+            <button type="button" className="phase17-secondary-button">
+              Clear Form
+            </button>
+
+            <button
+              type="button"
+              className="inventory-primary-button phase17-review-button"
+              onClick={handleSubmitRequest}
+            >
+              Review & Submit →
+            </button>
+          </div>
         </div>
-      </div>
-
-      {requestMode === "movement" && (
-        <>
-          <div className="inventory-panel job-transaction-panel">
-            <h2>Inventory Movement Information</h2>
-
-            <p className="panel-note">
-              Inventory Movement requires a valid available Inventory ID before
-              the request can proceed.
-            </p>
-
-            <div className="inventory-form-grid job-compact-form-grid">
-              <select
-                value={movementForm.inventoryId}
-                onChange={(e) =>
-                  updateMovementForm("inventoryId", e.target.value)
-                }
-              >
-                <option value="">Select Inventory ID</option>
-
-                {availableInventory.map((item) => (
-                  <option
-                    key={item.id}
-                    value={item.id}
-                    disabled={
-                      item.status !== "Available" || item.availableQty <= 0
-                    }
-                  >
-                    {item.id} | {item.customer} | {item.partNumber} |
-                    Available: {item.availableQty} | {item.location}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                value={selectedInventory?.partNumber || ""}
-                placeholder="Part Number"
-                disabled
-              />
-
-              <input
-                value={selectedInventory?.customer || ""}
-                placeholder="Customer"
-                disabled
-              />
-
-              <input
-                value={selectedInventory?.availableQty ?? ""}
-                placeholder="Available Qty"
-                disabled
-              />
-
-              <input
-                value={selectedInventory?.location || ""}
-                placeholder="Current Location / From Location"
-                disabled
-              />
-
-              <input
-                type="number"
-                value={movementForm.moveQty}
-                onChange={(e) => updateMovementForm("moveQty", e.target.value)}
-                placeholder="Move Qty"
-              />
-
-              <input
-                value={movementForm.toLocation}
-                onChange={(e) =>
-                  updateMovementForm("toLocation", e.target.value)
-                }
-                placeholder="To Location"
-              />
-
-              <textarea
-                rows="4"
-                value={movementForm.reason}
-                onChange={(e) => updateMovementForm("reason", e.target.value)}
-                placeholder="Reason for movement"
-              />
-            </div>
-          </div>
-
-          {selectedInventory && (
-            <div className="inventory-panel job-transaction-panel">
-              <h2>Selected Inventory Validation</h2>
-
-              <table className="inventory-table">
-                <tbody>
-                  <tr>
-                    <th>Inventory ID</th>
-                    <td>{selectedInventory.id}</td>
-                  </tr>
-
-                  <tr>
-                    <th>Status</th>
-                    <td>{selectedInventory.status}</td>
-                  </tr>
-
-                  <tr>
-                    <th>Available Qty</th>
-                    <td>{selectedInventory.availableQty}</td>
-                  </tr>
-
-                  <tr>
-                    <th>Current Location</th>
-                    <td>{selectedInventory.location}</td>
-                  </tr>
-
-                  <tr>
-                    <th>System Gate</th>
-                    <td>
-                      {selectedInventory.status === "Available" &&
-                      selectedInventory.availableQty > 0
-                        ? "Inventory available — request can proceed after qty/location validation."
-                        : "Inventory unavailable — request cannot proceed."}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {renderAdditionalDetails()}
-        </>
-      )}
-
-      {requestMode === "shipping" && (
-        <>
-          <div className="inventory-panel job-transaction-panel">
-            <h2>Shipping Request Type</h2>
-
-            <div className="inventory-form-grid job-compact-form-grid">
-              <select
-                value={shippingType}
-                onChange={(e) => setShippingType(e.target.value)}
-              >
-                <option value="">Select Shipping Workflow</option>
-                <option value="outbound">Outbound Shipping</option>
-                <option value="am-crating">
-                  Shipping with A&M Crating Support
-                </option>
-              </select>
-            </div>
-          </div>
-
-          {shippingType === "outbound" && (
-            <>
-              <div className="inventory-panel job-transaction-panel">
-                <h2>Outbound Shipping Information</h2>
-
-                <p className="panel-note">
-                  Direct outbound shipment from origin location to final
-                  destination.
-                </p>
-              </div>
-
-              {renderShippingSpecs()}
-              {renderShipFrom()}
-              {renderShipTo()}
-            </>
-          )}
-
-          {shippingType === "am-crating" && (
-            <>
-              <div className="inventory-panel job-transaction-panel">
-                <h2>Shipping with A&M Crating Support</h2>
-
-                <p className="panel-note">
-                  Material leaves vendor facility, transfers to A&M for crating,
-                  then ships from A&M to the final destination.
-                </p>
-
-                <div className="inventory-form-grid job-compact-form-grid">
-                  <select
-                    value={shippingForm.amStoredAddress}
-                    onChange={(e) =>
-                      updateShippingForm("amStoredAddress", e.target.value)
-                    }
-                  >
-                    <option value="">Select A&M Stored Address</option>
-
-                    {amStoredAddresses.map((item) => (
-                      <option key={item.label} value={item.value}>
-                        {item.value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {renderShippingSpecs()}
-              {renderShipFrom()}
-
-              <div className="inventory-panel job-transaction-panel">
-                <h2>A&M Destination</h2>
-
-                <div className="inventory-form-grid job-compact-form-grid">
-                  <input
-                    value={shippingForm.amStoredAddress}
-                    placeholder="A&M Stored Address"
-                    disabled
-                  />
-                </div>
-              </div>
-
-              {renderShipTo()}
-            </>
-          )}
-
-          {renderAdditionalDetails()}
-        </>
-      )}
-
-      {requestMode === "logistics" && (
-        <>
-          <div className="inventory-panel job-transaction-panel">
-            <h2>Logistics Support Information</h2>
-
-            <p className="panel-note">
-              Use Logistics Support for labor, forklift, dock, vendor, carrier
-              appointment, or special handling coordination. Use Inventory
-              Movement when an inventory ID must be moved.
-            </p>
-
-            <div className="inventory-form-grid job-compact-form-grid">
-              <select
-                value={logisticsForm.supportType}
-                onChange={(e) =>
-                  updateLogisticsForm("supportType", e.target.value)
-                }
-              >
-                <option value="">Select Support Type</option>
-                <option value="Forklift Support">Forklift Support</option>
-                <option value="Labor Support">Labor Support</option>
-                <option value="Dock Coordination">Dock Coordination</option>
-                <option value="Vendor Coordination">Vendor Coordination</option>
-                <option value="Carrier Appointment">Carrier Appointment</option>
-                <option value="Special Handling">Special Handling</option>
-                <option value="A&M Coordination">A&M Coordination</option>
-              </select>
-
-              <input
-                value={logisticsForm.currentLocation}
-                onChange={(e) =>
-                  updateLogisticsForm("currentLocation", e.target.value)
-                }
-                placeholder="Current Support Location"
-              />
-
-              <input
-                value={logisticsForm.supportDestination}
-                onChange={(e) =>
-                  updateLogisticsForm("supportDestination", e.target.value)
-                }
-                placeholder="Support Destination / Area"
-              />
-
-              <input
-                value={logisticsForm.equipmentNeeded}
-                onChange={(e) =>
-                  updateLogisticsForm("equipmentNeeded", e.target.value)
-                }
-                placeholder="Equipment / Labor Needed"
-              />
-
-              <input
-                type="date"
-                value={logisticsForm.dueDate}
-                onChange={(e) => updateLogisticsForm("dueDate", e.target.value)}
-              />
-
-              <textarea
-                rows="4"
-                value={logisticsForm.notes}
-                onChange={(e) => updateLogisticsForm("notes", e.target.value)}
-                placeholder="Logistics Support Notes"
-              />
-            </div>
-          </div>
-
-          {renderAdditionalDetails()}
-        </>
-      )}
-
-        </div>
-
-        <aside className="job-request-side-column">
-          {renderSummaryPanel()}
-        </aside>
       </div>
     </div>
   );

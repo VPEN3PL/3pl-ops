@@ -16,6 +16,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
   const [currentPage, setCurrentPage] = useState(1);
   const [checkedWorkItems, setCheckedWorkItems] = useState([]);
   const [message, setMessage] = useState("");
+  const [expandedSection, setExpandedSection] = useState("queue");
 
   const ordersPerPage = 5;
 
@@ -26,6 +27,18 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       localStorage.removeItem("intral-connect-selected-jo");
     }
   }, [selectedJobNumber]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+
+    if (orderMode === "open" || orderMode === "released" || orderMode === "closed") {
+      setExpandedSection("queue");
+    }
+
+    if (orderMode === "view") setExpandedSection("governance");
+    if (orderMode === "addWork") setExpandedSection("additionalWork");
+    if (orderMode === "release") setExpandedSection("release");
+  }, [orderMode]);
 
   const openOrders = useMemo(() => {
     return orders.filter((item) => item.releaseStatus === "Open");
@@ -57,14 +70,11 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
   const totalPages = Math.ceil(activeList.length / ordersPerPage);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [orderMode]);
-
   const selectJob = (job) => {
     setSelectedJobNumber((current) =>
       current === job.joNumber ? "" : job.joNumber
     );
+    setExpandedSection("governance");
   };
 
   const getViewTitle = () => {
@@ -139,6 +149,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     );
 
     setOrders(updatedOrders);
+    setExpandedSection("release");
     setMessage(`${selectedJob.joNumber} allocation confirmed. Release is now allowed.`);
   };
 
@@ -186,6 +197,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
     setOrders(updatedOrders);
     setSelectedJobNumber(selectedJob.joNumber);
+    setExpandedSection("queue");
     setMessage(
       `${newSoNumber} generated and staged to ${newStagingLocation}. Waiting for Active Orders confirmation.`
     );
@@ -224,12 +236,51 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
     setOrders(updatedOrders);
     setCheckedWorkItems([]);
+    setExpandedSection("governance");
     setMessage(`Additional work added to ${selectedJob.joNumber}.`);
+  };
+
+  const toggleSection = (sectionKey) => {
+    setExpandedSection((current) => (current === sectionKey ? "" : sectionKey));
+  };
+
+  const getSectionStatus = (sectionKey) => {
+    if (sectionKey === "queue") return `${activeList.length} Records`;
+    if (!selectedJob) return "Waiting";
+    if (sectionKey === "governance") return selectedJob.releaseStatus;
+    if (sectionKey === "allocation") return getAllocationDisplay(selectedJob);
+    if (sectionKey === "additionalWork") {
+      return selectedJob.additionalWork?.length > 0 ? "Attached" : "Optional";
+    }
+    if (sectionKey === "release") return canReleaseJob(selectedJob) ? "Allowed" : "Blocked";
+    return "";
+  };
+
+  const renderAccordionHeader = (sectionKey, title, subtitle) => {
+    const isOpen = expandedSection === sectionKey;
+
+    return (
+      <button
+        type="button"
+        className={isOpen ? "phase17-accordion-header open" : "phase17-accordion-header"}
+        onClick={() => toggleSection(sectionKey)}
+      >
+        <div>
+          <strong>{title}</strong>
+          <span>{subtitle}</span>
+        </div>
+
+        <div className="phase17-accordion-right">
+          <small>{getSectionStatus(sectionKey)}</small>
+          <b>{isOpen ? "−" : "+"}</b>
+        </div>
+      </button>
+    );
   };
 
   const renderKpisOnly = () => {
     return (
-      <div className="inventory-kpi-grid">
+      <div className="inventory-kpi-grid order-workbench-kpi-grid">
         <div className="inventory-kpi-card">
           <span>Open Orders</span>
           <h2>{openOrders.length}</h2>
@@ -251,376 +302,120 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     );
   };
 
-  const renderInventoryAllocationSummary = (job) => {
-    if (!job?.inventoryDetails) return null;
-
+  const renderOrderQueueSection = () => {
     return (
-      <div className="order-detail-section">
-        <h3>Inventory / Allocation Detail</h3>
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "queue",
+          getViewTitle(),
+          "Select one JO to review, govern, add work, or release"
+        )}
 
-        <div className="order-detail-grid">
-          <div className="order-detail-field">
-            <span>Inventory ID</span>
-            <strong>{job.inventoryDetails.inventoryId}</strong>
-          </div>
+        {expandedSection === "queue" && (
+          <div className="phase17-accordion-body">
+            <table className="inventory-table order-workbench-table">
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>JO #</th>
+                  <th>Requestor</th>
+                  <th>Job Type</th>
+                  <th>Details</th>
+                  <th>Allocation</th>
+                  <th>Inventory ID</th>
+                  <th>Original Pull From</th>
+                  <th>STG Location</th>
+                </tr>
+              </thead>
 
-          <div className="order-detail-field">
-            <span>Part Number</span>
-            <strong>{job.inventoryDetails.partNumber}</strong>
-          </div>
+              <tbody>
+                {paginatedOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan="9">No orders found.</td>
+                  </tr>
+                ) : (
+                  paginatedOrders.map((job) => (
+                    <tr
+                      key={job.joNumber}
+                      className={selectedJobNumber === job.joNumber ? "selected-row" : ""}
+                      onClick={() => selectJob(job)}
+                    >
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedJobNumber === job.joNumber}
+                          onChange={() => selectJob(job)}
+                          onClick={(event) => event.stopPropagation()}
+                        />
+                      </td>
 
-          <div className="order-detail-field">
-            <span>Inventory Customer</span>
-            <strong>{job.inventoryDetails.customer}</strong>
-          </div>
+                      <td>{job.joNumber}</td>
+                      <td>{job.requestor}</td>
+                      <td>{job.jobType}</td>
+                      <td>{job.details}</td>
+                      <td>{getAllocationDisplay(job)}</td>
+                      <td>{job.inventoryDetails?.inventoryId || "-"}</td>
+                      <td>{job.inventoryDetails?.pullFromLocation || "-"}</td>
+                      <td>{job.stagingLocation || "-"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
 
-          <div className="order-detail-field">
-            <span>Available Qty</span>
-            <strong>{job.inventoryDetails.availableQty}</strong>
-          </div>
+            {activeList.length > ordersPerPage && (
+              <div className="order-pagination-row">
+                <button
+                  className="inventory-primary-button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                >
+                  Previous
+                </button>
 
-          <div className="order-detail-field">
-            <span>Requested Qty</span>
-            <strong>{job.inventoryDetails.requestedQty}</strong>
-          </div>
+                <span>
+                  Page {currentPage} of {totalPages || 1}
+                </span>
 
-          <div className="order-detail-field">
-            <span>Sub-Inventory</span>
-            <strong>{job.inventoryDetails.subInventory}</strong>
+                <button
+                  className="inventory-primary-button"
+                  disabled={currentPage >= totalPages}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
-
-          <div className="order-detail-field">
-            <span>Original Pull Location</span>
-            <strong>{job.inventoryDetails.pullFromLocation}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>STG Location</span>
-            <strong>{job.stagingLocation || "Generated at release"}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>Destination Location</span>
-            <strong>{job.inventoryDetails.destinationLocation}</strong>
-          </div>
-        </div>
+        )}
       </div>
     );
   };
 
-
-  const renderSelectedJobSummary = (title = "Selected Job Order") => {
+  const renderSelectedGovernanceSection = () => {
     if (!selectedJob) return null;
 
     return (
-      <div className="order-detail-card">
-        <div className="order-detail-header">
-          <div>
-            <h2>{title}</h2>
-            <p>{selectedJob.joNumber} • {selectedJob.jobType} • {selectedJob.customer}</p>
-          </div>
-
-          <span className="order-detail-badge">{selectedJob.releaseStatus}</span>
-        </div>
-
-        <div className="order-detail-grid">
-          <div className="order-detail-field">
-            <span>JO Number</span>
-            <strong>{selectedJob.joNumber}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>Requestor</span>
-            <strong>{selectedJob.requestor}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>Customer</span>
-            <strong>{selectedJob.customer}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>Job Type</span>
-            <strong>{selectedJob.jobType}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>Priority</span>
-            <strong>{selectedJob.priority}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>Allocation</span>
-            <strong>{getAllocationDisplay(selectedJob)}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>Ship To / Destination</span>
-            <strong>{selectedJob.shipTo}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>SO Number</span>
-            <strong>{selectedJob.soNumber || "Not Released"}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>STG Location</span>
-            <strong>{selectedJob.stagingLocation || "Generated at release"}</strong>
-          </div>
-
-          <div className="order-detail-field">
-            <span>Original Location</span>
-            <strong>
-              {selectedJob.originalLocation ||
-                selectedJob.inventoryDetails?.pullFromLocation ||
-                "-"}
-            </strong>
-          </div>
-        </div>
-
-        {renderInventoryAllocationSummary(selectedJob)}
-
-        <div className="order-detail-section">
-          <h3>Request Details</h3>
-          <p>{selectedJob.details}</p>
-        </div>
-
-        {selectedJob.additionalWork?.length > 0 && (
-          <div className="order-detail-section">
-            <h3>Existing Additional Work</h3>
-            {selectedJob.additionalWork.map((item, index) => (
-              <p key={`${selectedJob.joNumber}-work-existing-${index}`}>{item}</p>
-            ))}
-          </div>
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "governance",
+          "Selected JO Governance",
+          "Review request identity, status, customer, and release readiness"
         )}
-      </div>
-    );
-  };
 
-  const renderAllocationControls = () => {
-    if (!selectedJob || selectedJob.releaseStatus !== "Open") return null;
-
-    if (!selectedJob.allocationRequired) {
-      return (
-        <div className="order-detail-section">
-          <h3>Allocation Gate</h3>
-          <p>Allocation is not required for this job order. Release is allowed.</p>
-        </div>
-      );
-    }
-
-    if (selectedJob.allocationConfirmed) {
-      return (
-        <div className="order-detail-section">
-          <h3>Allocation Gate</h3>
-          <p>Allocation has been confirmed for this job order. Release is allowed.</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="order-detail-section">
-        <h3>Allocation Gate</h3>
-
-        <p>
-          This job order requires allocation. User must confirm allocation before
-          the order can be released into STG.
-        </p>
-
-        <div className="order-detail-actions">
-          <button className="inventory-primary-button" onClick={confirmAllocation}>
-            Confirm Allocation
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  const renderOrderList = () => {
-    return (
-      <div className="inventory-panel order-central-queue-panel">
-        <h2>{getViewTitle()}</h2>
-
-        <p className="panel-note">
-          Select one JO by checkbox, then use the top Action dropdown.
-        </p>
-
-        <table className="inventory-table">
-          <thead>
-            <tr>
-              <th>Select</th>
-              <th>JO #</th>
-              <th>Requestor</th>
-              <th>Job Type</th>
-              <th>Details</th>
-              <th>Allocation</th>
-              <th>Inventory ID</th>
-              <th>Original Pull From</th>
-              <th>STG Location</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {paginatedOrders.length === 0 ? (
-              <tr>
-                <td colSpan="9">No orders found.</td>
-              </tr>
-            ) : (
-              paginatedOrders.map((job) => (
-                <tr key={job.joNumber}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedJobNumber === job.joNumber}
-                      onChange={() => selectJob(job)}
-                    />
-                  </td>
-
-                  <td>{job.joNumber}</td>
-                  <td>{job.requestor}</td>
-                  <td>{job.jobType}</td>
-                  <td>{job.details}</td>
-                  <td>{getAllocationDisplay(job)}</td>
-                  <td>{job.inventoryDetails?.inventoryId || "-"}</td>
-                  <td>{job.inventoryDetails?.pullFromLocation || "-"}</td>
-                  <td>{job.stagingLocation || "-"}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
-        {activeList.length > ordersPerPage && (
-          <div className="order-pagination-row">
-            <button
-              className="inventory-primary-button"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            >
-              Previous
-            </button>
-
-            <span>
-              Page {currentPage} of {totalPages || 1}
-            </span>
-
-            <button
-              className="inventory-primary-button"
-              disabled={currentPage >= totalPages}
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-            >
-              Next
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderNoJobPrompt = (actionLabel) => {
-    return (
-      <div className="inventory-panel order-central-transaction-panel">
-        <h2>{actionLabel}</h2>
-
-        <p className="panel-note">
-          No JO is selected. Go to the top View Orders dropdown, choose an order
-          list, check one job, then return to the top Action dropdown and choose
-          {` ${actionLabel}`}.
-        </p>
-      </div>
-    );
-  };
-
-  const renderDetailedView = () => {
-    if (!selectedJob) return renderNoJobPrompt("View");
-
-    return (
-      <div className="order-central-detail-layout">
-        <div className="order-central-detail-main">
-          {renderSelectedJobSummary("Full Request Detail")}
-        </div>
-
-        <aside className="order-central-governance-panel">
-          <h2>Governance</h2>
-          {renderAllocationControls()}
-        </aside>
-      </div>
-    );
-  };
-
-  const renderAddWork = () => {
-    if (!selectedJob) return renderNoJobPrompt("Add Additional Work");
-
-    return (
-      <div>
-        {renderSelectedJobSummary("Add Additional Work")}
-
-        <div className="inventory-panel order-central-transaction-panel">
-          <h2>Additional Work Checklist</h2>
-
-          <p className="panel-note">
-            Select the additional work required for {selectedJob.joNumber}, then
-            click Submit Additional Work.
-          </p>
-
-          <div className="order-checkbox-grid">
-            {additionalWorkOptions.map((item) => (
-              <label className="order-checkbox-card" key={item}>
-                <input
-                  type="checkbox"
-                  checked={checkedWorkItems.includes(item)}
-                  onChange={() => toggleWorkItem(item)}
-                />
-
-                <span>{item}</span>
-              </label>
-            ))}
-          </div>
-
-          <button className="inventory-primary-button" onClick={saveAdditionalWork}>
-            Submit Additional Work
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  const renderRelease = () => {
-    if (!selectedJob) return renderNoJobPrompt("Release");
-
-    const previewSo = getSoPreview();
-    const previewStg = selectedJob.stagingLocation || formatStgLocation(previewSo);
-
-    return (
-      <div>
-        <div className="order-release-compact order-central-release-layout">
-          <div className="order-release-card order-release-main-card">
-            <div className="order-release-card-header">
-              <div>
-                <h2>Pick Release Review</h2>
-                <p>
-                  Review the selected JO, confirm allocation, generate SO, and
-                  assign STG for Active Orders.
-                </p>
-              </div>
-
-              <span className="order-detail-badge">
-                {selectedJob.releaseStatus}
-              </span>
-            </div>
-
-            <div className="order-release-summary-grid">
+        {expandedSection === "governance" && (
+          <div className="phase17-accordion-body">
+            <div className="order-release-summary-grid order-workbench-field-grid">
               <div className="order-detail-field">
                 <span>JO Number</span>
                 <strong>{selectedJob.joNumber}</strong>
               </div>
 
               <div className="order-detail-field">
-                <span>SO Preview</span>
-                <strong>{previewSo}</strong>
+                <span>Requestor</span>
+                <strong>{selectedJob.requestor}</strong>
               </div>
 
               <div className="order-detail-field">
@@ -629,18 +424,8 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               </div>
 
               <div className="order-detail-field">
-                <span>STG Preview</span>
-                <strong>{previewStg}</strong>
-              </div>
-
-              <div className="order-detail-field">
                 <span>Job Type</span>
                 <strong>{selectedJob.jobType}</strong>
-              </div>
-
-              <div className="order-detail-field">
-                <span>Allocation Gate</span>
-                <strong>{getAllocationDisplay(selectedJob)}</strong>
               </div>
 
               <div className="order-detail-field">
@@ -649,17 +434,51 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               </div>
 
               <div className="order-detail-field">
-                <span>Release Eligibility</span>
-                <strong>{canReleaseJob(selectedJob) ? "Allowed" : "Blocked"}</strong>
+                <span>Status</span>
+                <strong>{selectedJob.releaseStatus}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Ship To / Destination</span>
+                <strong>{selectedJob.shipTo}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>SO Number</span>
+                <strong>{selectedJob.soNumber || "Not Released"}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>STG Location</span>
+                <strong>{selectedJob.stagingLocation || "Generated at release"}</strong>
               </div>
             </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Request Details</h3>
+              <p>{selectedJob.details}</p>
+            </div>
           </div>
+        )}
+      </div>
+    );
+  };
 
-          <div className="order-release-card">
-            <h2>Inventory / Pull Detail</h2>
+  const renderAllocationSection = () => {
+    if (!selectedJob) return null;
 
-            {selectedJob.inventoryDetails ? (
-              <div className="order-release-mini-grid">
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "allocation",
+          "Allocation Gate",
+          "Confirm inventory allocation before release when required"
+        )}
+
+        {expandedSection === "allocation" && (
+          <div className="phase17-accordion-body">
+            {selectedJob.inventoryDetails && (
+              <div className="order-release-mini-grid order-workbench-mini-grid">
                 <div>
                   <span>Inventory ID</span>
                   <strong>{selectedJob.inventoryDetails.inventoryId}</strong>
@@ -690,169 +509,204 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
                   <strong>{selectedJob.inventoryDetails.destinationLocation}</strong>
                 </div>
               </div>
-            ) : (
-              <p className="panel-note">
-                No inventory allocation detail is required for this order.
-              </p>
+            )}
+
+            {!selectedJob.allocationRequired && (
+              <div className="order-detail-section compact-order-section">
+                <h3>Allocation Not Required</h3>
+                <p>Release is allowed for this job order.</p>
+              </div>
+            )}
+
+            {selectedJob.allocationRequired && selectedJob.allocationConfirmed && (
+              <div className="order-detail-section compact-order-section">
+                <h3>Allocation Confirmed</h3>
+                <p>Allocation has been confirmed. Release is allowed.</p>
+              </div>
+            )}
+
+            {selectedJob.allocationRequired && !selectedJob.allocationConfirmed && (
+              <div className="order-detail-section compact-order-section">
+                <h3>Allocation Required</h3>
+                <p>
+                  This job order requires allocation. Confirm allocation before SO/STG release.
+                </p>
+
+                <button className="inventory-primary-button" onClick={confirmAllocation}>
+                  Confirm Allocation
+                </button>
+              </div>
             )}
           </div>
+        )}
+      </div>
+    );
+  };
 
-          <div className="order-release-card">
-            <h2>Workload / Execution Notes</h2>
+  const renderAdditionalWorkSection = () => {
+    if (!selectedJob) return null;
 
-            <div className="order-detail-section compact-order-section">
-              <h3>Request Details</h3>
-              <p>{selectedJob.details}</p>
-            </div>
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "additionalWork",
+          "Additional Work",
+          "Add forklift, labor, crating review, carrier coordination, or special handling"
+        )}
 
-            {selectedJob.additionalWork?.length > 0 ? (
+        {expandedSection === "additionalWork" && (
+          <div className="phase17-accordion-body">
+            {selectedJob.additionalWork?.length > 0 && (
               <div className="order-detail-section compact-order-section">
-                <h3>Additional Work</h3>
-
+                <h3>Existing Additional Work</h3>
                 {selectedJob.additionalWork.map((item, index) => (
-                  <p key={`${selectedJob.joNumber}-release-work-${index}`}>
-                    {item}
-                  </p>
+                  <p key={`${selectedJob.joNumber}-work-existing-${index}`}>{item}</p>
                 ))}
               </div>
-            ) : (
-              <p className="panel-note">
-                No additional work has been added to this order.
-              </p>
             )}
+
+            <div className="order-checkbox-grid order-workbench-checkbox-grid">
+              {additionalWorkOptions.map((item) => (
+                <label className="order-checkbox-card" key={item}>
+                  <input
+                    type="checkbox"
+                    checked={checkedWorkItems.includes(item)}
+                    onChange={() => toggleWorkItem(item)}
+                  />
+
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+
+            <button className="inventory-primary-button" onClick={saveAdditionalWork}>
+              Submit Additional Work
+            </button>
           </div>
+        )}
+      </div>
+    );
+  };
 
-          <div className="order-release-card order-release-action-card">
-            <h2>Release Control</h2>
+  const renderReleaseSection = () => {
+    if (!selectedJob) return null;
 
-            {selectedJob.releaseStatus === "Open" &&
-              selectedJob.allocationRequired &&
-              !selectedJob.allocationConfirmed && (
-                <div className="order-detail-section compact-order-section">
-                  <h3>Allocation Required</h3>
-                  <p>
-                    Allocation must be confirmed before SO and STG assignment
-                    can be generated.
-                  </p>
+    const previewSo = getSoPreview();
+    const previewStg = selectedJob.stagingLocation || formatStgLocation(previewSo);
 
-                  <button
-                    className="inventory-primary-button"
-                    onClick={confirmAllocation}
-                  >
-                    Confirm Allocation
-                  </button>
-                </div>
-              )}
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "release",
+          "Release Control",
+          "Generate SO, assign STG, and move approved work to Active Orders"
+        )}
 
-            {selectedJob.releaseStatus === "Open" &&
-              (!selectedJob.allocationRequired ||
-                selectedJob.allocationConfirmed) && (
-                <div className="order-detail-section compact-order-section">
-                  <h3>Ready to Release</h3>
-                  <p>
-                    SO and STG will be generated and the order will move to
-                    Active Orders.
-                  </p>
-                </div>
-              )}
+        {expandedSection === "release" && (
+          <div className="phase17-accordion-body">
+            <div className="order-release-summary-grid order-workbench-field-grid">
+              <div className="order-detail-field">
+                <span>JO Number</span>
+                <strong>{selectedJob.joNumber}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>SO Preview</span>
+                <strong>{previewSo}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>STG Preview</span>
+                <strong>{previewStg}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Allocation Gate</span>
+                <strong>{getAllocationDisplay(selectedJob)}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Release Eligibility</span>
+                <strong>{canReleaseJob(selectedJob) ? "Allowed" : "Blocked"}</strong>
+              </div>
+            </div>
 
             <button
-              className="order-release-button"
+              className="order-release-button order-workbench-release-button"
               onClick={releaseSelectedJob}
               disabled={!canReleaseJob(selectedJob)}
             >
               Generate SO and Assign STG
             </button>
           </div>
-        </div>
+        )}
       </div>
     );
   };
 
-
-  const renderOrderCentralDashboard = () => {
+  const renderSelectedSummary = () => {
     return (
-      <div className="order-central-dashboard-grid">
-        <div className="inventory-panel order-central-transaction-panel">
-          <h2>Order Central Control Queue</h2>
-
-          <p className="panel-note">
-            Use View Orders to select a JO, then use Action to view, add work,
-            confirm allocation, or generate SO/STG release.
-          </p>
-
-          <div className="order-central-flow-row">
-            <span>Open Orders</span>
-            <span>Allocation Review</span>
-            <span>Additional Work</span>
-            <span>Generate SO</span>
-            <span>Active Orders</span>
+      <aside className="phase17-smart-summary order-workbench-summary">
+        <div className="job-request-summary-panel">
+          <div className="job-summary-header">
+            <span>Order Control Snapshot</span>
+            <strong>{selectedJob?.joNumber || "No JO Selected"}</strong>
           </div>
-        </div>
 
-        <div className="inventory-panel order-central-transaction-panel">
-          <h2>Selected JO Governance</h2>
-
-          {selectedJob ? (
-            <div className="order-central-side-summary">
-              <div>
-                <span>JO Number</span>
-                <strong>{selectedJob.joNumber}</strong>
-              </div>
-
-              <div>
-                <span>Customer</span>
-                <strong>{selectedJob.customer}</strong>
-              </div>
-
-              <div>
-                <span>Status</span>
-                <strong>{selectedJob.releaseStatus}</strong>
-              </div>
-
-              <div>
-                <span>Allocation</span>
-                <strong>{getAllocationDisplay(selectedJob)}</strong>
-              </div>
+          <div className="job-summary-grid">
+            <div>
+              <span>Status</span>
+              <strong>{selectedJob?.releaseStatus || "Waiting"}</strong>
             </div>
-          ) : (
-            <p className="panel-note">
-              No JO is currently selected. Select a JO from Open, Active, or
-              Closed Orders.
-            </p>
-          )}
+
+            <div>
+              <span>Customer</span>
+              <strong>{selectedJob?.customer || "Pending"}</strong>
+            </div>
+
+            <div>
+              <span>Job Type</span>
+              <strong>{selectedJob?.jobType || "Pending"}</strong>
+            </div>
+
+            <div>
+              <span>Allocation</span>
+              <strong>{selectedJob ? getAllocationDisplay(selectedJob) : "Pending"}</strong>
+            </div>
+
+            <div>
+              <span>SO Number</span>
+              <strong>{selectedJob?.soNumber || "Not Released"}</strong>
+            </div>
+
+            <div>
+              <span>STG Location</span>
+              <strong>{selectedJob?.stagingLocation || "Generated at Release"}</strong>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="inventory-primary-button job-submit-button"
+            onClick={() => setExpandedSection(selectedJob ? "release" : "queue")}
+          >
+            {selectedJob ? "Open Release Control" : "Select JO"}
+          </button>
+
+          <p className="job-summary-note">
+            Order Central controls allocation review, additional work, SO generation,
+            and release into Shipping Operations.
+          </p>
         </div>
-      </div>
+      </aside>
     );
-  };
-
-  const renderMainContent = () => {
-    if (
-      orderMode === "open" ||
-      orderMode === "released" ||
-      orderMode === "closed"
-    ) {
-      return renderOrderList();
-    }
-
-    if (orderMode === "view") return renderDetailedView();
-    if (orderMode === "addWork") return renderAddWork();
-    if (orderMode === "release") return renderRelease();
-
-    return renderOrderCentralDashboard();
   };
 
   return (
-    <div className="inventory-subview order-central-workspace">
+    <div className="inventory-subview order-central-workspace phase17-workbench-screen">
       <div className="inventory-header-row order-central-header">
         <div>
           <h1>Order Central</h1>
-
-          <p>
-            Review job orders, select one JO at a time, confirm allocation when
-            required, add work instructions, generate SO records, assign STG,
-            and move approved work into Active Orders.
-          </p>
         </div>
       </div>
 
@@ -860,7 +714,56 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
       {renderKpisOnly()}
 
-      {renderMainContent()}
+      <div className="phase17-smart-card-shell order-workbench-shell">
+        <div className="phase17-smart-card">
+          <div className="phase17-smart-card-header">
+            <div>
+              <span>Smart Order Control Card</span>
+              <strong>Order Central Workbench</strong>
+              <p>Review job orders, govern allocation, add work, generate SO/STG, and release approved work.</p>
+            </div>
+
+            <div className="phase17-progress">
+              <span className="active">1 Select JO</span>
+              <span className={selectedJob ? "active" : ""}>2 Govern</span>
+              <span className={selectedJob && canReleaseJob(selectedJob) ? "active" : ""}>3 Release</span>
+            </div>
+          </div>
+
+          <div className="phase17-smart-card-body">
+            <div className="phase17-smart-sections">
+              {renderOrderQueueSection()}
+              {renderSelectedGovernanceSection()}
+              {renderAllocationSection()}
+              {renderAdditionalWorkSection()}
+              {renderReleaseSection()}
+            </div>
+
+            {renderSelectedSummary()}
+          </div>
+
+          <div className="phase17-smart-footer">
+            <button
+              type="button"
+              className="phase17-secondary-button"
+              onClick={() => {
+                setSelectedJobNumber("");
+                setExpandedSection("queue");
+              }}
+            >
+              Clear Selection
+            </button>
+
+            <button
+              type="button"
+              className="inventory-primary-button phase17-review-button"
+              onClick={() => setExpandedSection(selectedJob ? "release" : "queue")}
+            >
+              {selectedJob ? "Release Control →" : "Select JO →"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

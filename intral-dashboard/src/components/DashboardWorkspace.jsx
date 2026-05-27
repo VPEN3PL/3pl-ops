@@ -164,6 +164,46 @@ function DashboardWorkspace() {
       return status === "available" || status === "active" || !status;
     });
 
+    const completedJobs = jobs.filter((job) => {
+      const status = String(job.status || "").toLowerCase();
+      return (
+        status === "shipped" ||
+        status === "closed" ||
+        status === "complete" ||
+        status === "order complete"
+      );
+    });
+
+    const completedToday = completedJobs.filter((job) =>
+      isToday(job.updated_at || job.completed_at || job.created_at)
+    );
+
+    const chargeableJobs = jobs.filter((job) => {
+      const value = String(
+        job.chargeable || job.is_chargeable || job.billing_type || ""
+      ).toLowerCase();
+
+      return value === "yes" || value === "true" || value === "chargeable";
+    });
+
+    const uniqueCustomers = new Set(
+      jobs
+        .map((job) => job.customer || job.request_source || job.customer_name)
+        .filter(Boolean)
+    );
+
+    const throughputRate =
+      jobs.length > 0 ? Math.round((completedJobs.length / jobs.length) * 100) : 0;
+
+    const queuePressure =
+      openJobs.length === 0
+        ? "Low"
+        : over24Hours.length > 0 || openJobs.length >= 10
+        ? "High"
+        : openJobs.length >= 5
+        ? "Moderate"
+        : "Controlled";
+
     return {
       openJobs: openJobs.length,
       receivingToday: receivingToday.length,
@@ -173,6 +213,11 @@ function DashboardWorkspace() {
       inventoryLines: inventoryItems.length,
       activeInventory: activeInventory.length,
       amCratingQueue: amCratingQueue.length,
+      completedToday: completedToday.length,
+      chargeableJobs: chargeableJobs.length,
+      uniqueCustomers: uniqueCustomers.size,
+      throughputRate,
+      queuePressure,
     };
   }, [jobs, inventoryItems, allocations, isPendingShipmentJob, isAMCratingJob]);
 
@@ -188,36 +233,100 @@ function DashboardWorkspace() {
     return jobs.filter(isAMCratingJob).slice(0, 6);
   }, [jobs, isAMCratingJob]);
 
-  const kpis = [
+  const executiveKpis = [
     {
-      title: "Open Jobs",
+      title: "Open Work",
       value: dashboardMetrics.openJobs,
-      note: "Active non-shipped work",
+      note: "Active operational requests",
+      tone: dashboardMetrics.openJobs > 0 ? "normal" : "healthy",
+    },
+    {
+      title: "Critical Aging",
+      value: dashboardMetrics.over24Hours,
+      note: "Open work over 24 hours",
+      tone: dashboardMetrics.over24Hours > 0 ? "critical" : "healthy",
+    },
+    {
+      title: "Shipping Load",
+      value: dashboardMetrics.pendingShipments,
+      note: "Outbound execution queue",
+      tone: dashboardMetrics.pendingShipments > 0 ? "warning" : "healthy",
+    },
+    {
+      title: "Inventory Ready",
+      value: dashboardMetrics.activeInventory,
+      note: "Available inventory lines",
+      tone: "healthy",
+    },
+    {
+      title: "Allocation Gate",
+      value: dashboardMetrics.openAllocations,
+      note: "Active allocation records",
+      tone: dashboardMetrics.openAllocations > 0 ? "warning" : "healthy",
     },
     {
       title: "Receiving Today",
       value: dashboardMetrics.receivingToday,
-      note: "Inventory received today",
+      note: "Inbound activity captured",
+      tone: "normal",
+    },
+  ];
+
+  const leadershipSnapshots = [
+    {
+      label: "Customer Activity",
+      value: dashboardMetrics.uniqueCustomers,
+      note: "Customers / sources represented",
     },
     {
-      title: "Open Allocations",
-      value: dashboardMetrics.openAllocations,
-      note: "Reserved inventory active",
+      label: "Chargeable Work",
+      value: dashboardMetrics.chargeableJobs,
+      note: "Captured billable operations",
     },
     {
-      title: "Pending Shipments",
-      value: dashboardMetrics.pendingShipments,
-      note: "Outbound / transport work",
+      label: "Completed Today",
+      value: dashboardMetrics.completedToday,
+      note: "Closed / completed records",
     },
     {
-      title: "Over 24 Hours",
-      value: dashboardMetrics.over24Hours,
-      note: "Aging active requests",
+      label: "Throughput Rate",
+      value: `${dashboardMetrics.throughputRate}%`,
+      note: "Closed work vs total records",
+    },
+  ];
+
+  const healthMatrix = [
+    {
+      label: "Operational Health",
+      value:
+        dashboardMetrics.over24Hours > 0 ? "Attention Required" : "Healthy",
+      status: dashboardMetrics.over24Hours > 0 ? "critical" : "healthy",
     },
     {
-      title: "A&M Crating",
-      value: dashboardMetrics.amCratingQueue,
-      note: "Crating related queue",
+      label: "Queue Pressure",
+      value: dashboardMetrics.queuePressure,
+      status:
+        dashboardMetrics.queuePressure === "High"
+          ? "critical"
+          : dashboardMetrics.queuePressure === "Moderate"
+          ? "warning"
+          : "healthy",
+    },
+    {
+      label: "Shipping Execution",
+      value:
+        dashboardMetrics.pendingShipments > 0
+          ? "Action Queue Active"
+          : "Controlled",
+      status: dashboardMetrics.pendingShipments > 0 ? "warning" : "healthy",
+    },
+    {
+      label: "Allocation Readiness",
+      value:
+        dashboardMetrics.openAllocations > 0
+          ? "Review Required"
+          : "Clear",
+      status: dashboardMetrics.openAllocations > 0 ? "warning" : "healthy",
     },
   ];
 
@@ -248,23 +357,30 @@ function DashboardWorkspace() {
     dashboardMetrics.over24Hours > 0 ? "Attention Required" : "Healthy";
 
   return (
-    <div className="dashboard-workspace dashboard-control-tower">
-      <div className="dashboard-header dashboard-control-header">
+    <div className="dashboard-workspace dashboard-control-tower phase14-dashboard">
+      <div className="dashboard-header dashboard-control-header phase14-hero">
         <div>
-          <span className="dashboard-eyebrow">INTRAL CONNECT COMMAND CENTER</span>
+          <span className="dashboard-eyebrow">PHASE 14 • EXECUTIVE COMMAND CENTER</span>
 
-          <h1>Operational Dashboard</h1>
+          <h1>Operational KPI Command Center</h1>
 
-          <p>
-            Executive visibility across receiving, inventory, allocations,
-            outbound work, A&M crating activity, and aging operational requests.
-          </p>
         </div>
 
-        <div className="dashboard-header-actions">
-          <div className="dashboard-health-card">
-            <span>System Health</span>
+        <div className="dashboard-header-actions phase14-header-actions">
+          <div
+            className={
+              dashboardMetrics.over24Hours > 0
+                ? "dashboard-health-card phase14-health-card critical"
+                : "dashboard-health-card phase14-health-card healthy"
+            }
+          >
+            <span>Enterprise Health</span>
             <strong>{executiveHealthStatus}</strong>
+            <small>
+              {dashboardMetrics.over24Hours > 0
+                ? `${dashboardMetrics.over24Hours} aging item(s) need review`
+                : "No critical aging alerts"}
+            </small>
           </div>
 
           <button
@@ -279,21 +395,63 @@ function DashboardWorkspace() {
 
       {message && <div className="dashboard-message">{message}</div>}
 
-      <div className="kpi-grid dashboard-control-kpi-grid">
-        {kpis.map((kpi) => (
-          <div key={kpi.title} className="kpi-card dashboard-control-kpi-card">
+      <div className="phase14-kpi-grid">
+        {executiveKpis.map((kpi) => (
+          <div
+            key={kpi.title}
+            className={`phase14-kpi-card phase14-kpi-${kpi.tone}`}
+          >
             <span>{kpi.title}</span>
-            <h2>{kpi.value}</h2>
+            <strong>{kpi.value}</strong>
             <p>{kpi.note}</p>
           </div>
         ))}
       </div>
 
-      <div className="dashboard-command-grid">
+      <div className="phase14-leadership-grid">
+        <div className="dashboard-panel phase14-health-matrix">
+          <div className="phase14-panel-header">
+            <div>
+              <span className="dashboard-eyebrow">Executive Risk Matrix</span>
+              <h2>Operational Health Matrix</h2>
+            </div>
+          </div>
+
+          <div className="phase14-health-list">
+            {healthMatrix.map((item) => (
+              <div key={item.label} className={`phase14-health-row ${item.status}`}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dashboard-panel phase14-leadership-snapshot">
+          <div className="phase14-panel-header">
+            <div>
+              <span className="dashboard-eyebrow">Leadership Snapshot</span>
+              <h2>Daily Executive Summary</h2>
+            </div>
+          </div>
+
+          <div className="phase14-snapshot-grid">
+            {leadershipSnapshots.map((item) => (
+              <div key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+                <p>{item.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="dashboard-command-grid phase14-command-grid">
         <div className="dashboard-panel dashboard-command-panel">
           <h2>Executive Action Queue</h2>
 
-          <div className="dashboard-command-row">
+          <div className="dashboard-command-row phase14-action-row">
             <div>
               <span>Aging Alert</span>
               <strong>{dashboardMetrics.over24Hours}</strong>
@@ -320,27 +478,27 @@ function DashboardWorkspace() {
           </div>
         </div>
 
-        <div className="dashboard-panel dashboard-command-panel">
-          <h2>Manager Daily Summary</h2>
-
-          <div className="health-row">
-            <span>Inventory Lines</span>
-            <strong>{dashboardMetrics.inventoryLines}</strong>
-          </div>
-
-          <div className="health-row">
-            <span>Received Today</span>
-            <strong>{dashboardMetrics.receivingToday}</strong>
-          </div>
+        <div className="dashboard-panel dashboard-command-panel phase14-crating-panel">
+          <h2>A&M / Crating Control</h2>
 
           <div className="health-row">
             <span>A&M Crating Queue</span>
             <strong>{dashboardMetrics.amCratingQueue}</strong>
           </div>
+
+          <div className="health-row">
+            <span>Receiving Today</span>
+            <strong>{dashboardMetrics.receivingToday}</strong>
+          </div>
+
+          <div className="health-row">
+            <span>Inventory Lines</span>
+            <strong>{dashboardMetrics.inventoryLines}</strong>
+          </div>
         </div>
       </div>
 
-      <div className="dashboard-grid dashboard-control-grid">
+      <div className="dashboard-grid dashboard-control-grid phase14-queue-grid">
         <div className="dashboard-panel large-panel dashboard-queue-panel">
           <h2>Open Work Queue</h2>
 

@@ -43,11 +43,19 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
   const [aisleLocation, setAisleLocation] = useState("");
   const [reprintSearch, setReprintSearch] = useState("");
   const [labelQty, setLabelQty] = useState("1");
+  const [expandedSection, setExpandedSection] = useState("activity");
 
   useEffect(() => {
-  loadReceipts();
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
+    loadReceipts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (receivingView === "create") setExpandedSection("receive");
+    if (receivingView === "putaway") setExpandedSection("queue");
+    if (receivingView === "reprint") setExpandedSection("reprint");
+    if (receivingView === "dashboard") setExpandedSection("activity");
+  }, [receivingView]);
 
   const mapDbReceiptToUi = (row) => {
     return {
@@ -89,7 +97,6 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     setLoadingReceipts(false);
   };
 
-
   const selectedLocationIsFloorOnly = floorOnlyLocations.includes(inventoryLocation);
 
   const buildFinalStorageLocation = () => {
@@ -118,6 +125,30 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
   const putawayCompletedReceipts = useMemo(() => {
     return receipts.filter((receipt) => receipt.status === "Putaway Complete");
   }, [receipts]);
+
+  const selectedReceipts = useMemo(() => {
+    return receipts.filter((receipt) =>
+      selectedReceiptNumbers.includes(receipt.receiptNumber)
+    );
+  }, [receipts, selectedReceiptNumbers]);
+
+  const latestReceipt = useMemo(() => {
+    return receipts[0] || null;
+  }, [receipts]);
+
+  const reprintReceipt = useMemo(() => {
+    const normalized = reprintSearch.trim().toUpperCase();
+
+    if (!normalized) return null;
+
+    return (
+      receipts.find(
+        (receipt) =>
+          receipt.receiptNumber.toUpperCase() === normalized ||
+          receipt.partNumber.toUpperCase() === normalized
+      ) || null
+    );
+  }, [receipts, reprintSearch]);
 
   const updateReceiptForm = (field, value) => {
     setReceiptForm((prev) => ({
@@ -231,6 +262,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     const savedReceipt = mapDbReceiptToUi(data);
 
     setReceipts((prev) => [savedReceipt, ...prev]);
+    setExpandedSection("label");
     setMessage(
       `${savedReceipt.receiptNumber} confirmed and assigned to ${savedReceipt.receivingLocation}. Label is ready for printing.`
     );
@@ -301,11 +333,11 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     const finalStorageLocation = buildFinalStorageLocation();
     const transferQty = Number(putawayQty);
 
-    const selectedReceipts = receipts.filter((receipt) =>
+    const selectedReceiptsForTransfer = receipts.filter((receipt) =>
       selectedReceiptNumbers.includes(receipt.receiptNumber)
     );
 
-    const invalidReceipt = selectedReceipts.find(
+    const invalidReceipt = selectedReceiptsForTransfer.find(
       (receipt) => transferQty > Number(receipt.quantity)
     );
 
@@ -316,7 +348,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       return;
     }
 
-    const inventoryRows = selectedReceipts.map((receipt, index) => ({
+    const inventoryRows = selectedReceiptsForTransfer.map((receipt, index) => ({
       inventory_id: generateInventoryId(receipt.receiptNumber, index),
       receipt_number: receipt.receiptNumber,
       purchase_order: receipt.purchaseOrder,
@@ -355,7 +387,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     }
 
     const receiptUpdateResults = await Promise.all(
-      selectedReceipts.map((receipt) => {
+      selectedReceiptsForTransfer.map((receipt) => {
         const remainingQty = Number(receipt.quantity) - transferQty;
         const isFullPutaway = remainingQty === 0;
 
@@ -448,6 +480,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
 
     setReceipts(updatedReceipts);
     setPutawayLabelDataList(generatedLabels);
+    setExpandedSection("putawayLabels");
     setMessage(
       `${selectedReceiptNumbers.length} receipt(s) transferred to ${finalStorageLocation}. Partial balances remain in Receiving when applicable.`
     );
@@ -499,144 +532,192 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       date: new Date().toISOString().slice(0, 10),
     });
 
+    setExpandedSection("reprintLabel");
     setMessage(
       `${labelQty} label(s) prepared for ${receipt.receiptNumber} / ${receipt.partNumber}.`
     );
   };
 
-  const renderDashboard = () => {
+  const toggleSection = (sectionKey) => {
+    setExpandedSection((current) => (current === sectionKey ? "" : sectionKey));
+  };
+
+  const getSectionStatus = (sectionKey) => {
+    if (sectionKey === "activity") return `${receipts.length} Records`;
+    if (sectionKey === "receive") return receiptForm.partNumber ? "Started" : "Ready";
+    if (sectionKey === "label") return labelData ? "Ready" : "Waiting";
+    if (sectionKey === "queue") return `${inReceivingReceipts.length} Waiting`;
+    if (sectionKey === "transfer") return selectedReceiptNumbers.length > 0 ? "Selected" : "Pending";
+    if (sectionKey === "putawayLabels") return putawayLabelDataList.length > 0 ? "Ready" : "Waiting";
+    if (sectionKey === "reprint") return reprintReceipt ? "Found" : "Search";
+    if (sectionKey === "reprintLabel") return labelData ? "Ready" : "Waiting";
+    return "";
+  };
+
+  const renderAccordionHeader = (sectionKey, title, subtitle) => {
+    const isOpen = expandedSection === sectionKey;
+
     return (
-      <div className="receiving-subview receiving-transaction-workspace">
-        <div className="receiving-header-row receiving-transaction-header">
-          <div>
-            <h1>Receiving Workspace</h1>
-            <p>
-              Receive inbound material, assign temporary receiving locations,
-              reprint labels, and transfer received material into storage.
-            </p>
-          </div>
+      <button
+        type="button"
+        className={isOpen ? "phase17-accordion-header open" : "phase17-accordion-header"}
+        onClick={() => toggleSection(sectionKey)}
+      >
+        <div>
+          <strong>{title}</strong>
+          <span>{subtitle}</span>
         </div>
 
-        {message && <div className="dashboard-message">{message}</div>}
+        <div className="phase17-accordion-right">
+          <small>{getSectionStatus(sectionKey)}</small>
+          <b>{isOpen ? "−" : "+"}</b>
+        </div>
+      </button>
+    );
+  };
 
-        <div className="inventory-kpi-grid">
-          <div className="inventory-kpi-card">
-            <span>In Receiving</span>
-            <h2>{inReceivingReceipts.length}</h2>
-            <p>Items awaiting putaway</p>
-          </div>
-
-          <div className="inventory-kpi-card">
-            <span>Putaway Complete</span>
-            <h2>{putawayCompletedReceipts.length}</h2>
-            <p>Receipts transferred to storage</p>
-          </div>
-
-          <div className="inventory-kpi-card">
-            <span>Receiving Locations</span>
-            <h2>{receivingLocations.length}</h2>
-            <p>Temporary RCV locations available</p>
-          </div>
-
-          <div className="inventory-kpi-card">
-            <span>A&M Receipts</span>
-            <h2>{receipts.filter((receipt) => receipt.isAM).length}</h2>
-            <p>Receipts requiring SQ FT and TAG</p>
-          </div>
+  const renderKpis = () => {
+    return (
+      <div className="inventory-kpi-grid receiving-workbench-kpi-grid">
+        <div className="inventory-kpi-card">
+          <span>In Receiving</span>
+          <h2>{inReceivingReceipts.length}</h2>
+          <p>Items awaiting putaway</p>
         </div>
 
-        <div className="inventory-panel">
-          <h2>Current Receiving Activity</h2>
+        <div className="inventory-kpi-card">
+          <span>Putaway Complete</span>
+          <h2>{putawayCompletedReceipts.length}</h2>
+          <p>Receipts transferred to storage</p>
+        </div>
 
-          {loadingReceipts ? <p className="panel-note">Loading receiving records...</p> : <table className="inventory-table">
-            <thead>
-              <tr>
-                <th>Receipt #</th>
-                <th>PO</th>
-                <th>Vendor</th>
-                <th>Part #</th>
-                <th>Qty</th>
-                <th>COO</th>
-                <th>RCV Location</th>
-                <th>Status</th>
-              </tr>
-            </thead>
+        <div className="inventory-kpi-card">
+          <span>RCV Locations</span>
+          <h2>{receivingLocations.length}</h2>
+          <p>Temporary locations</p>
+        </div>
 
-            <tbody>
-              {receipts.map((receipt) => (
-                <tr key={receipt.receiptNumber}>
-                  <td>{receipt.receiptNumber}</td>
-                  <td>{receipt.purchaseOrder}</td>
-                  <td>{receipt.vendor}</td>
-                  <td>{receipt.partNumber}</td>
-                  <td>{receipt.quantity}</td>
-                  <td>{receipt.countryOfOrigin}</td>
-                  <td>{receipt.receivingLocation}</td>
-                  <td>{receipt.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>}
+        <div className="inventory-kpi-card">
+          <span>A&M Receipts</span>
+          <h2>{receipts.filter((receipt) => receipt.isAM).length}</h2>
+          <p>SQ FT and TAG required</p>
         </div>
       </div>
     );
   };
 
-  const renderCreateReceipt = () => {
+  const renderActivitySection = () => {
     return (
-      <div className="receiving-subview receiving-transaction-workspace">
-        <div className="receiving-header-row receiving-transaction-header">
-          <div>
-            <h1>Create Inbound Receipt</h1>
-            <p>
-              Confirm receipt details, assign material into a temporary
-              receiving location, and prepare the item for label generation and
-              putaway.
-            </p>
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "activity",
+          "Current Receiving Activity",
+          "Live receiving records from Supabase"
+        )}
+
+        {expandedSection === "activity" && (
+          <div className="phase17-accordion-body">
+            {loadingReceipts ? (
+              <p className="panel-note">Loading receiving records...</p>
+            ) : (
+              <table className="inventory-table receiving-workbench-table">
+                <thead>
+                  <tr>
+                    <th>Receipt #</th>
+                    <th>PO</th>
+                    <th>Vendor</th>
+                    <th>Part #</th>
+                    <th>Qty</th>
+                    <th>COO</th>
+                    <th>RCV Location</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {receipts.length === 0 ? (
+                    <tr>
+                      <td colSpan="8">No receiving records found.</td>
+                    </tr>
+                  ) : (
+                    receipts.map((receipt) => (
+                      <tr key={receipt.receiptNumber}>
+                        <td>{receipt.receiptNumber}</td>
+                        <td>{receipt.purchaseOrder}</td>
+                        <td>{receipt.vendor}</td>
+                        <td>{receipt.partNumber}</td>
+                        <td>{receipt.quantity}</td>
+                        <td>{receipt.countryOfOrigin}</td>
+                        <td>{receipt.receivingLocation}</td>
+                        <td>{receipt.status}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
-        </div>
+        )}
+      </div>
+    );
+  };
 
-        {message && <div className="dashboard-message">{message}</div>}
+  const renderReceiveSection = () => {
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "receive",
+          "Receive Inventory",
+          "PO, vendor, part, quantity, COO, and A&M details"
+        )}
 
-        <div className="inventory-panel">
-          <h2>Receiving Information</h2>
-
-          <div className="inventory-form-grid">
-            <input value={receiptForm.purchaseOrder} onChange={(e) => updateReceiptForm("purchaseOrder", e.target.value)} placeholder="Purchase Order" />
-            <input value={receiptForm.vendor} onChange={(e) => updateReceiptForm("vendor", e.target.value)} placeholder="Vendor" />
-            <input value={receiptForm.partNumber} onChange={(e) => updateReceiptForm("partNumber", e.target.value)} placeholder="Part Number" />
-            <input value={receiptForm.description} onChange={(e) => updateReceiptForm("description", e.target.value)} placeholder="Description" />
-            <input type="number" value={receiptForm.quantity} onChange={(e) => updateReceiptForm("quantity", e.target.value)} placeholder="Quantity" />
-            <input value={receiptForm.countryOfOrigin} onChange={(e) => updateReceiptForm("countryOfOrigin", e.target.value)} placeholder="Country of Origin" />
-          </div>
-
-          <div className="receiving-checkbox-row">
-            <label>
-              <input type="checkbox" checked={receiptForm.isAM} onChange={(e) => updateReceiptForm("isAM", e.target.checked)} />
-              A&M Function
-            </label>
-          </div>
-
-          {receiptForm.isAM && (
-            <div className="inventory-form-grid">
-              <input value={receiptForm.squareFeet} onChange={(e) => updateReceiptForm("squareFeet", e.target.value)} placeholder="SQ FT" />
-              <input value={receiptForm.tagNumber} onChange={(e) => updateReceiptForm("tagNumber", e.target.value)} placeholder="TAG Number" />
+        {expandedSection === "receive" && (
+          <div className="phase17-accordion-body">
+            <div className="inventory-form-grid phase17-form-grid receiving-workbench-form">
+              <input value={receiptForm.purchaseOrder} onChange={(e) => updateReceiptForm("purchaseOrder", e.target.value)} placeholder="Purchase Order" />
+              <input value={receiptForm.vendor} onChange={(e) => updateReceiptForm("vendor", e.target.value)} placeholder="Vendor" />
+              <input value={receiptForm.partNumber} onChange={(e) => updateReceiptForm("partNumber", e.target.value)} placeholder="Part Number" />
+              <input value={receiptForm.description} onChange={(e) => updateReceiptForm("description", e.target.value)} placeholder="Description" />
+              <input type="number" value={receiptForm.quantity} onChange={(e) => updateReceiptForm("quantity", e.target.value)} placeholder="Quantity" />
+              <input value={receiptForm.countryOfOrigin} onChange={(e) => updateReceiptForm("countryOfOrigin", e.target.value)} placeholder="Country of Origin" />
             </div>
-          )}
 
-          <button className="inventory-primary-button" onClick={confirmReceipt}>
-            Confirm Receipt
-          </button>
-        </div>
+            <div className="receiving-checkbox-row receiving-workbench-checkbox">
+              <label>
+                <input type="checkbox" checked={receiptForm.isAM} onChange={(e) => updateReceiptForm("isAM", e.target.checked)} />
+                A&M Function
+              </label>
+            </div>
 
-        {labelData && (
-          <div className="inventory-panel">
-            <h2>Receiving Label Ready</h2>
+            {receiptForm.isAM && (
+              <div className="inventory-form-grid phase17-form-grid receiving-workbench-form">
+                <input value={receiptForm.squareFeet} onChange={(e) => updateReceiptForm("squareFeet", e.target.value)} placeholder="SQ FT" />
+                <input value={receiptForm.tagNumber} onChange={(e) => updateReceiptForm("tagNumber", e.target.value)} placeholder="TAG Number" />
+              </div>
+            )}
 
-            <p className="panel-note">
-              Receipt has been confirmed. Review the label below and print when ready.
-            </p>
+            <button className="inventory-primary-button receiving-workbench-action" onClick={confirmReceipt}>
+              Confirm Receipt
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
+  const renderReceivingLabelSection = () => {
+    if (!labelData || receivingView !== "create") return null;
+
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "label",
+          "Receiving Label Ready",
+          "Review and print the confirmed receiving label"
+        )}
+
+        {expandedSection === "label" && (
+          <div className="phase17-accordion-body">
             <LabelGenerator initialData={labelData} />
           </div>
         )}
@@ -644,130 +725,148 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     );
   };
 
-  const renderPutaway = () => {
+  const renderPutawayQueueSection = () => {
     return (
-      <div className="receiving-subview receiving-transaction-workspace">
-        <div className="receiving-header-row receiving-transaction-header">
-          <div>
-            <h1>Putaway Workspace</h1>
-            <p>
-              Transfer material from temporary receiving locations into approved
-              storage locations.
-            </p>
-          </div>
-        </div>
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "queue",
+          "Receiving Location Queue",
+          "Select receipts waiting for putaway"
+        )}
 
-        {message && <div className="dashboard-message">{message}</div>}
-
-        <div className="inventory-panel">
-          <h2>Receiving Location Queue</h2>
-
-          <table className="inventory-table">
-            <thead>
-              <tr>
-                <th>Select</th>
-                <th>Receipt #</th>
-                <th>PO</th>
-                <th>Part #</th>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>RCV Location</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {inReceivingReceipts.length === 0 ? (
+        {expandedSection === "queue" && (
+          <div className="phase17-accordion-body">
+            <table className="inventory-table receiving-workbench-table">
+              <thead>
                 <tr>
-                  <td colSpan="7">No receipts currently awaiting putaway.</td>
+                  <th>Select</th>
+                  <th>Receipt #</th>
+                  <th>PO</th>
+                  <th>Part #</th>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>RCV Location</th>
                 </tr>
-              ) : (
-                inReceivingReceipts.map((receipt) => (
-                  <tr key={receipt.receiptNumber}>
-                    <td>
-                      <input type="checkbox" checked={selectedReceiptNumbers.includes(receipt.receiptNumber)} onChange={() => toggleReceiptSelection(receipt.receiptNumber)} />
-                    </td>
-                    <td>{receipt.receiptNumber}</td>
-                    <td>{receipt.purchaseOrder}</td>
-                    <td>{receipt.partNumber}</td>
-                    <td>{receipt.description}</td>
-                    <td>{receipt.quantity}</td>
-                    <td>{receipt.receivingLocation}</td>
+              </thead>
+
+              <tbody>
+                {inReceivingReceipts.length === 0 ? (
+                  <tr>
+                    <td colSpan="7">No receipts currently awaiting putaway.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="inventory-panel">
-          <h2>Transfer to Storage</h2>
-
-          <div className="inventory-form-grid">
-            <input
-              type="number"
-              value={putawayQty}
-              onChange={(e) => setPutawayQty(e.target.value)}
-              placeholder="Qty to Transfer"
-            />
-
-            <select
-              value={inventoryLocation}
-              onChange={(e) => {
-                setInventoryLocation(e.target.value);
-                setBinLocation("");
-                setAisleLocation("");
-              }}
-            >
-              <option value="">Select Inventory Location</option>
-              {inventoryLocations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
-
-            {(inventoryLocation === "1K" || inventoryLocation === "6K") && (
-              <>
-                <input
-                  value={aisleLocation}
-                  onChange={(e) => setAisleLocation(e.target.value)}
-                  placeholder="Aisle / Row"
-                />
-
-                <input
-                  value={binLocation}
-                  onChange={(e) => setBinLocation(e.target.value)}
-                  placeholder="Bin / Shelf"
-                />
-              </>
-            )}
-
-            {selectedLocationIsFloorOnly && (
-              <input value="FLOOR" disabled placeholder="Final Location Type" />
-            )}
-
-            {buildFinalStorageLocation() && (
-              <input
-                value={buildFinalStorageLocation()}
-                disabled
-                placeholder="Final Storage Location Preview"
-              />
-            )}
+                ) : (
+                  inReceivingReceipts.map((receipt) => (
+                    <tr key={receipt.receiptNumber}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedReceiptNumbers.includes(receipt.receiptNumber)}
+                          onChange={() => toggleReceiptSelection(receipt.receiptNumber)}
+                        />
+                      </td>
+                      <td>{receipt.receiptNumber}</td>
+                      <td>{receipt.purchaseOrder}</td>
+                      <td>{receipt.partNumber}</td>
+                      <td>{receipt.description}</td>
+                      <td>{receipt.quantity}</td>
+                      <td>{receipt.receivingLocation}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
+        )}
+      </div>
+    );
+  };
 
-          <button className="inventory-primary-button" onClick={transferToStorage}>
-            Transfer to Storage
-          </button>
-        </div>
+  const renderTransferSection = () => {
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "transfer",
+          "Split Putaway / Transfer to Storage",
+          "Transfer selected receipt quantity into final inventory location"
+        )}
 
-        {putawayLabelDataList.length > 0 && (
-          <div className="inventory-panel">
-            <h2>Putaway Labels Ready</h2>
+        {expandedSection === "transfer" && (
+          <div className="phase17-accordion-body">
+            <div className="inventory-form-grid phase17-form-grid receiving-workbench-form">
+              <input
+                type="number"
+                value={putawayQty}
+                onChange={(e) => setPutawayQty(e.target.value)}
+                placeholder="Qty to Transfer"
+              />
 
-            <p className="panel-note">
-              Print labels for the new inventory item and any remaining receiving balance.
-            </p>
+              <select
+                value={inventoryLocation}
+                onChange={(e) => {
+                  setInventoryLocation(e.target.value);
+                  setBinLocation("");
+                  setAisleLocation("");
+                }}
+              >
+                <option value="">Select Inventory Location</option>
+                {inventoryLocations.map((location) => (
+                  <option key={location} value={location}>
+                    {location}
+                  </option>
+                ))}
+              </select>
 
+              {(inventoryLocation === "1K" || inventoryLocation === "6K") && (
+                <>
+                  <input
+                    value={aisleLocation}
+                    onChange={(e) => setAisleLocation(e.target.value)}
+                    placeholder="Aisle / Row"
+                  />
+
+                  <input
+                    value={binLocation}
+                    onChange={(e) => setBinLocation(e.target.value)}
+                    placeholder="Bin / Shelf"
+                  />
+                </>
+              )}
+
+              {selectedLocationIsFloorOnly && (
+                <input value="FLOOR" disabled placeholder="Final Location Type" />
+              )}
+
+              {buildFinalStorageLocation() && (
+                <input
+                  value={buildFinalStorageLocation()}
+                  disabled
+                  placeholder="Final Storage Location Preview"
+                />
+              )}
+            </div>
+
+            <button className="inventory-primary-button receiving-workbench-action" onClick={transferToStorage}>
+              Transfer to Storage
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderPutawayLabelsSection = () => {
+    if (putawayLabelDataList.length === 0) return null;
+
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "putawayLabels",
+          "Putaway Labels Ready",
+          "Print labels for new inventory and remaining receiving balances"
+        )}
+
+        {expandedSection === "putawayLabels" && (
+          <div className="phase17-accordion-body">
             {putawayLabelDataList.map((labelItem, index) => (
               <div key={`${labelItem.title}-${index}`} className="order-detail-section">
                 <h3>{labelItem.title}</h3>
@@ -780,73 +879,219 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     );
   };
 
-  const renderReprintLabels = () => {
-    const receipt = getReceiptForReprint();
-
+  const renderReprintSection = () => {
     return (
-      <div className="receiving-subview receiving-transaction-workspace">
-        <div className="receiving-header-row receiving-transaction-header">
-          <div>
-            <h1>Reprint Labels</h1>
-            <p>
-              Reprint receiving labels by Receipt Number or Part Number. Label
-              layout and Zebra/Bluetooth print handling will be stabilized in the
-              next label phase.
-            </p>
-          </div>
-        </div>
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "reprint",
+          "Reprint Labels",
+          "Search by Receipt Number or Part Number"
+        )}
 
-        {message && <div className="dashboard-message">{message}</div>}
-
-        <div className="inventory-panel">
-          <h2>Label Reprint</h2>
-
-          <div className="inventory-form-grid">
-            <input value={reprintSearch} onChange={(e) => setReprintSearch(e.target.value)} placeholder="Receipt Number or Part Number" />
-            <input type="number" value={labelQty} onChange={(e) => setLabelQty(e.target.value)} placeholder="Qty of Labels" />
-          </div>
-
-          {receipt && (
-            <div className="order-detail-section">
-              <h3>Label Preview Data</h3>
-              <p>Receipt: {receipt.receiptNumber}</p>
-              <p>Part Number: {receipt.partNumber}</p>
-              <p>Description: {receipt.description}</p>
-              <p>COO: {receipt.countryOfOrigin}</p>
-              <p>Qty: {receipt.quantity}</p>
-              {receipt.isAM && <p>A&M SQ FT: {receipt.squareFeet}</p>}
-              {receipt.isAM && <p>A&M TAG: {receipt.tagNumber}</p>}
+        {expandedSection === "reprint" && (
+          <div className="phase17-accordion-body">
+            <div className="inventory-form-grid phase17-form-grid receiving-workbench-form">
+              <input value={reprintSearch} onChange={(e) => setReprintSearch(e.target.value)} placeholder="Receipt Number or Part Number" />
+              <input type="number" value={labelQty} onChange={(e) => setLabelQty(e.target.value)} placeholder="Qty of Labels" />
             </div>
-          )}
 
-          <button className="inventory-primary-button" onClick={reprintLabel}>
-            Reprint Label
-          </button>
+            {reprintReceipt && (
+              <div className="order-detail-section">
+                <h3>Label Preview Data</h3>
+                <p>Receipt: {reprintReceipt.receiptNumber}</p>
+                <p>Part Number: {reprintReceipt.partNumber}</p>
+                <p>Description: {reprintReceipt.description}</p>
+                <p>COO: {reprintReceipt.countryOfOrigin}</p>
+                <p>Qty: {reprintReceipt.quantity}</p>
+                {reprintReceipt.isAM && <p>A&M SQ FT: {reprintReceipt.squareFeet}</p>}
+                {reprintReceipt.isAM && <p>A&M TAG: {reprintReceipt.tagNumber}</p>}
+              </div>
+            )}
 
-          {labelData && (
-            <div className="inventory-panel">
-              <h2>Reprint Label Ready</h2>
-              <LabelGenerator initialData={labelData} />
-            </div>
-          )}
-        </div>
+            <button className="inventory-primary-button receiving-workbench-action" onClick={reprintLabel}>
+              Reprint Label
+            </button>
+          </div>
+        )}
       </div>
     );
   };
 
-  if (receivingView === "create") {
-    return renderCreateReceipt();
-  }
+  const renderReprintLabelSection = () => {
+    if (!labelData || receivingView !== "reprint") return null;
 
-  if (receivingView === "putaway") {
-    return renderPutaway();
-  }
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "reprintLabel",
+          "Reprint Label Ready",
+          "Review and print regenerated receiving label"
+        )}
 
-  if (receivingView === "reprint") {
-    return renderReprintLabels();
-  }
+        {expandedSection === "reprintLabel" && (
+          <div className="phase17-accordion-body">
+            <LabelGenerator initialData={labelData} />
+          </div>
+        )}
+      </div>
+    );
+  };
 
-  return renderDashboard();
+  const renderSummary = () => {
+    const firstSelected = selectedReceipts[0];
+
+    return (
+      <aside className="phase17-smart-summary receiving-workbench-summary">
+        <div className="job-request-summary-panel">
+          <div className="job-summary-header">
+            <span>Receiving Snapshot</span>
+            <strong>
+              {firstSelected?.receiptNumber ||
+                latestReceipt?.receiptNumber ||
+                "No Receipt Selected"}
+            </strong>
+          </div>
+
+          <div className="job-summary-grid">
+            <div>
+              <span>In Receiving</span>
+              <strong>{inReceivingReceipts.length}</strong>
+            </div>
+
+            <div>
+              <span>Selected</span>
+              <strong>{selectedReceiptNumbers.length}</strong>
+            </div>
+
+            <div>
+              <span>PO</span>
+              <strong>
+                {firstSelected?.purchaseOrder ||
+                  latestReceipt?.purchaseOrder ||
+                  "Pending"}
+              </strong>
+            </div>
+
+            <div>
+              <span>Vendor</span>
+              <strong>{firstSelected?.vendor || latestReceipt?.vendor || "Pending"}</strong>
+            </div>
+
+            <div>
+              <span>COO</span>
+              <strong>
+                {firstSelected?.countryOfOrigin ||
+                  latestReceipt?.countryOfOrigin ||
+                  "Pending"}
+              </strong>
+            </div>
+
+            <div>
+              <span>Final Location</span>
+              <strong>{buildFinalStorageLocation() || "Pending"}</strong>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="inventory-primary-button job-submit-button"
+            onClick={() => {
+              if (receivingView === "create") setExpandedSection("receive");
+              if (receivingView === "putaway") setExpandedSection("transfer");
+              if (receivingView === "reprint") setExpandedSection("reprint");
+              if (receivingView === "dashboard") setExpandedSection("activity");
+            }}
+          >
+            Open Active Step
+          </button>
+
+          <p className="job-summary-note">
+            Receiving controls receipt confirmation, split putaway, inventory creation,
+            and label regeneration.
+          </p>
+        </div>
+      </aside>
+    );
+  };
+
+  const getWorkbenchTitle = () => {
+    if (receivingView === "create") return "Create Inbound Receipt";
+    if (receivingView === "putaway") return "Putaway Workspace";
+    if (receivingView === "reprint") return "Reprint Labels";
+    return "Receiving Workspace";
+  };
+
+  const renderWorkbenchSections = () => {
+    if (receivingView === "create") {
+      return (
+        <>
+          {renderReceiveSection()}
+          {renderReceivingLabelSection()}
+        </>
+      );
+    }
+
+    if (receivingView === "putaway") {
+      return (
+        <>
+          {renderPutawayQueueSection()}
+          {renderTransferSection()}
+          {renderPutawayLabelsSection()}
+        </>
+      );
+    }
+
+    if (receivingView === "reprint") {
+      return (
+        <>
+          {renderReprintSection()}
+          {renderReprintLabelSection()}
+        </>
+      );
+    }
+
+    return renderActivitySection();
+  };
+
+  return (
+    <div className="receiving-subview receiving-transaction-workspace phase17-workbench-screen">
+      <div className="receiving-header-row receiving-transaction-header">
+        <div>
+          <h1>{getWorkbenchTitle()}</h1>
+        </div>
+      </div>
+
+      {message && <div className="dashboard-message">{message}</div>}
+
+      {receivingView === "dashboard" && renderKpis()}
+
+      <div className="phase17-smart-card-shell receiving-workbench-shell">
+        <div className="phase17-smart-card">
+          <div className="phase17-smart-card-header">
+            <div>
+              <span>Smart Receiving Command Card</span>
+              <strong>{getWorkbenchTitle()}</strong>
+              <p>Receive material, validate inbound details, split putaway, regenerate labels, and keep inventory records clean.</p>
+            </div>
+
+            <div className="phase17-progress">
+              <span className={receivingView === "create" ? "active" : ""}>1 Receive</span>
+              <span className={receivingView === "putaway" ? "active" : ""}>2 Putaway</span>
+              <span className={receivingView === "reprint" ? "active" : ""}>3 Labels</span>
+            </div>
+          </div>
+
+          <div className="phase17-smart-card-body">
+            <div className="phase17-smart-sections">
+              {renderWorkbenchSections()}
+            </div>
+
+            {renderSummary()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default ReceivingWorkspace;

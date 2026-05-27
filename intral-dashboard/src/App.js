@@ -205,6 +205,7 @@ function App() {
   });
 
   const [orders, setOrders] = useState(initialOperationalOrders);
+  const [operationalNotifications, setOperationalNotifications] = useState([]);
 
   const [liveTime, setLiveTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
@@ -212,6 +213,67 @@ function App() {
   useEffect(() => {
     localStorage.setItem("intral-connect-active-tab", tab);
   }, [tab]);
+
+  useEffect(() => {
+    const now = new Date();
+
+    const alerts = [];
+
+    orders.forEach((order) => {
+      const requestedDate = order?.requestedDate
+        ? new Date(`${order.requestedDate}T00:00:00`)
+        : null;
+
+      const ageHours =
+        requestedDate && !Number.isNaN(requestedDate.getTime())
+          ? Math.floor((now.getTime() - requestedDate.getTime()) / 36e5)
+          : 0;
+
+      if (order.releaseStatus === "Open") {
+        alerts.push({
+          id: `${order.joNumber}-open`,
+          title: "Order Awaiting Review",
+          detail: `${order.joNumber} • ${order.customer || "Customer"} • ${
+            order.jobType || "Work Request"
+          }`,
+          tab: "orders-open",
+          severity: order.priority === "High" ? "high" : "normal",
+        });
+      }
+
+      if (order.releaseStatus === "Active") {
+        alerts.push({
+          id: `${order.joNumber}-active`,
+          title: "Shipping Ready for Execution",
+          detail: `${order.soNumber || order.joNumber} is active and ready for Shipping Operations.`,
+          tab: "shipping",
+          severity: "normal",
+        });
+      }
+
+      if (order.releaseStatus !== "Closed" && ageHours >= 24) {
+        alerts.push({
+          id: `${order.joNumber}-aging`,
+          title: "Aging Work > 24 Hours",
+          detail: `${order.joNumber} has been open for approximately ${ageHours} hours.`,
+          tab: "dashboard",
+          severity: "high",
+        });
+      }
+
+      if (order.allocationRequired && !order.allocationConfirmed) {
+        alerts.push({
+          id: `${order.joNumber}-allocation`,
+          title: "Allocation Pending",
+          detail: `${order.joNumber} requires inventory allocation confirmation.`,
+          tab: "allocation",
+          severity: "normal",
+        });
+      }
+    });
+
+    setOperationalNotifications(alerts.slice(0, 12));
+  }, [orders]);
 
   useEffect(() => {
     const updateClock = () => {
@@ -476,6 +538,7 @@ function App() {
       currentDate={currentDate}
       userEmail={session?.user?.email}
       handleLogout={handleLogout}
+      operationalNotifications={operationalNotifications}
     >
       {renderWorkspace()}
     </WorkspacePortal>
