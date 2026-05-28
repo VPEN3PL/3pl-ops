@@ -218,6 +218,7 @@ function DashboardWorkspace() {
       uniqueCustomers: uniqueCustomers.size,
       throughputRate,
       queuePressure,
+      completedJobs: completedJobs.length,
     };
   }, [jobs, inventoryItems, allocations, isPendingShipmentJob, isAMCratingJob]);
 
@@ -232,6 +233,92 @@ function DashboardWorkspace() {
   const recentAMCratingJobs = useMemo(() => {
     return jobs.filter(isAMCratingJob).slice(0, 6);
   }, [jobs, isAMCratingJob]);
+
+  const maxChartValue = Math.max(
+    dashboardMetrics.openJobs,
+    dashboardMetrics.pendingShipments,
+    dashboardMetrics.over24Hours,
+    dashboardMetrics.openAllocations,
+    dashboardMetrics.receivingToday,
+    dashboardMetrics.completedToday,
+    1
+  );
+
+  const workDistribution = [
+    {
+      label: "Open Work",
+      value: dashboardMetrics.openJobs,
+      tone: "blue",
+    },
+    {
+      label: "Shipping Load",
+      value: dashboardMetrics.pendingShipments,
+      tone: "teal",
+    },
+    {
+      label: "Aging >24h",
+      value: dashboardMetrics.over24Hours,
+      tone: "red",
+    },
+    {
+      label: "Allocations",
+      value: dashboardMetrics.openAllocations,
+      tone: "gold",
+    },
+    {
+      label: "Receiving Today",
+      value: dashboardMetrics.receivingToday,
+      tone: "green",
+    },
+    {
+      label: "Completed Today",
+      value: dashboardMetrics.completedToday,
+      tone: "purple",
+    },
+  ];
+
+  const inventoryMix = [
+    {
+      label: "Active Inventory",
+      value: dashboardMetrics.activeInventory,
+      tone: "green",
+    },
+    {
+      label: "Inventory Lines",
+      value: dashboardMetrics.inventoryLines,
+      tone: "blue",
+    },
+    {
+      label: "Allocation Gate",
+      value: dashboardMetrics.openAllocations,
+      tone: "gold",
+    },
+  ];
+
+  const riskChart = [
+    {
+      label: "Aging Risk",
+      value: dashboardMetrics.over24Hours,
+      max: Math.max(dashboardMetrics.openJobs, 1),
+      tone: dashboardMetrics.over24Hours > 0 ? "red" : "green",
+    },
+    {
+      label: "Shipping Load",
+      value: dashboardMetrics.pendingShipments,
+      max: maxChartValue,
+      tone: dashboardMetrics.pendingShipments > 0 ? "teal" : "green",
+    },
+    {
+      label: "Allocation Load",
+      value: dashboardMetrics.openAllocations,
+      max: maxChartValue,
+      tone: dashboardMetrics.openAllocations > 0 ? "gold" : "green",
+    },
+  ];
+
+  const throughputGaugeStyle = {
+    "--gauge-value": `${Math.max(0, Math.min(100, dashboardMetrics.throughputRate))}%`,
+  };
 
   const executiveKpis = [
     {
@@ -357,13 +444,11 @@ function DashboardWorkspace() {
     dashboardMetrics.over24Hours > 0 ? "Attention Required" : "Healthy";
 
   return (
-    <div className="dashboard-workspace dashboard-control-tower phase14-dashboard">
-      <div className="dashboard-header dashboard-control-header phase14-hero">
+    <div className="dashboard-workspace dashboard-control-tower phase14-dashboard phase18-dashboard">
+      <div className="dashboard-header dashboard-control-header phase14-hero phase18-hero">
         <div>
-          <span className="dashboard-eyebrow">PHASE 14 • EXECUTIVE COMMAND CENTER</span>
-
+          <span className="dashboard-eyebrow">PHASE 18C • EXECUTIVE INTELLIGENCE</span>
           <h1>Operational KPI Command Center</h1>
-
         </div>
 
         <div className="dashboard-header-actions phase14-header-actions">
@@ -406,6 +491,119 @@ function DashboardWorkspace() {
             <p>{kpi.note}</p>
           </div>
         ))}
+      </div>
+
+      <div className="phase18-chart-grid">
+        <div className="dashboard-panel phase18-chart-panel phase18-wide-chart">
+          <div className="phase18-chart-header">
+            <div>
+              <span className="dashboard-eyebrow">Visual Workload</span>
+              <h2>Operational Work Distribution</h2>
+            </div>
+            <strong>{maxChartValue} Max</strong>
+          </div>
+
+          <div className="phase18-bar-chart">
+            {workDistribution.map((item) => (
+              <div key={item.label} className="phase18-bar-row">
+                <div className="phase18-bar-label">
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+
+                <div className="phase18-bar-track">
+                  <div
+                    className={`phase18-bar-fill ${item.tone}`}
+                    style={{
+                      width: `${Math.max(4, Math.round((item.value / maxChartValue) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dashboard-panel phase18-chart-panel">
+          <div className="phase18-chart-header">
+            <div>
+              <span className="dashboard-eyebrow">Throughput</span>
+              <h2>Completion Gauge</h2>
+            </div>
+          </div>
+
+          <div className="phase18-gauge-wrap">
+            <div className="phase18-gauge" style={throughputGaugeStyle}>
+              <div>
+                <strong>{dashboardMetrics.throughputRate}%</strong>
+                <span>Complete</span>
+              </div>
+            </div>
+
+            <p>
+              {dashboardMetrics.completedJobs} completed record(s) out of{" "}
+              {jobs.length || 0} total dashboard job record(s).
+            </p>
+          </div>
+        </div>
+
+        <div className="dashboard-panel phase18-chart-panel">
+          <div className="phase18-chart-header">
+            <div>
+              <span className="dashboard-eyebrow">Risk Load</span>
+              <h2>Risk Pressure Bars</h2>
+            </div>
+          </div>
+
+          <div className="phase18-risk-stack">
+            {riskChart.map((item) => (
+              <div key={item.label} className="phase18-risk-item">
+                <div>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+
+                <div className="phase18-risk-meter">
+                  <i
+                    className={item.tone}
+                    style={{
+                      width: `${Math.max(5, Math.round((item.value / item.max) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dashboard-panel phase18-chart-panel">
+          <div className="phase18-chart-header">
+            <div>
+              <span className="dashboard-eyebrow">Inventory Mix</span>
+              <h2>Inventory / Allocation View</h2>
+            </div>
+          </div>
+
+          <div className="phase18-column-chart">
+            {inventoryMix.map((item) => (
+              <div key={item.label} className="phase18-column-item">
+                <div className="phase18-column-frame">
+                  <span
+                    className={`phase18-column-fill ${item.tone}`}
+                    style={{
+                      height: `${Math.max(
+                        8,
+                        Math.round((item.value / Math.max(dashboardMetrics.inventoryLines, 1)) * 100)
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <strong>{item.value}</strong>
+                <small>{item.label}</small>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="phase14-leadership-grid">

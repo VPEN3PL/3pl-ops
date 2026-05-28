@@ -2212,7 +2212,7 @@ button {
 }
 
 .operations-dropdown-menu small {
-  font-size: 11px !important;
+  font-size: 12px !important;
   line-height: 1.35 !important;
   white-space: normal !important;
   overflow: visible !important;
@@ -2738,7 +2738,7 @@ button {
 }
 
 .order-central-workspace .order-detail-field span {
-  font-size: 10px !important;
+  font-size: 12px !important;
   margin-bottom: 3px !important;
 }
 
@@ -2963,7 +2963,7 @@ grid-template-columns:1fr;
 }
 
 .inventory-transaction-workspace .inventory-kpi-card span {
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .inventory-transaction-workspace .inventory-kpi-card h2 {
@@ -2972,7 +2972,7 @@ grid-template-columns:1fr;
 }
 
 .inventory-transaction-workspace .inventory-kpi-card p {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .inventory-dashboard-transaction-grid {
@@ -3059,7 +3059,7 @@ grid-template-columns:1fr;
 
 /* Tables: denser inventory records */
 .inventory-transaction-workspace .inventory-table {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .inventory-transaction-workspace .inventory-table th,
@@ -3148,7 +3148,7 @@ grid-template-columns:1fr;
 .allocation-workspace .allocation-history-table th,
 .allocation-workspace .allocation-history-table td {
   padding: 7px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 @media (max-width: 1200px) {
@@ -3260,7 +3260,7 @@ grid-template-columns:1fr;
 }
 
 .dashboard-control-kpi-card span {
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .dashboard-control-kpi-card h2 {
@@ -3269,7 +3269,7 @@ grid-template-columns:1fr;
 }
 
 .dashboard-control-kpi-card p {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .dashboard-command-grid {
@@ -3347,7 +3347,7 @@ grid-template-columns:1fr;
 }
 
 .dashboard-control-tower .dashboard-table {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .dashboard-control-tower .dashboard-table th,
@@ -3465,7 +3465,7 @@ grid-template-columns:1fr;
 }
 
 .unified-command-brand p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   margin-top: 4px;
   color: #dbeafe;
   white-space: nowrap;
@@ -3510,18 +3510,18 @@ grid-template-columns:1fr;
 }
 
 .unified-user-pill strong {
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .unified-user-pill span {
-  font-size: 9px !important;
+  font-size: 12px !important;
 }
 
 .unified-logout-button {
   min-height: 32px !important;
   padding: 6px 9px !important;
   border-radius: 8px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 /* Hide old detached topbar structure if any older JSX/CSS remains */
@@ -4230,7 +4230,7 @@ grid-template-columns:1fr;
   background: #ffffff !important;
   color: #0f172a !important;
   border: 1px solid #cbd5e1 !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
   box-shadow: none !important;
 }
 
@@ -4764,11 +4764,11 @@ grid-template-columns:1fr;
 }
 
 .phase14-health-card strong {
-  font-size: 15px !important;
+  font-size: 17px !important;
 }
 
 .phase14-health-card small {
-  font-size: 10px !important;
+  font-size: 12px !important;
   margin-top: 4px !important;
 }
 
@@ -5112,7 +5112,7 @@ grid-template-columns:1fr;
 }
 
 .job-request-workspace .panel-note {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
   margin-bottom: 7px !important;
 }
@@ -5128,7 +5128,7 @@ grid-template-columns:1fr;
   min-height: 31px !important;
   border-radius: 7px !important;
   padding: 7px 8px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .job-request-workspace .job-compact-form-grid textarea {
@@ -5155,12 +5155,12 @@ grid-template-columns:1fr;
 }
 
 .job-summary-header span {
-  font-size: 9px !important;
+  font-size: 12px !important;
   margin-bottom: 2px !important;
 }
 
 .job-summary-header strong {
-  font-size: 15px !important;
+  font-size: 17px !important;
 }
 
 .job-summary-grid {
@@ -5176,12 +5176,12 @@ grid-template-columns:1fr;
 
 .job-summary-grid span,
 .job-summary-success span {
-  font-size: 9px !important;
+  font-size: 12px !important;
   margin-bottom: 2px !important;
 }
 
 .job-summary-grid strong {
-  font-size: 11px !important;
+  font-size: 12px !important;
   line-height: 1.15 !important;
 }
 
@@ -5196,11 +5196,11 @@ grid-template-columns:1fr;
 .job-submit-button {
   min-height: 34px !important;
   padding: 7px 10px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .job-summary-note {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
   margin-top: 7px !important;
 }
@@ -5213,7 +5213,7 @@ grid-template-columns:1fr;
 }
 
 .job-request-workspace .inventory-table {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .job-request-workspace .inventory-table th,
@@ -5232,7 +5232,7 @@ grid-template-columns:1fr;
 }
 
 .job-request-kpi span {
-  font-size: 9px !important;
+  font-size: 12px !important;
   margin-bottom: 3px !important;
 }
 
@@ -5242,7 +5242,7 @@ grid-template-columns:1fr;
 }
 
 .job-request-kpi p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
 }
 
@@ -5266,7 +5266,7 @@ grid-template-columns:1fr;
 }
 
 .job-directory-grid p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
 }
 
@@ -5277,7 +5277,7 @@ grid-template-columns:1fr;
 .job-flow-steps span {
   padding: 7px 8px !important;
   border-radius: 8px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 @media (max-width: 1100px) {
@@ -5337,7 +5337,7 @@ grid-template-columns:1fr;
 }
 
 .order-central-workspace .inventory-kpi-card span {
-  font-size: 9px !important;
+  font-size: 12px !important;
   margin-bottom: 3px !important;
 }
 
@@ -5348,7 +5348,7 @@ grid-template-columns:1fr;
 }
 
 .order-central-workspace .inventory-kpi-card p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
 }
 
@@ -5374,7 +5374,7 @@ grid-template-columns:1fr;
 }
 
 .order-central-workspace .panel-note {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
   margin-bottom: 6px !important;
 }
@@ -5388,7 +5388,7 @@ grid-template-columns:1fr;
 .order-central-flow-row span {
   padding: 7px 8px !important;
   border-radius: 8px !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .order-central-side-summary {
@@ -5402,12 +5402,12 @@ grid-template-columns:1fr;
 }
 
 .order-central-side-summary span {
-  font-size: 9px !important;
+  font-size: 12px !important;
   margin-bottom: 2px !important;
 }
 
 .order-central-side-summary strong {
-  font-size: 11px !important;
+  font-size: 12px !important;
   line-height: 1.15 !important;
 }
 
@@ -5447,13 +5447,13 @@ grid-template-columns:1fr;
 }
 
 .order-central-workspace .order-detail-header p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.2 !important;
 }
 
 .order-central-workspace .order-detail-badge {
   padding: 5px 8px !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .order-central-workspace .order-detail-grid {
@@ -5468,12 +5468,12 @@ grid-template-columns:1fr;
 }
 
 .order-central-workspace .order-detail-field span {
-  font-size: 9px !important;
+  font-size: 12px !important;
   margin-bottom: 2px !important;
 }
 
 .order-central-workspace .order-detail-field strong {
-  font-size: 11px !important;
+  font-size: 12px !important;
   line-height: 1.15 !important;
 }
 
@@ -5489,7 +5489,7 @@ grid-template-columns:1fr;
 }
 
 .order-central-workspace .order-detail-section p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.3 !important;
 }
 
@@ -5518,7 +5518,7 @@ grid-template-columns:1fr;
 }
 
 .order-central-release-layout .order-release-card p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
 }
 
@@ -5540,7 +5540,7 @@ grid-template-columns:1fr;
 .order-central-release-layout .inventory-primary-button {
   min-height: 34px !important;
   padding: 7px 10px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .order-checkbox-grid {
@@ -5551,7 +5551,7 @@ grid-template-columns:1fr;
 .order-checkbox-card {
   padding: 7px !important;
   border-radius: 8px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .order-pagination-row {
@@ -5562,11 +5562,11 @@ grid-template-columns:1fr;
 .order-pagination-row .inventory-primary-button {
   min-height: 31px !important;
   padding: 6px 9px !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .order-pagination-row span {
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .order-central-workspace .dashboard-message {
@@ -5738,7 +5738,7 @@ grid-template-columns:1fr;
   min-height: 32px !important;
   border-radius: 7px !important;
   padding: 7px 9px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .phase17-form-grid textarea {
@@ -5779,7 +5779,7 @@ grid-template-columns:1fr;
 }
 
 .phase17-smart-workbench .inventory-table {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .phase17-smart-workbench .inventory-table th,
@@ -5854,7 +5854,7 @@ grid-template-columns:1fr;
 .phase17-smart-card-header span {
   display: block !important;
   color: #60a5fa !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.08em !important;
@@ -5891,7 +5891,7 @@ grid-template-columns:1fr;
   border-radius: 999px !important;
   border: 1px solid rgba(148, 163, 184, 0.34) !important;
   color: #cbd5e1 !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   margin: 0 !important;
 }
@@ -5953,7 +5953,7 @@ grid-template-columns:1fr;
 .phase17-accordion-header span {
   display: block !important;
   color: #cbd5e1 !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
   margin-top: 4px !important;
 }
 
@@ -5966,7 +5966,7 @@ grid-template-columns:1fr;
 
 .phase17-accordion-right small {
   color: #60a5fa !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   border: 1px solid rgba(37, 99, 235, 0.5) !important;
   border-radius: 999px !important;
@@ -6153,7 +6153,7 @@ grid-template-columns:1fr;
 .shipping-workbench-mini-grid span,
 .shipping-workbench-field-grid span {
   color: #dbeafe !important;
-  font-size: 9px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
@@ -6178,7 +6178,7 @@ grid-template-columns:1fr;
   min-height: 36px !important;
   margin-bottom: 0 !important;
   border-radius: 8px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .shipping-workbench-summary .job-request-summary-panel {
@@ -6224,7 +6224,7 @@ grid-template-columns:1fr;
 }
 
 .order-workbench-kpi-grid .inventory-kpi-card span {
-  font-size: 9px !important;
+  font-size: 12px !important;
   margin-bottom: 3px !important;
 }
 
@@ -6235,7 +6235,7 @@ grid-template-columns:1fr;
 }
 
 .order-workbench-kpi-grid .inventory-kpi-card p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
 }
 
@@ -6282,7 +6282,7 @@ grid-template-columns:1fr;
 .order-workbench-mini-grid span,
 .order-workbench-field-grid span {
   color: #dbeafe !important;
-  font-size: 9px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
@@ -6352,7 +6352,7 @@ grid-template-columns:1fr;
 }
 
 .receiving-workbench-kpi-grid .inventory-kpi-card span {
-  font-size: 9px !important;
+  font-size: 12px !important;
   margin-bottom: 3px !important;
 }
 
@@ -6363,7 +6363,7 @@ grid-template-columns:1fr;
 }
 
 .receiving-workbench-kpi-grid .inventory-kpi-card p {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.25 !important;
 }
 
@@ -6421,7 +6421,7 @@ grid-template-columns:1fr;
 .receiving-workbench-action {
   min-height: 36px !important;
   border-radius: 8px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
   margin-top: 8px !important;
 }
 
@@ -6510,7 +6510,7 @@ grid-template-columns:1fr;
   position: absolute !important;
   top: 14px !important;
   right: 14px !important;
-  font-size: 9px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   letter-spacing: 0.12em !important;
   color: rgba(219, 234, 254, 0.62) !important;
@@ -6671,5 +6671,2347 @@ grid-template-columns:1fr;
   .oracle-home-grid .workspace-card {
     min-height: 150px !important;
   }
+}
+
+/* =========================================
+   PHASE 17E — INVENTORY SMART WORKBENCH
+   Converts Inventory into smart-card accordion command layout.
+   Preserves Supabase live inventory, lookup filters, allocation routing,
+   movement planning screen, and transfer history shell.
+========================================= */
+
+.inventory-workbench-kpi-grid {
+  grid-template-columns: repeat(4, minmax(135px, 1fr)) !important;
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.inventory-workbench-kpi-grid .inventory-kpi-card {
+  min-height: 78px !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+}
+
+.inventory-workbench-kpi-grid .inventory-kpi-card span {
+  font-size: 12px !important;
+  margin-bottom: 3px !important;
+}
+
+.inventory-workbench-kpi-grid .inventory-kpi-card h2 {
+  font-size: 24px !important;
+  margin: 2px 0 !important;
+  line-height: 1 !important;
+}
+
+.inventory-workbench-kpi-grid .inventory-kpi-card p {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+}
+
+.inventory-workbench-table {
+  font-size: 10.5px !important;
+}
+
+.inventory-workbench-table th,
+.inventory-workbench-table td {
+  padding: 6px !important;
+  vertical-align: top !important;
+}
+
+.inventory-workbench-table tbody tr:hover td {
+  background: rgba(37, 99, 235, 0.28) !important;
+}
+
+.inventory-workbench-searchbar {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(140px, 1fr)) repeat(2, 90px) !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+.inventory-workbench-searchbar input,
+.inventory-workbench-searchbar button {
+  min-height: 34px !important;
+  border-radius: 8px !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+}
+
+.inventory-workbench-searchbar button {
+  border: 1px solid rgba(147, 197, 253, 0.35) !important;
+  background: rgba(37, 99, 235, 0.22) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.inventory-workbench-move-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.3fr) 310px !important;
+  gap: 10px !important;
+  align-items: start !important;
+}
+
+.inventory-workbench-move-card {
+  background: rgba(2, 12, 24, 0.52) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 12px !important;
+  padding: 10px !important;
+  color: #ffffff !important;
+}
+
+.inventory-workbench-move-card h3 {
+  margin: 0 0 8px !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+}
+
+.inventory-workbench-form {
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.inventory-workbench-form input,
+.inventory-workbench-form textarea {
+  min-height: 34px !important;
+  border-radius: 8px !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+}
+
+.inventory-workbench-form textarea {
+  min-height: 64px !important;
+}
+
+.inventory-workbench-location-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+.inventory-workbench-location-grid div {
+  background: rgba(2, 12, 24, 0.52) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 9px !important;
+  padding: 9px !important;
+  color: #ffffff !important;
+}
+
+.inventory-workbench-location-grid span {
+  color: #dbeafe !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  display: block !important;
+  margin-bottom: 4px !important;
+}
+
+.inventory-workbench-location-grid strong {
+  color: #ffffff !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+}
+
+.inventory-workbench-flow {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(95px, 1fr)) !important;
+  gap: 6px !important;
+}
+
+.inventory-workbench-flow span {
+  background: rgba(37, 99, 235, 0.16) !important;
+  border: 1px solid rgba(147, 197, 253, 0.22) !important;
+  border-radius: 8px !important;
+  padding: 7px 8px !important;
+  color: #dbeafe !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-align: center !important;
+}
+
+.inventory-workbench-summary .job-request-summary-panel {
+  background: rgba(8, 24, 39, 0.86) !important;
+}
+
+.inventory-workbench-summary .job-summary-grid div {
+  background: rgba(2, 12, 24, 0.52) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+}
+
+@media (max-width: 1200px) {
+  .inventory-workbench-searchbar {
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+  }
+
+  .inventory-workbench-move-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .inventory-workbench-kpi-grid {
+    grid-template-columns: repeat(2, minmax(135px, 1fr)) !important;
+  }
+
+  .inventory-workbench-flow {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .inventory-workbench-kpi-grid,
+  .inventory-workbench-searchbar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================
+   PHASE 18C — EXECUTIVE DASHBOARD INTELLIGENCE
+   Adds CSS-only charts and graphs to Dashboard.
+   Preserves Supabase dashboard data flow and existing KPIs.
+========================================= */
+
+.phase18-dashboard {
+  gap: 12px !important;
+}
+
+.phase18-hero .dashboard-eyebrow {
+  color: #bfdbfe !important;
+}
+
+.phase18-chart-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.75fr 0.9fr 0.9fr;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.phase18-chart-panel {
+  min-height: 245px;
+  padding: 12px !important;
+}
+
+.phase18-wide-chart {
+  min-width: 0;
+}
+
+.phase18-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.phase18-chart-header h2 {
+  margin: 0;
+  color: #ffffff !important;
+  font-size: 15px;
+}
+
+.phase18-chart-header strong {
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(147, 197, 253, 0.25);
+  background: rgba(37, 99, 235, 0.16);
+}
+
+.phase18-bar-chart {
+  display: grid;
+  gap: 10px;
+}
+
+.phase18-bar-row {
+  display: grid;
+  gap: 5px;
+}
+
+.phase18-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.phase18-bar-label span {
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.phase18-bar-label strong {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.phase18-bar-track {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.phase18-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(96, 165, 250, 0.25);
+}
+
+.phase18-bar-fill.blue,
+.phase18-risk-meter i.blue,
+.phase18-column-fill.blue {
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+}
+
+.phase18-bar-fill.teal,
+.phase18-risk-meter i.teal,
+.phase18-column-fill.teal {
+  background: linear-gradient(90deg, #0f766e, #5eead4);
+}
+
+.phase18-bar-fill.red,
+.phase18-risk-meter i.red,
+.phase18-column-fill.red {
+  background: linear-gradient(90deg, #b91c1c, #fca5a5);
+}
+
+.phase18-bar-fill.gold,
+.phase18-risk-meter i.gold,
+.phase18-column-fill.gold {
+  background: linear-gradient(90deg, #b45309, #facc15);
+}
+
+.phase18-bar-fill.green,
+.phase18-risk-meter i.green,
+.phase18-column-fill.green {
+  background: linear-gradient(90deg, #15803d, #86efac);
+}
+
+.phase18-bar-fill.purple,
+.phase18-risk-meter i.purple,
+.phase18-column-fill.purple {
+  background: linear-gradient(90deg, #6d28d9, #c4b5fd);
+}
+
+.phase18-gauge-wrap {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  height: calc(100% - 42px);
+}
+
+.phase18-gauge {
+  --gauge-value: 0%;
+  width: 145px;
+  height: 145px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle, rgba(8, 24, 39, 1) 0 57%, transparent 58%),
+    conic-gradient(#60a5fa var(--gauge-value), rgba(148, 163, 184, 0.18) 0);
+  border: 1px solid rgba(147, 197, 253, 0.22);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+}
+
+.phase18-gauge div {
+  text-align: center;
+}
+
+.phase18-gauge strong {
+  display: block;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.phase18-gauge span {
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.phase18-gauge-wrap p {
+  color: #cbd5e1 !important;
+  text-align: center;
+  font-size: 12px !important;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.phase18-risk-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.phase18-risk-item {
+  display: grid;
+  gap: 7px;
+}
+
+.phase18-risk-item div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.phase18-risk-item span {
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.phase18-risk-item strong {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.phase18-risk-meter {
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.74);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.phase18-risk-meter i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.phase18-column-chart {
+  height: 170px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-items: end;
+  padding-top: 8px;
+}
+
+.phase18-column-item {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.phase18-column-frame {
+  width: 42px;
+  height: 112px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: end;
+  background: rgba(15, 23, 42, 0.76);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.phase18-column-fill {
+  width: 100%;
+  min-height: 8px;
+  border-radius: 12px 12px 0 0;
+}
+
+.phase18-column-item strong {
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.phase18-column-item small {
+  color: #cbd5e1;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+@media (max-width: 1500px) {
+  .phase18-chart-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .phase18-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+   PHASE 18C STABLE REPAIR — PORTAL + DASHBOARD TILE VISIBILITY
+   Restores visible homepage cards and dashboard KPI/chart cards after file-crossing recovery.
+   Visual-only. Does not change routing, Supabase, auth, or workflows.
+========================================= */
+
+.workspace-portal,
+.workspace-overlay,
+.oracle-layout-overlay {
+  min-height: 100vh !important;
+}
+
+.workspace-overlay.oracle-layout-overlay,
+.oracle-layout-overlay {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  box-sizing: border-box !important;
+}
+
+.oracle-top-command-bar {
+  display: grid !important;
+  grid-template-columns: minmax(245px, 0.85fr) minmax(300px, 1.1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-height: 68px !important;
+  padding: 10px 14px !important;
+  position: relative !important;
+  z-index: 1000 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.oracle-top-left,
+.oracle-top-icons,
+.oracle-quick-search {
+  display: flex !important;
+  align-items: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.oracle-top-icons {
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+.oracle-icon-button,
+.oracle-user-button,
+.topbar-button,
+.favorite-star-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.oracle-module-command-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.oracle-module-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 7px !important;
+}
+
+.workspace-grid.oracle-home-grid,
+.oracle-home-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(220px, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+  padding: 24px 18px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.oracle-home-grid .workspace-card,
+.workspace-card {
+  display: block !important;
+  min-height: 176px !important;
+  padding: 20px 18px !important;
+  border-radius: 16px !important;
+  text-align: left !important;
+  color: #ffffff !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+.oracle-home-grid .workspace-icon,
+.workspace-icon {
+  display: inline-flex !important;
+  width: 46px !important;
+  height: 46px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 18px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.oracle-home-grid .workspace-card h2,
+.workspace-card h2 {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: 21px !important;
+  font-weight: 900 !important;
+  margin: 0 0 10px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.oracle-home-grid .workspace-card p,
+.workspace-card p {
+  display: block !important;
+  color: #cbd5e1 !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  margin: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.workspace-module {
+  display: block !important;
+  width: 100% !important;
+  position: relative !important;
+  z-index: 1 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.dashboard-workspace,
+.dashboard-control-tower,
+.phase14-dashboard,
+.phase18-dashboard {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.dashboard-header,
+.dashboard-control-header,
+.phase14-hero {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+  width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.phase14-kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(135px, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.phase14-kpi-card,
+.inventory-kpi-card,
+.dashboard-panel {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.phase14-kpi-card {
+  min-height: 92px !important;
+  padding: 12px !important;
+  border-radius: 13px !important;
+}
+
+.phase14-kpi-card span,
+.phase14-kpi-card strong,
+.phase14-kpi-card p,
+.dashboard-panel h2,
+.dashboard-panel p {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.phase18-chart-grid {
+  display: grid !important;
+  grid-template-columns: 1.35fr 0.75fr 0.9fr 0.9fr !important;
+  gap: 10px !important;
+  width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.phase14-leadership-grid,
+.dashboard-command-grid,
+.phase14-command-grid,
+.dashboard-grid,
+.dashboard-control-grid,
+.phase14-queue-grid {
+  display: grid !important;
+  gap: 10px !important;
+  width: 100% !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.phase14-leadership-grid,
+.dashboard-command-grid,
+.phase14-command-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.dashboard-grid.dashboard-control-grid,
+.phase14-queue-grid {
+  grid-template-columns: 1.45fr 0.85fr 0.85fr !important;
+}
+
+@media (max-width: 1450px) {
+  .workspace-grid.oracle-home-grid,
+  .oracle-home-grid {
+    grid-template-columns: repeat(3, minmax(220px, 1fr)) !important;
+  }
+
+  .phase14-kpi-grid {
+    grid-template-columns: repeat(3, minmax(135px, 1fr)) !important;
+  }
+
+  .phase18-chart-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .oracle-top-command-bar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .oracle-top-icons {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+
+  .workspace-grid.oracle-home-grid,
+  .oracle-home-grid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr)) !important;
+  }
+
+  .phase14-leadership-grid,
+  .dashboard-command-grid,
+  .phase14-command-grid,
+  .dashboard-grid.dashboard-control-grid,
+  .phase14-queue-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .workspace-grid.oracle-home-grid,
+  .oracle-home-grid,
+  .phase14-kpi-grid,
+  .phase18-chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================
+   DASHBOARD PHASE 14 / 18 RESTORE FIX
+   Restores missing dashboard KPI tiles, chart tiles,
+   leadership panels, action tiles, and queue panels.
+   This is CSS-only and matches current DashboardWorkspace.jsx.
+========================================= */
+
+.dashboard-control-tower,
+.phase14-dashboard,
+.phase18-dashboard {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  color: #ffffff !important;
+}
+
+.dashboard-control-header,
+.phase14-hero,
+.phase18-hero {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+  width: 100% !important;
+  margin-bottom: 0 !important;
+  padding: 14px !important;
+  border-radius: 16px !important;
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 42%),
+    linear-gradient(145deg, rgba(6, 20, 34, 0.96), rgba(12, 37, 58, 0.92)) !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.24) !important;
+}
+
+.phase14-hero h1,
+.phase18-hero h1 {
+  color: #ffffff !important;
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+  margin: 4px 0 0 !important;
+}
+
+.dashboard-eyebrow {
+  display: inline-flex !important;
+  color: #93c5fd !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.11em !important;
+}
+
+.phase14-header-actions,
+.dashboard-header-actions {
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+
+.dashboard-health-card,
+.phase14-health-card {
+  min-width: 210px !important;
+  display: grid !important;
+  gap: 3px !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  background: rgba(2, 12, 24, 0.55) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+}
+
+.dashboard-health-card span,
+.phase14-health-card span {
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+}
+
+.dashboard-health-card strong,
+.phase14-health-card strong {
+  color: #ffffff !important;
+  font-size: 18px !important;
+}
+
+.dashboard-health-card small,
+.phase14-health-card small {
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+}
+
+.phase14-health-card.healthy {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+.phase14-health-card.critical {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.phase14-kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(135px, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-bottom: 0 !important;
+}
+
+.phase14-kpi-card {
+  display: block !important;
+  min-height: 86px !important;
+  padding: 11px 12px !important;
+  border-radius: 13px !important;
+  color: #ffffff !important;
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.14), transparent 42%),
+    linear-gradient(145deg, rgba(6, 20, 34, 0.96), rgba(12, 37, 58, 0.92)) !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22) !important;
+}
+
+.phase14-kpi-card span {
+  display: block !important;
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+  margin-bottom: 4px !important;
+}
+
+.phase14-kpi-card strong {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: 26px !important;
+  line-height: 1 !important;
+  margin-bottom: 5px !important;
+}
+
+.phase14-kpi-card p {
+  display: block !important;
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+.phase14-kpi-critical {
+  border-color: rgba(239, 68, 68, 0.45) !important;
+}
+
+.phase14-kpi-warning {
+  border-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+.phase14-kpi-healthy {
+  border-color: rgba(34, 197, 94, 0.42) !important;
+}
+
+.phase14-kpi-normal {
+  border-color: rgba(96, 165, 250, 0.38) !important;
+}
+
+.phase18-chart-grid {
+  display: grid !important;
+  grid-template-columns: 1.35fr 0.75fr 0.9fr 0.9fr !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+}
+
+.dashboard-panel,
+.phase18-chart-panel,
+.phase14-health-matrix,
+.phase14-leadership-snapshot,
+.dashboard-command-panel,
+.dashboard-queue-panel {
+  display: block !important;
+  color: #ffffff !important;
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.12), transparent 42%),
+    linear-gradient(145deg, rgba(6, 20, 34, 0.96), rgba(12, 37, 58, 0.92)) !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  border-radius: 14px !important;
+  padding: 12px !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22) !important;
+}
+
+.dashboard-panel h2,
+.phase18-chart-panel h2,
+.phase14-health-matrix h2,
+.phase14-leadership-snapshot h2,
+.dashboard-command-panel h2,
+.dashboard-queue-panel h2 {
+  color: #ffffff !important;
+  font-size: 17px !important;
+  margin: 0 0 10px !important;
+}
+
+.dashboard-panel p,
+.dashboard-queue-panel p,
+.panel-note {
+  color: #cbd5e1 !important;
+}
+
+.phase18-chart-panel {
+  min-height: 230px !important;
+}
+
+.phase18-wide-chart {
+  min-width: 0 !important;
+}
+
+.phase18-chart-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.phase18-chart-header strong {
+  color: #93c5fd !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  padding: 5px 8px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(147, 197, 253, 0.25) !important;
+  background: rgba(37, 99, 235, 0.16) !important;
+}
+
+.phase18-bar-chart {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.phase18-bar-row {
+  display: grid !important;
+  gap: 5px !important;
+}
+
+.phase18-bar-label {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.phase18-bar-label span {
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.phase18-bar-label strong {
+  color: #ffffff !important;
+  font-size: 13px !important;
+}
+
+.phase18-bar-track,
+.phase18-risk-meter {
+  position: relative !important;
+  height: 10px !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  background: rgba(15, 23, 42, 0.72) !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+}
+
+.phase18-bar-fill,
+.phase18-risk-meter i {
+  display: block !important;
+  height: 100% !important;
+  border-radius: 999px !important;
+}
+
+.phase18-bar-fill.blue,
+.phase18-risk-meter i.blue,
+.phase18-column-fill.blue {
+  background: linear-gradient(90deg, #2563eb, #60a5fa) !important;
+}
+
+.phase18-bar-fill.teal,
+.phase18-risk-meter i.teal,
+.phase18-column-fill.teal {
+  background: linear-gradient(90deg, #0f766e, #5eead4) !important;
+}
+
+.phase18-bar-fill.red,
+.phase18-risk-meter i.red,
+.phase18-column-fill.red {
+  background: linear-gradient(90deg, #b91c1c, #fca5a5) !important;
+}
+
+.phase18-bar-fill.gold,
+.phase18-risk-meter i.gold,
+.phase18-column-fill.gold {
+  background: linear-gradient(90deg, #b45309, #facc15) !important;
+}
+
+.phase18-bar-fill.green,
+.phase18-risk-meter i.green,
+.phase18-column-fill.green {
+  background: linear-gradient(90deg, #15803d, #86efac) !important;
+}
+
+.phase18-bar-fill.purple,
+.phase18-risk-meter i.purple,
+.phase18-column-fill.purple {
+  background: linear-gradient(90deg, #6d28d9, #c4b5fd) !important;
+}
+
+.phase18-gauge-wrap {
+  display: grid !important;
+  place-items: center !important;
+  gap: 12px !important;
+  height: calc(100% - 42px) !important;
+}
+
+.phase18-gauge {
+  --gauge-value: 0%;
+  width: 145px !important;
+  height: 145px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  background:
+    radial-gradient(circle, rgba(8, 24, 39, 1) 0 57%, transparent 58%),
+    conic-gradient(#60a5fa var(--gauge-value), rgba(148, 163, 184, 0.18) 0) !important;
+  border: 1px solid rgba(147, 197, 253, 0.22) !important;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28) !important;
+}
+
+.phase18-gauge div {
+  text-align: center !important;
+}
+
+.phase18-gauge strong {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+}
+
+.phase18-gauge span {
+  color: #93c5fd !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+.phase18-gauge-wrap p {
+  color: #cbd5e1 !important;
+  text-align: center !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  margin: 0 !important;
+}
+
+.phase18-risk-stack {
+  display: grid !important;
+  gap: 12px !important;
+}
+
+.phase18-risk-item {
+  display: grid !important;
+  gap: 7px !important;
+}
+
+.phase18-risk-item div:first-child {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.phase18-risk-item span {
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.phase18-risk-item strong {
+  color: #ffffff !important;
+  font-size: 14px !important;
+}
+
+.phase18-column-chart {
+  height: 170px !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  align-items: end !important;
+  padding-top: 8px !important;
+}
+
+.phase18-column-item {
+  min-width: 0 !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 6px !important;
+}
+
+.phase18-column-frame {
+  width: 42px !important;
+  height: 112px !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: end !important;
+  background: rgba(15, 23, 42, 0.76) !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+}
+
+.phase18-column-fill {
+  width: 100% !important;
+  min-height: 8px !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.phase18-column-item strong {
+  color: #ffffff !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+}
+
+.phase18-column-item small {
+  color: #cbd5e1 !important;
+  text-align: center !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+}
+
+.phase14-leadership-grid,
+.dashboard-command-grid.phase14-command-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.phase14-panel-header {
+  margin-bottom: 10px !important;
+}
+
+.phase14-health-list,
+.phase14-snapshot-grid {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.phase14-snapshot-grid {
+  grid-template-columns: repeat(4, minmax(120px, 1fr)) !important;
+}
+
+.phase14-snapshot-grid div,
+.phase14-health-row,
+.dashboard-command-row div,
+.health-row {
+  background: rgba(2, 12, 24, 0.52) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 9px !important;
+  padding: 9px !important;
+  color: #ffffff !important;
+}
+
+.phase14-health-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.phase14-health-row span,
+.phase14-snapshot-grid span,
+.dashboard-command-row span,
+.health-row span {
+  color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.phase14-health-row strong,
+.phase14-snapshot-grid strong,
+.dashboard-command-row strong,
+.health-row strong {
+  color: #ffffff !important;
+}
+
+.phase14-health-row.critical {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+.phase14-health-row.warning {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.phase14-health-row.healthy {
+  border-color: rgba(34, 197, 94, 0.42) !important;
+}
+
+.dashboard-command-row,
+.phase14-action-row {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(120px, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.dashboard-grid.dashboard-control-grid,
+.phase14-queue-grid {
+  display: grid !important;
+  grid-template-columns: 1.45fr 0.85fr 0.85fr !important;
+  gap: 10px !important;
+}
+
+.dashboard-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 12px !important;
+}
+
+.dashboard-table th {
+  background: rgba(37, 99, 235, 0.45) !important;
+  color: #ffffff !important;
+  padding: 8px !important;
+}
+
+.dashboard-table td {
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+  padding: 8px !important;
+}
+
+.mini-list {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.mini-list-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  background: rgba(2, 12, 24, 0.52) !important;
+  padding: 9px !important;
+  border-radius: 9px !important;
+  color: #ffffff !important;
+}
+
+.mini-list-row strong {
+  color: #ffffff !important;
+}
+
+.mini-list-row span {
+  color: #cbd5e1 !important;
+}
+
+@media (max-width: 1500px) {
+  .phase18-chart-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .phase14-kpi-grid {
+    grid-template-columns: repeat(3, minmax(135px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .phase14-leadership-grid,
+  .dashboard-command-grid.phase14-command-grid,
+  .dashboard-grid.dashboard-control-grid,
+  .phase14-queue-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .phase14-snapshot-grid,
+  .dashboard-command-row,
+  .phase14-action-row {
+    grid-template-columns: repeat(2, minmax(120px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-control-header,
+  .phase14-hero,
+  .phase18-hero {
+    flex-direction: column !important;
+  }
+
+  .phase14-header-actions,
+  .dashboard-header-actions {
+    flex-direction: column !important;
+  }
+
+  .phase14-kpi-grid,
+  .phase18-chart-grid,
+  .phase14-snapshot-grid,
+  .dashboard-command-row,
+  .phase14-action-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================
+   PHASE 18C FINAL VISUAL DENSITY SYNC
+   Restores compact pushed-site topbar/dashboard feel
+   while keeping dashboard KPI tiles and charts visible.
+   CSS-only. No JSX, Supabase, auth, or workflow changes.
+========================================= */
+
+.workspace-overlay,
+.workspace-overlay.oracle-layout-overlay,
+.oracle-layout-overlay {
+  padding: 8px 12px 18px !important;
+  gap: 8px !important;
+}
+
+.oracle-top-command-bar {
+  min-height: 64px !important;
+  padding: 8px 12px !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(360px, 1.15fr) auto !important;
+  background: rgba(5, 52, 64, 0.94) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24) !important;
+}
+
+.oracle-top-left {
+  gap: 10px !important;
+}
+
+.oracle-top-logo {
+  width: 92px !important;
+  height: 48px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  object-fit: cover !important;
+}
+
+.oracle-brand-text strong {
+  font-size: 18px !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1 !important;
+}
+
+.oracle-brand-text span {
+  font-size: 12px !important;
+  line-height: 1.1 !important;
+}
+
+.oracle-quick-search {
+  min-height: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  padding: 0 10px !important;
+  background: rgba(2, 12, 24, 0.52) !important;
+}
+
+.oracle-quick-search input {
+  min-height: 30px !important;
+  height: 30px !important;
+  font-size: 12px !important;
+}
+
+.oracle-top-icons {
+  gap: 7px !important;
+}
+
+.oracle-icon-button,
+.oracle-user-button {
+  min-width: 34px !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  padding: 6px 8px !important;
+  border-radius: 9px !important;
+}
+
+.oracle-user-button span {
+  font-size: 12px !important;
+  max-width: 150px !important;
+}
+
+.oracle-module-command-row {
+  min-height: 42px !important;
+  padding: 6px 10px !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  background: rgba(241, 245, 249, 0.92) !important;
+  color: #0f172a !important;
+}
+
+.oracle-module-label {
+  min-width: 130px !important;
+}
+
+.oracle-module-label span {
+  color: #64748b !important;
+  font-size: 8px !important;
+}
+
+.oracle-module-label strong {
+  color: #0f172a !important;
+  font-size: 12px !important;
+}
+
+.oracle-module-actions {
+  gap: 6px !important;
+}
+
+.topbar-button {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 5px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(148, 163, 184, 0.35) !important;
+}
+
+.active-topbar-button,
+.topbar-button:hover {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-color: rgba(37, 99, 235, 0.45) !important;
+}
+
+.favorite-star-button {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.workspace-module {
+  margin-top: 0 !important;
+}
+
+.dashboard-control-tower,
+.phase14-dashboard,
+.phase18-dashboard {
+  gap: 8px !important;
+}
+
+.dashboard-control-header,
+.phase14-hero,
+.phase18-hero {
+  min-height: 88px !important;
+  padding: 12px 14px !important;
+  border-radius: 12px !important;
+  margin-bottom: 0 !important;
+}
+
+.phase14-hero h1,
+.phase18-hero h1 {
+  font-size: 23px !important;
+  margin-top: 3px !important;
+}
+
+.dashboard-eyebrow {
+  font-size: 12px !important;
+}
+
+.phase14-header-actions,
+.dashboard-header-actions {
+  gap: 8px !important;
+}
+
+.dashboard-health-card,
+.phase14-health-card {
+  min-width: 175px !important;
+  padding: 8px 10px !important;
+  border-radius: 10px !important;
+}
+
+.dashboard-health-card strong,
+.phase14-health-card strong {
+  font-size: 17px !important;
+}
+
+.dashboard-health-card small,
+.phase14-health-card small {
+  font-size: 12px !important;
+}
+
+.dashboard-refresh-button {
+  min-height: 38px !important;
+  padding: 8px 14px !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+}
+
+.phase14-kpi-grid {
+  grid-template-columns: repeat(6, minmax(120px, 1fr)) !important;
+  gap: 6px !important;
+}
+
+.phase14-kpi-card {
+  min-height: 72px !important;
+  padding: 9px 10px !important;
+  border-radius: 10px !important;
+}
+
+.phase14-kpi-card span {
+  font-size: 8px !important;
+  margin-bottom: 3px !important;
+}
+
+.phase14-kpi-card strong {
+  font-size: 22px !important;
+  margin-bottom: 4px !important;
+}
+
+.phase14-kpi-card p {
+  font-size: 12px !important;
+}
+
+.phase18-chart-grid {
+  gap: 8px !important;
+  grid-template-columns: 1.25fr 0.7fr 0.85fr 0.85fr !important;
+}
+
+.dashboard-panel,
+.phase18-chart-panel,
+.phase14-health-matrix,
+.phase14-leadership-snapshot,
+.dashboard-command-panel,
+.dashboard-queue-panel {
+  padding: 10px !important;
+  border-radius: 11px !important;
+}
+
+.phase18-chart-panel {
+  min-height: 205px !important;
+}
+
+.phase18-chart-header {
+  margin-bottom: 8px !important;
+}
+
+.phase18-chart-header h2,
+.dashboard-panel h2,
+.phase18-chart-panel h2,
+.phase14-health-matrix h2,
+.phase14-leadership-snapshot h2,
+.dashboard-command-panel h2,
+.dashboard-queue-panel h2 {
+  font-size: 13px !important;
+  margin-bottom: 7px !important;
+}
+
+.phase18-bar-chart {
+  gap: 7px !important;
+}
+
+.phase18-bar-label span,
+.phase18-risk-item span {
+  font-size: 12px !important;
+}
+
+.phase18-bar-label strong,
+.phase18-risk-item strong {
+  font-size: 12px !important;
+}
+
+.phase18-bar-track,
+.phase18-risk-meter {
+  height: 7px !important;
+}
+
+.phase18-gauge {
+  width: 118px !important;
+  height: 118px !important;
+}
+
+.phase18-gauge strong {
+  font-size: 22px !important;
+}
+
+.phase18-gauge span {
+  font-size: 8px !important;
+}
+
+.phase18-gauge-wrap {
+  gap: 8px !important;
+}
+
+.phase18-gauge-wrap p {
+  font-size: 12px !important;
+}
+
+.phase18-column-chart {
+  height: 145px !important;
+}
+
+.phase18-column-frame {
+  width: 34px !important;
+  height: 92px !important;
+}
+
+.phase18-column-item strong {
+  font-size: 12px !important;
+}
+
+.phase18-column-item small {
+  font-size: 8px !important;
+}
+
+.phase14-leadership-grid,
+.dashboard-command-grid.phase14-command-grid,
+.dashboard-grid.dashboard-control-grid,
+.phase14-queue-grid {
+  gap: 8px !important;
+}
+
+.phase14-snapshot-grid,
+.dashboard-command-row,
+.phase14-action-row {
+  gap: 7px !important;
+}
+
+.phase14-snapshot-grid div,
+.phase14-health-row,
+.dashboard-command-row div,
+.health-row {
+  padding: 7px 8px !important;
+  border-radius: 8px !important;
+}
+
+.phase14-health-row span,
+.phase14-snapshot-grid span,
+.dashboard-command-row span,
+.health-row span {
+  font-size: 8px !important;
+}
+
+.dashboard-table {
+  font-size: 12px !important;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+  padding: 6px !important;
+}
+
+.mini-list {
+  gap: 6px !important;
+}
+
+.mini-list-row {
+  padding: 7px 8px !important;
+  border-radius: 8px !important;
+}
+
+.mini-list-row strong,
+.mini-list-row span {
+  font-size: 12px !important;
+}
+
+.oracle-search-results,
+.oracle-dropdown,
+.oracle-module-dropdown {
+  z-index: 99999 !important;
+}
+
+@media (max-width: 1500px) {
+  .phase14-kpi-grid {
+    grid-template-columns: repeat(3, minmax(120px, 1fr)) !important;
+  }
+
+  .phase18-chart-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .oracle-top-command-bar {
+    grid-template-columns: 1fr !important;
+    border-radius: 10px !important;
+  }
+
+  .oracle-module-command-row {
+    border-radius: 10px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .phase14-kpi-grid,
+  .phase18-chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================
+   PHASE 18C HARD FLUSH COMPACT OVERRIDE
+   Final visual correction to match pushed production shell.
+   Forces compact/full-width topbar and compressed dashboard density.
+========================================= */
+
+html,
+body,
+#root {
+  width: 100% !important;
+  min-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+}
+
+.workspace-portal {
+  width: 100% !important;
+  min-height: 100vh !important;
+}
+
+.workspace-overlay,
+.workspace-overlay.oracle-layout-overlay,
+.oracle-layout-overlay {
+  width: 100% !important;
+  min-height: 100vh !important;
+  padding: 0 4px 12px !important;
+  margin: 0 !important;
+  gap: 6px !important;
+  background: rgba(7, 12, 20, 0.46) !important;
+}
+
+.oracle-top-command-bar {
+  width: 100% !important;
+  min-height: 54px !important;
+  height: 54px !important;
+  padding: 5px 10px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  display: grid !important;
+  grid-template-columns: 360px minmax(360px, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: rgba(5, 52, 64, 0.97) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25) !important;
+  box-shadow: none !important;
+}
+
+.oracle-top-left {
+  height: 44px !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.oracle-top-logo {
+  width: 72px !important;
+  height: 42px !important;
+  min-width: 72px !important;
+  max-width: 72px !important;
+  border-radius: 6px !important;
+  object-fit: cover !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.oracle-brand-text {
+  gap: 1px !important;
+}
+
+.oracle-brand-text strong {
+  font-size: 17px !important;
+  line-height: 1 !important;
+  letter-spacing: 0.07em !important;
+}
+
+.oracle-brand-text span {
+  font-size: 12px !important;
+  line-height: 1.1 !important;
+}
+
+.oracle-quick-search {
+  height: 30px !important;
+  min-height: 30px !important;
+  max-height: 30px !important;
+  padding: 0 9px !important;
+  border-radius: 5px !important;
+  background: rgba(2, 12, 24, 0.52) !important;
+  border: 1px solid rgba(147, 197, 253, 0.22) !important;
+}
+
+.oracle-quick-search input {
+  height: 26px !important;
+  min-height: 26px !important;
+  font-size: 12px !important;
+}
+
+.oracle-quick-search svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+.oracle-top-icons {
+  height: 36px !important;
+  gap: 5px !important;
+}
+
+.oracle-icon-button,
+.oracle-user-button {
+  height: 30px !important;
+  min-height: 30px !important;
+  min-width: 30px !important;
+  padding: 5px 7px !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+.oracle-icon-button:hover,
+.oracle-user-button:hover,
+.oracle-icon-button.active {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(147, 197, 253, 0.22) !important;
+}
+
+.oracle-icon-button svg,
+.oracle-user-button svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.oracle-user-button span {
+  font-size: 12px !important;
+  max-width: 130px !important;
+}
+
+.oracle-notification-badge {
+  top: -5px !important;
+  right: -5px !important;
+  min-width: 17px !important;
+  height: 17px !important;
+  font-size: 12px !important;
+}
+
+.oracle-module-command-row {
+  width: 100% !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 3px 10px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background: rgba(241, 245, 249, 0.95) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22) !important;
+  box-shadow: none !important;
+}
+
+.oracle-module-label {
+  min-width: 108px !important;
+  gap: 0 !important;
+}
+
+.oracle-module-label span {
+  font-size: 7px !important;
+  line-height: 1 !important;
+}
+
+.oracle-module-label strong {
+  font-size: 12px !important;
+  line-height: 1.05 !important;
+}
+
+.oracle-module-actions {
+  gap: 4px !important;
+}
+
+.topbar-button {
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(148, 163, 184, 0.35) !important;
+  box-shadow: none !important;
+}
+
+.topbar-button svg {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.active-topbar-button,
+.topbar-button:hover {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+
+.favorite-star-button {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  margin-left: 2px !important;
+}
+
+.favorite-star-button svg {
+  width: 11px !important;
+  height: 11px !important;
+}
+
+.workspace-module {
+  padding: 6px 8px 0 !important;
+}
+
+.dashboard-control-tower,
+.phase14-dashboard,
+.phase18-dashboard {
+  gap: 6px !important;
+}
+
+.dashboard-control-header,
+.phase14-hero,
+.phase18-hero {
+  min-height: 68px !important;
+  height: auto !important;
+  padding: 9px 12px !important;
+  border-radius: 9px !important;
+}
+
+.phase14-hero h1,
+.phase18-hero h1 {
+  font-size: 20px !important;
+  line-height: 1.05 !important;
+}
+
+.dashboard-eyebrow {
+  font-size: 8px !important;
+  letter-spacing: 0.1em !important;
+}
+
+.dashboard-health-card,
+.phase14-health-card {
+  min-width: 150px !important;
+  padding: 6px 8px !important;
+  border-radius: 8px !important;
+}
+
+.dashboard-health-card span,
+.phase14-health-card span {
+  font-size: 8px !important;
+}
+
+.dashboard-health-card strong,
+.phase14-health-card strong {
+  font-size: 13px !important;
+}
+
+.dashboard-health-card small,
+.phase14-health-card small {
+  font-size: 8px !important;
+}
+
+.dashboard-refresh-button {
+  min-height: 32px !important;
+  padding: 6px 12px !important;
+  border-radius: 7px !important;
+  font-size: 12px !important;
+}
+
+.phase14-kpi-grid {
+  grid-template-columns: repeat(6, minmax(110px, 1fr)) !important;
+  gap: 5px !important;
+}
+
+.phase14-kpi-card {
+  min-height: 58px !important;
+  padding: 7px 8px !important;
+  border-radius: 8px !important;
+}
+
+.phase14-kpi-card span {
+  font-size: 7px !important;
+  margin-bottom: 2px !important;
+}
+
+.phase14-kpi-card strong {
+  font-size: 18px !important;
+  margin-bottom: 3px !important;
+}
+
+.phase14-kpi-card p {
+  font-size: 8px !important;
+  line-height: 1.15 !important;
+}
+
+.phase18-chart-grid {
+  gap: 6px !important;
+  grid-template-columns: 1.15fr 0.7fr 0.8fr 0.8fr !important;
+}
+
+.dashboard-panel,
+.phase18-chart-panel,
+.phase14-health-matrix,
+.phase14-leadership-snapshot,
+.dashboard-command-panel,
+.dashboard-queue-panel {
+  padding: 8px !important;
+  border-radius: 8px !important;
+}
+
+.phase18-chart-panel {
+  min-height: 175px !important;
+}
+
+.phase18-chart-header {
+  margin-bottom: 6px !important;
+}
+
+.phase18-chart-header h2,
+.dashboard-panel h2,
+.phase18-chart-panel h2,
+.phase14-health-matrix h2,
+.phase14-leadership-snapshot h2,
+.dashboard-command-panel h2,
+.dashboard-queue-panel h2 {
+  font-size: 12px !important;
+  margin-bottom: 5px !important;
+}
+
+.phase18-chart-header strong {
+  font-size: 12px !important;
+  padding: 3px 6px !important;
+}
+
+.phase18-bar-chart,
+.phase18-risk-stack {
+  gap: 5px !important;
+}
+
+.phase18-bar-label span,
+.phase18-risk-item span {
+  font-size: 8px !important;
+}
+
+.phase18-bar-label strong,
+.phase18-risk-item strong {
+  font-size: 12px !important;
+}
+
+.phase18-bar-track,
+.phase18-risk-meter {
+  height: 5px !important;
+}
+
+.phase18-gauge {
+  width: 96px !important;
+  height: 96px !important;
+}
+
+.phase18-gauge strong {
+  font-size: 18px !important;
+}
+
+.phase18-gauge span {
+  font-size: 7px !important;
+}
+
+.phase18-gauge-wrap {
+  gap: 5px !important;
+}
+
+.phase18-gauge-wrap p {
+  font-size: 8px !important;
+}
+
+.phase18-column-chart {
+  height: 118px !important;
+}
+
+.phase18-column-frame {
+  width: 28px !important;
+  height: 74px !important;
+}
+
+.phase18-column-item strong {
+  font-size: 12px !important;
+}
+
+.phase18-column-item small {
+  font-size: 7px !important;
+}
+
+.phase14-leadership-grid,
+.dashboard-command-grid.phase14-command-grid,
+.dashboard-grid.dashboard-control-grid,
+.phase14-queue-grid {
+  gap: 6px !important;
+}
+
+.phase14-snapshot-grid,
+.dashboard-command-row,
+.phase14-action-row {
+  gap: 5px !important;
+}
+
+.phase14-snapshot-grid div,
+.phase14-health-row,
+.dashboard-command-row div,
+.health-row {
+  padding: 5px 6px !important;
+  border-radius: 6px !important;
+}
+
+.phase14-health-row span,
+.phase14-snapshot-grid span,
+.dashboard-command-row span,
+.health-row span {
+  font-size: 7px !important;
+}
+
+.phase14-health-row strong,
+.phase14-snapshot-grid strong,
+.dashboard-command-row strong,
+.health-row strong {
+  font-size: 12px !important;
+}
+
+.dashboard-table {
+  font-size: 12px !important;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+  padding: 4px 5px !important;
+}
+
+.mini-list {
+  gap: 4px !important;
+}
+
+.mini-list-row {
+  padding: 5px 6px !important;
+  border-radius: 6px !important;
+}
+
+.mini-list-row strong,
+.mini-list-row span {
+  font-size: 8px !important;
+}
+
+@media (max-width: 1500px) {
+  .phase14-kpi-grid {
+    grid-template-columns: repeat(6, minmax(100px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .oracle-top-command-bar {
+    height: auto !important;
+    min-height: 54px !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .phase18-chart-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .phase14-kpi-grid {
+    grid-template-columns: repeat(3, minmax(110px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .workspace-overlay,
+  .workspace-overlay.oracle-layout-overlay,
+  .oracle-layout-overlay {
+    padding: 0 4px 10px !important;
+  }
+
+  .phase14-kpi-grid,
+  .phase18-chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+
+/* PHASE 18C DASHBOARD TYPOGRAPHY + GAUGE CLEANUP */
+
+.phase14-kpi-card span,
+.phase18-kpi-card span {
+  font-size: 10px !important;
+}
+
+.phase14-kpi-card strong,
+.phase18-kpi-card strong {
+  font-size: 24px !important;
+}
+
+.phase14-kpi-card p,
+.phase18-kpi-card p {
+  font-size: 11px !important;
+}
+
+.phase18-chart-header h2,
+.phase14-health-matrix h2,
+.phase14-leadership-snapshot h2,
+.dashboard-panel h2 {
+  font-size: 15px !important;
+}
+
+.phase14-health-row,
+.phase14-snapshot-grid div,
+.dashboard-command-row div,
+.health-row {
+  font-size: 12px !important;
+}
+
+.phase18-column-item strong,
+.phase18-risk-item strong,
+.phase18-bar-label strong {
+  font-size: 13px !important;
+}
+
+.phase18-column-item small,
+.phase18-risk-item span,
+.phase18-bar-label span {
+  font-size: 10px !important;
+}
+
+.phase18-gauge-wrap,
+.phase18-chart-panel:nth-child(2) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.phase18-gauge {
+  background: radial-gradient(circle, rgba(5,15,28,0.95), rgba(5,15,28,0.78)) !important;
+  box-shadow: 0 0 0 8px rgba(59,130,246,0.06) !important;
+}
+
+.phase18-gauge::before,
+.phase18-gauge::after {
+  display: none !important;
+}
+
+/* PHASE 18C GAUGE TILE RESTORE FIX
+   Restores the Completion Gauge tile shell without bringing back the blue artifact.
+*/
+
+.phase18-chart-panel:nth-child(2) {
+  display: block !important;
+  min-height: 175px !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.10), transparent 42%),
+    linear-gradient(145deg, rgba(6, 20, 34, 0.96), rgba(12, 37, 58, 0.92)) !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22) !important;
+}
+
+.phase18-chart-panel:nth-child(2) .phase18-gauge-wrap {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.phase18-chart-panel:nth-child(2) .phase18-gauge {
+  width: 128px !important;
+  height: 128px !important;
+  background:
+    radial-gradient(circle, rgba(5, 15, 28, 0.98) 0 57%, transparent 58%),
+    conic-gradient(#60a5fa var(--gauge-value), rgba(148, 163, 184, 0.18) 0) !important;
+  border: 1px solid rgba(147, 197, 253, 0.22) !important;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24) !important;
+}
+
+.phase18-chart-panel:nth-child(2) .phase18-gauge strong {
+  font-size: 24px !important;
+}
+
+.phase18-chart-panel:nth-child(2) .phase18-gauge span {
+  font-size: 9px !important;
 }
 

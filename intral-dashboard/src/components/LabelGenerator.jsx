@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import intralLogo from "../assets/intral-logo.jpg";
 
 function LabelGenerator({ initialData }) {
+  const logoGraphicRef = useRef(null);
+
   const [label, setLabel] = useState({
     inventoryId: "",
     customer: "",
@@ -18,6 +20,7 @@ function LabelGenerator({ initialData }) {
 
   const [isReprintMode, setIsReprintMode] = useState(false);
   const [labelPrintQty, setLabelPrintQty] = useState("1");
+  const [printStatus, setPrintStatus] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -75,6 +78,10 @@ function LabelGenerator({ initialData }) {
   };
 
   const convertLogoToZplGraphic = () => {
+    if (logoGraphicRef.current) {
+      return Promise.resolve(logoGraphicRef.current);
+    }
+
     return new Promise((resolve) => {
       const image = new Image();
       image.crossOrigin = "anonymous";
@@ -88,6 +95,8 @@ function LabelGenerator({ initialData }) {
         canvas.height = targetHeight;
 
         const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, targetWidth, targetHeight);
 
@@ -131,7 +140,7 @@ function LabelGenerator({ initialData }) {
                 const alpha = pixels[pixelIndex + 3];
 
                 const brightness = (r + g + b) / 3;
-                const isDark = alpha > 80 && brightness < 205;
+                const isDark = alpha > 80 && brightness < 210;
 
                 if (isDark) {
                   byte |= 1 << (7 - bit);
@@ -143,9 +152,12 @@ function LabelGenerator({ initialData }) {
           }
         }
 
-        resolve({
+        const result = {
           graphicCommand: `^GFA,${totalBytes},${totalBytes},${bytesPerRow},${hexData}`,
-        });
+        };
+
+        logoGraphicRef.current = result;
+        resolve(result);
       };
 
       image.onerror = () => resolve(null);
@@ -234,6 +246,28 @@ ${logoZpl}
 `;
   };
 
+  const delay = (milliseconds) =>
+    new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+  const closePrinterPort = async (port, writer) => {
+    try {
+      if (writer) {
+        writer.releaseLock();
+      }
+    } catch (releaseError) {
+      console.warn("Printer writer release warning:", releaseError.message);
+    }
+
+    try {
+      if (port?.readable || port?.writable) {
+        await delay(150);
+        await port.close();
+      }
+    } catch (closeError) {
+      console.warn("Printer port close warning:", closeError.message);
+    }
+  };
+
   const printLabel = async () => {
     if (!label.inventoryId) {
       alert("Inventory ID is required before printing.");
@@ -247,17 +281,22 @@ ${logoZpl}
 
     if (!("serial" in navigator)) {
       alert(
-        "Serial printing is not supported in this browser. Use Google Chrome or Microsoft Edge on the computer connected to the Zebra printer."
+        "Serial printing is not supported in this browser. Use Google Chrome or Microsoft Edge on the computer connected to the Zebra ZT411 printer."
       );
       return;
     }
 
-    let port;
-    let writer;
+    let port = null;
+    let writer = null;
 
     try {
+      setPrintStatus("Preparing ZPL label...");
+      const zpl = await buildZplLabel();
+
+      setPrintStatus("Waiting for Zebra serial / Bluetooth / COM printer selection...");
       port = await navigator.serial.requestPort();
 
+      setPrintStatus("Opening Zebra printer port...");
       await port.open({
         baudRate: 9600,
         dataBits: 8,
@@ -266,37 +305,38 @@ ${logoZpl}
         flowControl: "none",
       });
 
-      const zpl = await buildZplLabel();
       const encoder = new TextEncoder();
+      const zplBytes = encoder.encode(zpl);
 
+      setPrintStatus("Sending label to Zebra printer...");
       writer = port.writable.getWriter();
-      await writer.write(encoder.encode(zpl));
-      writer.releaseLock();
+      await writer.write(zplBytes);
+
+      await delay(250);
+      await closePrinterPort(port, writer);
+
       writer = null;
+      port = null;
 
-      await port.close();
-
+      setPrintStatus("Label sent successfully.");
       alert("Label sent to Zebra printer.");
     } catch (error) {
-      try {
-        if (writer) {
-          writer.releaseLock();
-        }
+      await closePrinterPort(port, writer);
 
-        if (port) {
-          await port.close();
-        }
-      } catch (closeError) {
-        console.warn("Printer port close warning:", closeError.message);
-      }
+      const message =
+        error?.name === "NotFoundError"
+          ? "Printer selection was cancelled. No label was sent."
+          : error?.message || "Unknown printer error.";
 
-      alert(`Label print failed: ${error.message}`);
+      setPrintStatus(`Print failed: ${message}`);
+      alert(`Label print failed: ${message}`);
     }
   };
 
   const clearLabel = () => {
     setIsReprintMode(false);
     setLabelPrintQty("1");
+    setPrintStatus("");
 
     setLabel({
       inventoryId: "",
@@ -341,6 +381,24 @@ ${logoZpl}
           It does not use window.print().
         </p>
       </div>
+
+      {printStatus && (
+        <div
+          style={{
+            background: printStatus.includes("failed") ? "#fef2f2" : "#eff6ff",
+            border: printStatus.includes("failed")
+              ? "1px solid #fecaca"
+              : "1px solid #bfdbfe",
+            color: printStatus.includes("failed") ? "#991b1b" : "#1e3a8a",
+            padding: "10px 12px",
+            borderRadius: "8px",
+            marginBottom: "12px",
+            fontWeight: "700",
+          }}
+        >
+          {printStatus}
+        </div>
+      )}
 
       {isReprintMode && (
         <div
