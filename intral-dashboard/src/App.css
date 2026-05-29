@@ -9186,3 +9186,89 @@ body,
   cursor: pointer !important;
 }
 
+/* =========================================
+   PHASE 20A-1 — COMMAND HEADER SIZE NORMALIZATION
+   Makes Dashboard and Score Cards command headers match
+   the compact operational module header height.
+   Scoped visual patch only.
+========================================= */
+
+.dashboard-control-tower .dashboard-control-header,
+.dashboard-control-tower .phase14-hero,
+.dashboard-control-tower .phase18-hero,
+.scorecards-workspace .dashboard-control-header,
+.scorecards-workspace .phase14-hero,
+.scorecards-workspace .phase18-hero {
+  min-height: 56px !important;
+  padding: 8px 12px !important;
+  border-radius: 10px !important;
+  margin-bottom: 6px !important;
+  align-items: center !important;
+}
+
+.dashboard-control-tower .dashboard-control-header h1,
+.dashboard-control-tower .phase14-hero h1,
+.dashboard-control-tower .phase18-hero h1,
+.scorecards-workspace .dashboard-control-header h1,
+.scorecards-workspace .phase14-hero h1,
+.scorecards-workspace .phase18-hero h1 {
+  font-size: 20px !important;
+  line-height: 1.05 !important;
+  margin: 2px 0 0 !important;
+}
+
+.dashboard-control-tower .dashboard-eyebrow,
+.scorecards-workspace .dashboard-eyebrow {
+  font-size: 8px !important;
+  line-height: 1 !important;
+}
+
+.dashboard-control-tower .dashboard-header-actions,
+.dashboard-control-tower .phase14-header-actions,
+.scorecards-workspace .dashboard-header-actions,
+.scorecards-workspace .phase14-header-actions {
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.dashboard-control-tower .dashboard-health-card,
+.dashboard-control-tower .phase14-health-card,
+.scorecards-workspace .dashboard-health-card,
+.scorecards-workspace .phase14-health-card {
+  min-height: 38px !important;
+  min-width: 150px !important;
+  padding: 5px 8px !important;
+  border-radius: 8px !important;
+}
+
+.dashboard-control-tower .dashboard-health-card span,
+.dashboard-control-tower .phase14-health-card span,
+.scorecards-workspace .dashboard-health-card span,
+.scorecards-workspace .phase14-health-card span {
+  font-size: 8px !important;
+  line-height: 1 !important;
+}
+
+.dashboard-control-tower .dashboard-health-card strong,
+.dashboard-control-tower .phase14-health-card strong,
+.scorecards-workspace .dashboard-health-card strong,
+.scorecards-workspace .phase14-health-card strong {
+  font-size: 12px !important;
+  line-height: 1.1 !important;
+}
+
+.dashboard-control-tower .dashboard-health-card small,
+.dashboard-control-tower .phase14-health-card small,
+.scorecards-workspace .dashboard-health-card small,
+.scorecards-workspace .phase14-health-card small {
+  font-size: 8px !important;
+  line-height: 1.1 !important;
+}
+
+.dashboard-control-tower .dashboard-refresh-button {
+  min-height: 30px !important;
+  padding: 5px 10px !important;
+  border-radius: 7px !important;
+  font-size: 10px !important;
+}
+

@@ -10,6 +10,9 @@ import JobRequestWorkspace from "./components/JobRequestWorkspace";
 import OrderCentralWorkspace from "./components/OrderCentralWorkspace";
 import ShippingOperationsWorkspace from "./components/ShippingOperationsWorkspace";
 import ScoreCardsWorkspace from "./components/ScoreCardsWorkspace";
+import AdminWorkspace from "./components/AdminWorkspace";
+import ForgotPasswordWorkspace from "./components/ForgotPasswordWorkspace";
+import AuditLogsWorkspace from "./components/AuditLogsWorkspace";
 
 const initialOperationalOrders = [
   {
@@ -200,6 +203,7 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [authView, setAuthView] = useState("login");
 
   const [tab, setTab] = useState(() => {
     return localStorage.getItem("intral-connect-active-tab") || "portal";
@@ -358,12 +362,15 @@ function App() {
     localStorage.setItem("intral-connect-active-tab", "portal");
     setEmail("");
     setPassword("");
+    setAuthView("login");
     setProfile(null);
   };
 
   const renderWorkspace = () => {
     if (tab === "dashboard") return <DashboardWorkspace setTab={setTab} />;
     if (tab === "scorecards") return <ScoreCardsWorkspace />;
+    if (tab === "admin") return <AdminWorkspace session={session} profile={profile} />;
+    if (tab === "audit") return <AuditLogsWorkspace />;
 
     if (tab === "receiving") return <ReceivingWorkspace receivingView="dashboard" />;
     if (tab === "receiving-create") return <ReceivingWorkspace receivingView="create" />;
@@ -503,29 +510,44 @@ function App() {
     return (
       <div className="workspace-portal">
         <div className="workspace-overlay">
-          <div className="login-panel">
-            <div className="login-header">
-              <h1>INTRAL CONNECT</h1>
-              <p>Warehouse Operations • Logistics Visibility • Customer Portal</p>
+          {authView === "forgot-password" ? (
+            <ForgotPasswordWorkspace onBackToLogin={() => setAuthView("login")} />
+          ) : (
+            <div className="login-panel">
+              <div className="login-header">
+                <h1>INTRAL CONNECT</h1>
+                <p>Warehouse Operations • Logistics Visibility • Customer Portal</p>
+              </div>
+
+              <div className="login-form">
+                <input
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <button onClick={handleLogin}>Login</button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthView("forgot-password")}
+                  style={{
+                    background: "rgba(15, 23, 42, 0.72)",
+                    border: "1px solid rgba(147, 197, 253, 0.35)",
+                  }}
+                >
+                  Forgot Password?
+                </button>
+              </div>
             </div>
-
-            <div className="login-form">
-              <input
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-
-              <button onClick={handleLogin}>Login</button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     );
