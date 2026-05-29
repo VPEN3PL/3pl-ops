@@ -1,12 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
 
-function DashboardWorkspace() {
+function DashboardWorkspace({ setTab }) {
   const [jobs, setJobs] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
   const [allocations, setAllocations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  const goToDrilldown = (targetTab) => {
+    if (typeof setTab === "function" && targetTab) {
+      setTab(targetTab);
+    }
+  };
 
   const isToday = (value) => {
     if (!value) return false;
@@ -326,36 +332,42 @@ function DashboardWorkspace() {
       value: dashboardMetrics.openJobs,
       note: "Active operational requests",
       tone: dashboardMetrics.openJobs > 0 ? "normal" : "healthy",
+      targetTab: "jobs",
     },
     {
       title: "Critical Aging",
       value: dashboardMetrics.over24Hours,
       note: "Open work over 24 hours",
       tone: dashboardMetrics.over24Hours > 0 ? "critical" : "healthy",
+      targetTab: "orders-open",
     },
     {
       title: "Shipping Load",
       value: dashboardMetrics.pendingShipments,
       note: "Outbound execution queue",
       tone: dashboardMetrics.pendingShipments > 0 ? "warning" : "healthy",
+      targetTab: "shipping",
     },
     {
       title: "Inventory Ready",
       value: dashboardMetrics.activeInventory,
       note: "Available inventory lines",
       tone: "healthy",
+      targetTab: "inventory",
     },
     {
       title: "Allocation Gate",
       value: dashboardMetrics.openAllocations,
       note: "Active allocation records",
       tone: dashboardMetrics.openAllocations > 0 ? "warning" : "healthy",
+      targetTab: "allocation",
     },
     {
       title: "Receiving Today",
       value: dashboardMetrics.receivingToday,
       note: "Inbound activity captured",
       tone: "normal",
+      targetTab: "receiving",
     },
   ];
 
@@ -482,14 +494,17 @@ function DashboardWorkspace() {
 
       <div className="phase14-kpi-grid">
         {executiveKpis.map((kpi) => (
-          <div
+          <button
+            type="button"
             key={kpi.title}
             className={`phase14-kpi-card phase14-kpi-${kpi.tone}`}
+            onClick={() => goToDrilldown(kpi.targetTab)}
+            title={`Open ${kpi.title} drilldown`}
           >
             <span>{kpi.title}</span>
             <strong>{kpi.value}</strong>
             <p>{kpi.note}</p>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -650,49 +665,61 @@ function DashboardWorkspace() {
           <h2>Executive Action Queue</h2>
 
           <div className="dashboard-command-row phase14-action-row">
-            <div>
+            <button type="button" onClick={() => goToDrilldown("orders-open")}>
               <span>Aging Alert</span>
               <strong>{dashboardMetrics.over24Hours}</strong>
               <p>Open work over 24 hours</p>
-            </div>
+            </button>
 
-            <div>
+            <button type="button" onClick={() => goToDrilldown("inventory")}>
               <span>Active Inventory</span>
               <strong>{dashboardMetrics.activeInventory}</strong>
               <p>Available inventory lines</p>
-            </div>
+            </button>
 
-            <div>
+            <button type="button" onClick={() => goToDrilldown("shipping")}>
               <span>Outbound Load</span>
               <strong>{dashboardMetrics.pendingShipments}</strong>
               <p>Shipping / transport work</p>
-            </div>
+            </button>
 
-            <div>
+            <button type="button" onClick={() => goToDrilldown("allocation")}>
               <span>Allocation Gate</span>
               <strong>{dashboardMetrics.openAllocations}</strong>
               <p>Active allocation records</p>
-            </div>
+            </button>
           </div>
         </div>
 
         <div className="dashboard-panel dashboard-command-panel phase14-crating-panel">
           <h2>A&M / Crating Control</h2>
 
-          <div className="health-row">
+          <button
+            type="button"
+            className="health-row"
+            onClick={() => goToDrilldown("jobs-track")}
+          >
             <span>A&M Crating Queue</span>
             <strong>{dashboardMetrics.amCratingQueue}</strong>
-          </div>
+          </button>
 
-          <div className="health-row">
+          <button
+            type="button"
+            className="health-row"
+            onClick={() => goToDrilldown("receiving")}
+          >
             <span>Receiving Today</span>
             <strong>{dashboardMetrics.receivingToday}</strong>
-          </div>
+          </button>
 
-          <div className="health-row">
+          <button
+            type="button"
+            className="health-row"
+            onClick={() => goToDrilldown("inventory")}
+          >
             <span>Inventory Lines</span>
             <strong>{dashboardMetrics.inventoryLines}</strong>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -703,7 +730,7 @@ function DashboardWorkspace() {
           {recentOpenJobs.length === 0 ? (
             <p>No active open jobs found.</p>
           ) : (
-            <table className="dashboard-table">
+            <table className="dashboard-table dashboard-drilldown-table">
               <thead>
                 <tr>
                   <th>Job #</th>
@@ -716,7 +743,11 @@ function DashboardWorkspace() {
 
               <tbody>
                 {recentOpenJobs.map((job) => (
-                  <tr key={job.id}>
+                  <tr
+                    key={job.id}
+                    onClick={() => goToDrilldown("jobs-track")}
+                    title="Open job tracking"
+                  >
                     <td>{job.job_number || "-"}</td>
                     <td>{job.request_source || "-"}</td>
                     <td>{job.request_category || "-"}</td>
@@ -746,10 +777,15 @@ function DashboardWorkspace() {
           ) : (
             <div className="mini-list">
               {recentPendingShipments.map((job) => (
-                <div key={job.id} className="mini-list-row">
+                <button
+                  type="button"
+                  key={job.id}
+                  className="mini-list-row"
+                  onClick={() => goToDrilldown("shipping")}
+                >
                   <strong>{job.job_number || "No Job #"}</strong>
                   <span>{job.request_category || job.job_type || "-"}</span>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -763,10 +799,15 @@ function DashboardWorkspace() {
           ) : (
             <div className="mini-list">
               {recentAMCratingJobs.map((job) => (
-                <div key={job.id} className="mini-list-row">
+                <button
+                  type="button"
+                  key={job.id}
+                  className="mini-list-row"
+                  onClick={() => goToDrilldown("jobs-track")}
+                >
                   <strong>{job.job_number || "No Job #"}</strong>
                   <span>{job.request_category || job.job_type || "A&M"}</span>
-                </div>
+                </button>
               ))}
             </div>
           )}

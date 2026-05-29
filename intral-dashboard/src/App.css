@@ -9015,3 +9015,174 @@ body,
   font-size: 9px !important;
 }
 
+/* =========================================
+   PHASE 19A — QA LAYERING MICRO PATCH
+   Fixes Oracle dropdowns rendering behind workspace panels.
+   Scoped to menu/dropdown stacking only.
+   Does NOT change dashboard, topbar sizing, workbench layout,
+   Supabase, routing, auth, label printing, or workflow logic.
+========================================= */
+
+.workspace-portal {
+  isolation: isolate !important;
+}
+
+.workspace-overlay,
+.workspace-overlay.oracle-layout-overlay,
+.oracle-layout-overlay {
+  overflow: visible !important;
+  position: relative !important;
+  isolation: isolate !important;
+}
+
+.oracle-top-command-bar {
+  position: relative !important;
+  z-index: 90000 !important;
+  overflow: visible !important;
+}
+
+.oracle-top-left,
+.oracle-quick-search,
+.oracle-top-icons,
+.oracle-icon-menu,
+.oracle-user-menu,
+.oracle-inline-action,
+.oracle-module-action-menu {
+  position: relative !important;
+  z-index: 90010 !important;
+  overflow: visible !important;
+}
+
+.oracle-module-command-row {
+  position: relative !important;
+  z-index: 85000 !important;
+  overflow: visible !important;
+}
+
+.oracle-module-actions {
+  position: relative !important;
+  z-index: 85010 !important;
+  overflow: visible !important;
+}
+
+.oracle-dropdown,
+.oracle-search-results,
+.oracle-favorites-dropdown,
+.oracle-notification-dropdown,
+.oracle-action-dropdown,
+.oracle-user-dropdown,
+.oracle-module-dropdown,
+.module-action-dropdown,
+.operations-dropdown-menu {
+  position: absolute !important;
+  z-index: 999999 !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+  pointer-events: auto !important;
+}
+
+.oracle-search-results {
+  z-index: 1000000 !important;
+}
+
+.oracle-notification-dropdown {
+  z-index: 1000001 !important;
+}
+
+.oracle-action-dropdown {
+  z-index: 1000002 !important;
+}
+
+.oracle-user-dropdown {
+  z-index: 1000003 !important;
+}
+
+.oracle-module-dropdown,
+.module-action-dropdown {
+  z-index: 1000004 !important;
+}
+
+.workspace-module,
+.dashboard-workspace,
+.phase17-workbench-screen,
+.phase17-smart-card-shell,
+.phase17-smart-card,
+.inventory-workbench-shell,
+.job-request-workspace,
+.order-central-workspace,
+.receiving-transaction-workspace,
+.shipping-operations-workspace {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.phase17-smart-summary,
+.job-request-summary-panel,
+.order-central-governance-panel,
+.order-release-action-card,
+.shipping-station-action-card {
+  z-index: 2 !important;
+}
+
+.dashboard-panel,
+.inventory-panel,
+.phase17-accordion-section,
+.phase14-kpi-card,
+.phase18-chart-panel {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+@media (max-width: 1100px) {
+  .oracle-dropdown,
+  .oracle-search-results,
+  .oracle-favorites-dropdown,
+  .oracle-notification-dropdown,
+  .oracle-action-dropdown,
+  .oracle-user-dropdown,
+  .oracle-module-dropdown,
+  .module-action-dropdown,
+  .operations-dropdown-menu {
+    max-width: calc(100vw - 24px) !important;
+  }
+}
+
+/* =========================================
+   PHASE 19B — EXECUTIVE DRILLDOWN MICRO PATCH
+   Adds button behavior styling only for DashboardWorkspace drilldowns.
+   Does not change topbar, charts, shell, workbench layout, or global routing.
+========================================= */
+
+.phase14-kpi-card {
+  text-align: left !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+}
+
+.phase14-kpi-card:hover {
+  filter: brightness(1.06) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dashboard-command-row button,
+.phase14-action-row button,
+.phase14-crating-panel .health-row,
+.dashboard-queue-panel .mini-list-row {
+  font-family: inherit !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  width: 100% !important;
+}
+
+.dashboard-command-row button:hover,
+.phase14-action-row button:hover,
+.phase14-crating-panel .health-row:hover,
+.dashboard-queue-panel .mini-list-row:hover,
+.dashboard-drilldown-table tbody tr:hover {
+  filter: brightness(1.08) !important;
+}
+
+.dashboard-drilldown-table tbody tr {
+  cursor: pointer !important;
+}
+

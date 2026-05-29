@@ -9,6 +9,7 @@ import ReceivingWorkspace from "./components/ReceivingWorkspace";
 import JobRequestWorkspace from "./components/JobRequestWorkspace";
 import OrderCentralWorkspace from "./components/OrderCentralWorkspace";
 import ShippingOperationsWorkspace from "./components/ShippingOperationsWorkspace";
+import ScoreCardsWorkspace from "./components/ScoreCardsWorkspace";
 
 const initialOperationalOrders = [
   {
@@ -361,7 +362,8 @@ function App() {
   };
 
   const renderWorkspace = () => {
-    if (tab === "dashboard") return <DashboardWorkspace />;
+    if (tab === "dashboard") return <DashboardWorkspace setTab={setTab} />;
+    if (tab === "scorecards") return <ScoreCardsWorkspace />;
 
     if (tab === "receiving") return <ReceivingWorkspace receivingView="dashboard" />;
     if (tab === "receiving-create") return <ReceivingWorkspace receivingView="create" />;
