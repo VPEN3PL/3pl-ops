@@ -16,6 +16,7 @@ function AdminWorkspace({ session, profile }) {
   const [creatingUserId, setCreatingUserId] = useState("");
   const [resettingUserId, setResettingUserId] = useState("");
   const [openSection, setOpenSection] = useState("requests");
+  const [profileIdentityEdits, setProfileIdentityEdits] = useState({});
 
   const [newUserForm, setNewUserForm] = useState({
     email: "",
@@ -116,6 +117,118 @@ function AdminWorkspace({ session, profile }) {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const updateProfileIdentityDraft = (profileId, field, value) => {
+    setProfileIdentityEdits((prev) => ({
+      ...prev,
+      [profileId]: {
+        ...(prev[profileId] || {}),
+        [field]: value,
+      },
+    }));
+  };
+
+  const getIdentityDraftValue = (item, field, fallback = "") => {
+    if (profileIdentityEdits[item.id]?.[field] !== undefined) {
+      return profileIdentityEdits[item.id][field];
+    }
+
+    return item[field] || fallback;
+  };
+
+  const updateProfileIdentity = async (item) => {
+    if (!isAdmin) {
+      alert("Only Admin users can update profile identity.");
+      return;
+    }
+
+    if (!item?.id) {
+      alert("Profile ID is required.");
+      return;
+    }
+
+    const nextDisplayName = String(
+      getIdentityDraftValue(
+        item,
+        "display_name",
+        item.display_name || item.full_name || item.name || item.user_name || ""
+      )
+    ).trim();
+
+    const nextDepartment = String(
+      getIdentityDraftValue(item, "department", item.department || "")
+    ).trim();
+
+    const nextEmail = String(
+      getIdentityDraftValue(item, "email", item.email || item.user_email || "")
+    )
+      .trim()
+      .toLowerCase();
+
+    if (!nextDisplayName) {
+      alert("Display Name is required.");
+      return;
+    }
+
+    if (!nextEmail) {
+      alert("Email is required.");
+      return;
+    }
+
+    if (!nextEmail.includes("@") || !nextEmail.includes(".")) {
+      alert("Enter a valid email address.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Save identity for ${nextDisplayName}?\n\nDepartment: ${
+        nextDepartment || "Not provided"
+      }\nEmail: ${nextEmail}`
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+  display_name: nextDisplayName,
+  full_name: nextDisplayName,
+  department: nextDepartment,
+  email: nextEmail,
+  user_email: nextEmail,
+})
+      .eq("id", item.id);
+
+    if (error) {
+      alert(`Profile identity update failed: ${error.message}`);
+      return;
+    }
+
+    setProfiles((prev) =>
+      prev.map((profileItem) =>
+        profileItem.id === item.id
+          ? {
+              ...profileItem,
+              display_name: nextDisplayName,
+              full_name: nextDisplayName,
+              department: nextDepartment,
+              email: nextEmail,
+              user_email: nextEmail,
+            }
+          : profileItem
+      )
+    );
+
+    setProfileIdentityEdits((prev) => {
+      const next = { ...prev };
+      delete next[item.id];
+      return next;
+    });
+
+    alert("Profile identity saved successfully.");
+await loadProfiles();
+await loadUserRequests();
   };
 
   const updateProfileRole = async (profileId, newRole) => {
@@ -510,6 +623,26 @@ function AdminWorkspace({ session, profile }) {
     return new Date(value).toLocaleString();
   };
 
+  const getProfileReference = (item) => {
+    return (
+      item.display_name ||
+      item.full_name ||
+      item.name ||
+      item.user_name ||
+      item.email ||
+      item.user_email ||
+      "Unassigned Profile"
+    );
+  };
+
+  const getProfileDepartment = (item) => {
+    return item.department || "Department not assigned";
+  };
+
+  const getProfileUuidReference = (item) => {
+    return item.id ? `ID: ${item.id}` : "No UUID";
+  };
+
   if (!isAdmin) {
     return (
       <div className="dashboard-workspace dashboard-control-tower phase14-dashboard phase18-dashboard admin-workspace">
@@ -746,11 +879,12 @@ function AdminWorkspace({ session, profile }) {
                     {userRequests.length === 0 ? (
                       <p className="panel-note">No user requests found.</p>
                     ) : (
-                      <div className="inventory-table-scroll">
-                        <table className="dashboard-table">
+                      <div className="inventory-table-scroll" style={{ overflowX: "auto", maxWidth: "100%" }}>
+                        <table className="dashboard-table" style={{ minWidth: "1680px" }}>
                           <thead>
                             <tr>
                               <th>Email</th>
+                              <th>Email Maintenance</th>
                               <th>Role</th>
                               <th>Status</th>
                               <th>Requested By</th>
@@ -889,11 +1023,13 @@ function AdminWorkspace({ session, profile }) {
                     {profiles.length === 0 ? (
                       <p className="panel-note">No profiles loaded.</p>
                     ) : (
-                      <div className="inventory-table-scroll">
-                        <table className="dashboard-table">
+                      <div className="inventory-table-scroll" style={{ overflowX: "auto", maxWidth: "100%" }}>
+                        <table className="dashboard-table" style={{ minWidth: "1680px" }}>
                           <thead>
                             <tr>
+                              <th>User / Profile</th>
                               <th>Email</th>
+                              <th>Identity Maintenance</th>
                               <th>Role</th>
                               <th>Status</th>
                               <th>Password</th>
@@ -909,7 +1045,115 @@ function AdminWorkspace({ session, profile }) {
 
                               return (
                                 <tr key={item.id}>
+                                  <td>
+                                    <div style={{ display: "grid", gap: "3px", minWidth: "210px" }}>
+                                      <strong>{getProfileReference(item)}</strong>
+                                      <span style={{ color: "#cbd5e1", fontWeight: 800 }}>
+                                        {getProfileDepartment(item)}
+                                      </span>
+                                      <small style={{ color: "#94a3b8", fontWeight: 800 }}>
+                                        {getProfileUuidReference(item)}
+                                      </small>
+                                    </div>
+                                  </td>
                                   <td>{item.email || item.user_email || "Email not stored"}</td>
+                                  <td>
+                                    <div
+                                      style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "180px 160px 220px auto",
+                                        gap: "8px",
+                                        alignItems: "center",
+                                        minWidth: "760px",
+                                        position: "relative",
+                                        zIndex: 2,
+                                      }}
+                                    >
+                                      <input
+                                        value={getIdentityDraftValue(
+                                          item,
+                                          "display_name",
+                                          item.display_name || item.full_name || item.name || item.user_name || ""
+                                        )}
+                                        onChange={(e) =>
+                                          updateProfileIdentityDraft(item.id, "display_name", e.target.value)
+                                        }
+                                        placeholder="Display Name"
+                                        style={{
+                                          minHeight: "30px",
+                                          borderRadius: "7px",
+                                          border: "1px solid rgba(147, 197, 253, 0.35)",
+                                          background: "rgba(15, 23, 42, 0.88)",
+                                          color: "#ffffff",
+                                          fontWeight: 800,
+                                          padding: "5px 8px",
+                                        }}
+                                      />
+
+                                      <input
+                                        value={getIdentityDraftValue(item, "department", item.department || "")}
+                                        onChange={(e) =>
+                                          updateProfileIdentityDraft(item.id, "department", e.target.value)
+                                        }
+                                        placeholder="Department"
+                                        style={{
+                                          minHeight: "30px",
+                                          borderRadius: "7px",
+                                          border: "1px solid rgba(147, 197, 253, 0.35)",
+                                          background: "rgba(15, 23, 42, 0.88)",
+                                          color: "#ffffff",
+                                          fontWeight: 800,
+                                          padding: "5px 8px",
+                                        }}
+                                      />
+
+                                      <input
+                                        type="email"
+                                        value={getIdentityDraftValue(
+                                          item,
+                                          "email",
+                                          item.email || item.user_email || ""
+                                        )}
+                                        onChange={(e) =>
+                                          updateProfileIdentityDraft(item.id, "email", e.target.value)
+                                        }
+                                        placeholder="Attach / update email"
+                                        style={{
+                                          minHeight: "30px",
+                                          borderRadius: "7px",
+                                          border: "1px solid rgba(147, 197, 253, 0.35)",
+                                          background: "rgba(15, 23, 42, 0.88)",
+                                          color: "#ffffff",
+                                          fontWeight: 800,
+                                          padding: "5px 8px",
+                                        }}
+                                      />
+
+                                      <button
+                                        type="button"
+                                        style={{
+                                          minHeight: "30px",
+                                          borderRadius: "7px",
+                                          border: "1px solid rgba(96, 165, 250, 0.45)",
+                                          background: "rgba(37, 99, 235, 0.88)",
+                                          color: "#ffffff",
+                                          fontWeight: 900,
+                                          padding: "5px 10px",
+                                          whiteSpace: "nowrap",
+                                          cursor: "pointer",
+                                          position: "relative",
+                                          zIndex: 3,
+                                        }}
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          event.stopPropagation();
+                                          updateProfileIdentity(item);
+                                        }}
+                                      >
+                                        Save Identity
+                                      </button>
+                                    </div>
+                                  </td>
                                   <td>{String(item.role || "").toUpperCase()}</td>
                                   <td>{renderActiveBadge(item.is_active)}</td>
                                   <td>
@@ -1065,9 +1309,9 @@ function AdminWorkspace({ session, profile }) {
                         <p>Uses secure Supabase function, not frontend service role.</p>
                       </div>
                       <div>
-                        <span>Password Reset</span>
+                        <span>Email Maintenance</span>
                         <strong>Controlled</strong>
-                        <p>Temporary passwords require confirmation.</p>
+                        <p>Admins can attach or update profile emails after confirmation.</p>
                       </div>
                       <div>
                         <span>Audit Logs</span>

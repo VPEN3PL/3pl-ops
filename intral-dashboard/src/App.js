@@ -13,6 +13,7 @@ import ScoreCardsWorkspace from "./components/ScoreCardsWorkspace";
 import AdminWorkspace from "./components/AdminWorkspace";
 import ForgotPasswordWorkspace from "./components/ForgotPasswordWorkspace";
 import AuditLogsWorkspace from "./components/AuditLogsWorkspace";
+import CredentialRequestWorkspace from "./components/CredentialRequestWorkspace";
 
 const initialOperationalOrders = [
   {
@@ -512,6 +513,8 @@ function App() {
         <div className="workspace-overlay">
           {authView === "forgot-password" ? (
             <ForgotPasswordWorkspace onBackToLogin={() => setAuthView("login")} />
+          ) : authView === "request-credentials" ? (
+            <CredentialRequestWorkspace onBackToLogin={() => setAuthView("login")} />
           ) : (
             <div className="login-panel">
               <div className="login-header">
@@ -544,6 +547,17 @@ function App() {
                   }}
                 >
                   Forgot Password?
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthView("request-credentials")}
+                  style={{
+                    background: "rgba(15, 23, 42, 0.72)",
+                    border: "1px solid rgba(147, 197, 253, 0.35)",
+                  }}
+                >
+                  Request Credentials
                 </button>
               </div>
             </div>

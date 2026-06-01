@@ -52,6 +52,7 @@ const amStoredAddresses = [
 
 function JobRequestWorkspace({ requestMode = "movement" }) {
   const [submittedJobOrder, setSubmittedJobOrder] = useState("");
+  const [isSubmittedLocked, setIsSubmittedLocked] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState("");
 
   const [requestorForm, setRequestorForm] = useState({
@@ -80,6 +81,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     shipFromAddress: "",
     shipFromStreet: "",
     shipFromZip: "",
+    shipFromCountry: "",
 
     amStoredAddress: "",
 
@@ -87,6 +89,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     shipToAddress: "",
     shipToStreet: "",
     shipToZip: "",
+    shipToCountry: "",
     shipToContactName: "",
     shipToTelephone: "",
     shipToEmail: "",
@@ -106,6 +109,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
   useEffect(() => {
     setSubmittedJobOrder("");
+    setIsSubmittedLocked(false);
     setTrackingNumber("");
     setAdditionalDetails("");
     setShippingType("");
@@ -204,6 +208,11 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
       return false;
     }
 
+    if (!requestorForm.telephone.trim()) {
+      alert("Requestor telephone is required.");
+      return false;
+    }
+
     return true;
   };
 
@@ -291,6 +300,11 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
       return false;
     }
 
+    if (!shippingForm.shipFromCountry.trim()) {
+      alert("Ship From country is required for shipping requests.");
+      return false;
+    }
+
     if (!shippingForm.shipToCompany.trim()) {
       alert("Ship To company name is required.");
       return false;
@@ -308,6 +322,11 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
 
     if (!shippingForm.shipToZip.trim()) {
       alert("Ship To zip code is required.");
+      return false;
+    }
+
+    if (!shippingForm.shipToCountry.trim()) {
+      alert("Ship To destination country is required for shipping requests.");
       return false;
     }
 
@@ -353,15 +372,30 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
   };
 
   const handleSubmitRequest = () => {
+    if (isSubmittedLocked || submittedJobOrder) {
+      alert(
+        "Request already submitted. This request is locked and cannot be edited from this screen. Please submit a new request or contact INTRAL operations if changes are required."
+      );
+      return;
+    }
+
     if (!validateRequestor()) return;
 
     if (requestMode === "movement" && !validateInventoryMovement()) return;
     if (requestMode === "shipping" && !validateShipping()) return;
     if (requestMode === "logistics" && !validateLogistics()) return;
 
+    const confirmed = window.confirm(
+      "Confirm Job Release\n\nPlease confirm that all required additional work, shipping details, destination information, special handling instructions, and supporting documentation have been included before releasing this job."
+    );
+
+    if (!confirmed) return;
+
     const nextJobNumber = `JO-${String(Date.now()).slice(-6)}`;
 
     setSubmittedJobOrder(nextJobNumber);
+    setIsSubmittedLocked(true);
+    setExpandedSection("");
   };
 
   const getSummaryValue = (value, fallback = "Pending") => {
@@ -505,6 +539,11 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                 <span>Destination</span>
                 <strong>{getSummaryValue(shippingForm.shipToCompany)}</strong>
               </div>
+
+              <div>
+                <span>Country</span>
+                <strong>{getSummaryValue(shippingForm.shipToCountry)}</strong>
+              </div>
             </>
           )}
 
@@ -538,8 +577,9 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
         <button
           className="inventory-primary-button job-submit-button"
           onClick={handleSubmitRequest}
+          disabled={isSubmittedLocked}
         >
-          Submit Job Request
+          {isSubmittedLocked ? "Request Submitted / Locked" : "Submit Job Request"}
         </button>
 
         <p className="job-summary-note">
@@ -860,7 +900,8 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                     <input value={shippingForm.shipFromCompany} onChange={(e) => updateShippingForm("shipFromCompany", e.target.value)} placeholder="Company Name" />
                     <input value={shippingForm.shipFromAddress} onChange={(e) => updateShippingForm("shipFromAddress", e.target.value)} placeholder="Address" />
                     <input value={shippingForm.shipFromStreet} onChange={(e) => updateShippingForm("shipFromStreet", e.target.value)} placeholder="Street" />
-                    <input value={shippingForm.shipFromZip} onChange={(e) => updateShippingForm("shipFromZip", e.target.value)} placeholder="Zip Code" />
+                    <input value={shippingForm.shipFromZip} onChange={(e) => updateShippingForm("shipFromZip", e.target.value)} placeholder="Zip / Postal Code" />
+                    <input value={shippingForm.shipFromCountry} onChange={(e) => updateShippingForm("shipFromCountry", e.target.value)} placeholder="Origin Country" />
                   </div>
                 </div>
               )}
@@ -899,7 +940,8 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                     <input value={shippingForm.shipToCompany} onChange={(e) => updateShippingForm("shipToCompany", e.target.value)} placeholder="Company Name" />
                     <input value={shippingForm.shipToAddress} onChange={(e) => updateShippingForm("shipToAddress", e.target.value)} placeholder="Address" />
                     <input value={shippingForm.shipToStreet} onChange={(e) => updateShippingForm("shipToStreet", e.target.value)} placeholder="Street" />
-                    <input value={shippingForm.shipToZip} onChange={(e) => updateShippingForm("shipToZip", e.target.value)} placeholder="Zip Code" />
+                    <input value={shippingForm.shipToZip} onChange={(e) => updateShippingForm("shipToZip", e.target.value)} placeholder="Zip / Postal Code" />
+                    <input value={shippingForm.shipToCountry} onChange={(e) => updateShippingForm("shipToCountry", e.target.value)} placeholder="Destination Country" />
                     <input value={shippingForm.shipToContactName} onChange={(e) => updateShippingForm("shipToContactName", e.target.value)} placeholder="Contact Name" />
                     <input value={shippingForm.shipToTelephone} onChange={(e) => updateShippingForm("shipToTelephone", e.target.value)} placeholder="Telephone" />
                     <input value={shippingForm.shipToEmail} onChange={(e) => updateShippingForm("shipToEmail", e.target.value)} placeholder="Email" />
@@ -1036,7 +1078,8 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
         <div className="dashboard-message">
           Job Order {submittedJobOrder} has been successfully submitted as a{" "}
           {getRequestTitle()} request. Please retain this reference number for
-          tracking purposes.
+          tracking purposes. This request is now locked and cannot be edited from
+          this screen.
         </div>
       )}
 
@@ -1071,7 +1114,17 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
           </div>
 
           <div className="phase17-smart-footer">
-            <button type="button" className="phase17-secondary-button">
+            <button
+              type="button"
+              className="phase17-secondary-button"
+              onClick={() => {
+                if (isSubmittedLocked) {
+                  alert("Request already submitted. This request is locked and cannot be edited from this screen.");
+                } else {
+                  window.location.reload();
+                }
+              }}
+            >
               Clear Form
             </button>
 
@@ -1079,8 +1132,9 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
               type="button"
               className="inventory-primary-button phase17-review-button"
               onClick={handleSubmitRequest}
+              disabled={isSubmittedLocked}
             >
-              Review & Submit →
+              {isSubmittedLocked ? "Submitted / Locked" : "Review & Submit →"}
             </button>
           </div>
         </div>

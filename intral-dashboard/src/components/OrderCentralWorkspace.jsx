@@ -160,7 +160,12 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     }
 
     if (selectedJob.releaseStatus !== "Open") {
-      alert("Only open orders can be released.");
+      alert("This job has already been released or closed. It cannot be released again.");
+      return;
+    }
+
+    if (selectedJob.soNumber) {
+      alert("SO number already exists for this job. Duplicate release is blocked.");
       return;
     }
 
@@ -169,8 +174,16 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       return;
     }
 
+    if (checkedWorkItems.length > 0) {
+      alert(
+        "Additional work selections are pending submission. Please submit additional work before releasing this job."
+      );
+      setExpandedSection("additionalWork");
+      return;
+    }
+
     const confirmed = window.confirm(
-      `Confirm to Release Job Order # ${selectedJob.joNumber}?`
+      `Confirm Job Release\n\nPlease verify:\n\n• All additional work has been included\n• Allocation is confirmed if required\n• Shipping destination details are complete\n• Special handling / crating instructions are attached\n• Documentation is accurate for operational execution\n\nThis action will generate the SO number, assign staging, and release work into Shipping Operations.\n\nRelease Job Order # ${selectedJob.joNumber}?`
     );
 
     if (!confirmed) return;
@@ -191,6 +204,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
             soNumber: newSoNumber,
             stagingLocation: newStagingLocation,
             originalLocation: originalPullLocation,
+            releasedAt: new Date().toISOString(),
           }
         : item
     );
@@ -199,7 +213,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     setSelectedJobNumber(selectedJob.joNumber);
     setExpandedSection("queue");
     setMessage(
-      `${newSoNumber} generated and staged to ${newStagingLocation}. Waiting for Active Orders confirmation.`
+      `${newSoNumber} generated and staged to ${newStagingLocation}. Release is locked and work is waiting for Active Orders confirmation.`
     );
   };
 
@@ -629,6 +643,11 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
                 <span>Release Eligibility</span>
                 <strong>{canReleaseJob(selectedJob) ? "Allowed" : "Blocked"}</strong>
               </div>
+
+              <div className="order-detail-field">
+                <span>Release Lock</span>
+                <strong>{selectedJob.releaseStatus === "Open" ? "Ready for verification" : "Released / Locked"}</strong>
+              </div>
             </div>
 
             <button
@@ -636,7 +655,9 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               onClick={releaseSelectedJob}
               disabled={!canReleaseJob(selectedJob)}
             >
-              Generate SO and Assign STG
+              {selectedJob.releaseStatus === "Open"
+                ? "Generate SO and Assign STG"
+                : "Released / Locked"}
             </button>
           </div>
         )}
