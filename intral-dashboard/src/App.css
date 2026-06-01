@@ -9186,89 +9186,38 @@ body,
   cursor: pointer !important;
 }
 
-/* =========================================
-   PHASE 20A-1 — COMMAND HEADER SIZE NORMALIZATION
-   Makes Dashboard and Score Cards command headers match
-   the compact operational module header height.
-   Scoped visual patch only.
-========================================= */
 
-.dashboard-control-tower .dashboard-control-header,
-.dashboard-control-tower .phase14-hero,
-.dashboard-control-tower .phase18-hero,
-.scorecards-workspace .dashboard-control-header,
-.scorecards-workspace .phase14-hero,
-.scorecards-workspace .phase18-hero {
-  min-height: 56px !important;
-  padding: 8px 12px !important;
-  border-radius: 10px !important;
-  margin-bottom: 6px !important;
-  align-items: center !important;
+
+/* ===============================
+PHASE 22E COMMAND HEADER VISUAL SYNC
+=============================== */
+
+.inventory-workbench-shell .phase17-smart-card-header,
+.shipping-workbench-shell .phase17-smart-card-header {
+  min-height: auto !important;
+  padding: 14px 18px !important;
+  border-radius: 12px !important;
+  background: rgba(14, 23, 38, 0.96) !important;
+  border: 1px solid rgba(80, 130, 220, 0.18) !important;
+  box-shadow: none !important;
 }
 
-.dashboard-control-tower .dashboard-control-header h1,
-.dashboard-control-tower .phase14-hero h1,
-.dashboard-control-tower .phase18-hero h1,
-.scorecards-workspace .dashboard-control-header h1,
-.scorecards-workspace .phase14-hero h1,
-.scorecards-workspace .phase18-hero h1 {
-  font-size: 20px !important;
-  line-height: 1.05 !important;
-  margin: 2px 0 0 !important;
-}
-
-.dashboard-control-tower .dashboard-eyebrow,
-.scorecards-workspace .dashboard-eyebrow {
-  font-size: 8px !important;
-  line-height: 1 !important;
-}
-
-.dashboard-control-tower .dashboard-header-actions,
-.dashboard-control-tower .phase14-header-actions,
-.scorecards-workspace .dashboard-header-actions,
-.scorecards-workspace .phase14-header-actions {
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-.dashboard-control-tower .dashboard-health-card,
-.dashboard-control-tower .phase14-health-card,
-.scorecards-workspace .dashboard-health-card,
-.scorecards-workspace .phase14-health-card {
-  min-height: 38px !important;
-  min-width: 150px !important;
-  padding: 5px 8px !important;
-  border-radius: 8px !important;
-}
-
-.dashboard-control-tower .dashboard-health-card span,
-.dashboard-control-tower .phase14-health-card span,
-.scorecards-workspace .dashboard-health-card span,
-.scorecards-workspace .phase14-health-card span {
-  font-size: 8px !important;
-  line-height: 1 !important;
-}
-
-.dashboard-control-tower .dashboard-health-card strong,
-.dashboard-control-tower .phase14-health-card strong,
-.scorecards-workspace .dashboard-health-card strong,
-.scorecards-workspace .phase14-health-card strong {
+.inventory-workbench-shell .phase17-smart-card-header p,
+.shipping-workbench-shell .phase17-smart-card-header p {
   font-size: 12px !important;
-  line-height: 1.1 !important;
+  margin-top: 4px !important;
+  opacity: 0.78 !important;
 }
 
-.dashboard-control-tower .dashboard-health-card small,
-.dashboard-control-tower .phase14-health-card small,
-.scorecards-workspace .dashboard-health-card small,
-.scorecards-workspace .phase14-health-card small {
-  font-size: 8px !important;
-  line-height: 1.1 !important;
+.inventory-workbench-shell .phase17-progress,
+.shipping-workbench-shell .phase17-progress {
+  gap: 8px !important;
 }
 
-.dashboard-control-tower .dashboard-refresh-button {
-  min-height: 30px !important;
-  padding: 5px 10px !important;
-  border-radius: 7px !important;
-  font-size: 10px !important;
+.inventory-workbench-shell .phase17-secondary-button,
+.shipping-workbench-shell .phase17-secondary-button {
+  height: 34px !important;
+  min-width: 92px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
 }
-

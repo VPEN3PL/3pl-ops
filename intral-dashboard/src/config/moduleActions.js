@@ -14,10 +14,16 @@ export const moduleActions = {
 
   inventory: [
     { label: "Inventory Dashboard", tab: "inventory" },
-    { label: "Lookup", tab: "inventory-lookup" },
-    { label: "Move", tab: "inventory-move" },
-    { label: "Allocation", tab: "allocation" },
-    { label: "Transfer History", tab: "inventory-history" },
+    {
+      label: "Action",
+      dropdown: true,
+      items: [
+        { label: "Lookup", tab: "inventory-lookup" },
+        { label: "Move", tab: "inventory-move" },
+        { label: "Allocation", tab: "allocation" },
+        { label: "Transfer History", tab: "inventory-history" },
+      ],
+    },
   ],
 
   jobs: [
@@ -58,9 +64,15 @@ export const moduleActions = {
 
   shipping: [
     { label: "Shipping Dashboard", tab: "shipping-dashboard" },
-    { label: "Active Orders", tab: "shipping" },
-    { label: "Started Orders", tab: "shipping-started" },
-    { label: "Completed Orders", tab: "shipping-complete" },
+    {
+      label: "Action",
+      dropdown: true,
+      items: [
+        { label: "Active Orders", tab: "shipping" },
+        { label: "Started Orders", tab: "shipping-started" },
+        { label: "Completed Orders", tab: "shipping-complete" },
+      ],
+    },
   ],
 };
 
