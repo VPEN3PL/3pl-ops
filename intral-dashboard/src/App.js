@@ -434,6 +434,18 @@ function App() {
     setProfile(null);
   };
 
+  const handleLoginKeyDown = (event) => {
+    if (event.key === "Enter") {
+      handleLogin();
+    }
+  };
+
+  const handlePasswordChangeKeyDown = (event) => {
+    if (event.key === "Enter") {
+      handleRequiredPasswordChange();
+    }
+  };
+
   const renderWorkspace = () => {
     if (tab === "dashboard") return <DashboardWorkspace setTab={setTab} />;
     if (tab === "scorecards") return <ScoreCardsWorkspace />;
@@ -594,6 +606,7 @@ function App() {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={handleLoginKeyDown}
                 />
 
                 <input
@@ -601,6 +614,7 @@ function App() {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={handleLoginKeyDown}
                 />
 
                 <button onClick={handleLogin}>Login</button>
@@ -650,6 +664,7 @@ function App() {
                 placeholder="New Password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                onKeyDown={handlePasswordChangeKeyDown}
               />
 
               <input
@@ -657,6 +672,7 @@ function App() {
                 placeholder="Confirm New Password"
                 value={confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
+                onKeyDown={handlePasswordChangeKeyDown}
               />
 
               <button
