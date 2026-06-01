@@ -205,6 +205,10 @@ function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authView, setAuthView] = useState("login");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordChangeMessage, setPasswordChangeMessage] = useState("");
+  const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
 
   const [tab, setTab] = useState(() => {
     return localStorage.getItem("intral-connect-active-tab") || "portal";
@@ -357,6 +361,66 @@ function App() {
     }
   };
 
+  const handleRequiredPasswordChange = async () => {
+    setPasswordChangeMessage("");
+
+    if (!newPassword.trim()) {
+      setPasswordChangeMessage("New password is required.");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordChangeMessage("New password must be at least 8 characters.");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordChangeMessage("New password and confirmation do not match.");
+      return;
+    }
+
+    if (!session?.user?.id) {
+      setPasswordChangeMessage("Session not found. Please log out and log back in.");
+      return;
+    }
+
+    setPasswordChangeLoading(true);
+    setPasswordChangeMessage("Updating password...");
+
+    const { error: passwordError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (passwordError) {
+      setPasswordChangeMessage(`Password update failed: ${passwordError.message}`);
+      setPasswordChangeLoading(false);
+      return;
+    }
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        must_change_password: false,
+      })
+      .eq("id", session.user.id);
+
+    if (profileError) {
+      setPasswordChangeMessage(
+        `Password changed, but profile update failed: ${profileError.message}`
+      );
+      setPasswordChangeLoading(false);
+      return;
+    }
+
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setPasswordChangeMessage("Password changed successfully. Loading workspace...");
+
+    await loadProfile(session.user.id);
+
+    setPasswordChangeLoading(false);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setTab("portal");
@@ -364,6 +428,9 @@ function App() {
     setEmail("");
     setPassword("");
     setAuthView("login");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setPasswordChangeMessage("");
     setProfile(null);
   };
 
@@ -562,6 +629,86 @@ function App() {
               </div>
             </div>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  if (session && profile?.must_change_password === true) {
+    return (
+      <div className="workspace-portal">
+        <div className="workspace-overlay">
+          <div className="login-panel">
+            <div className="login-header">
+              <h1>INTRAL CONNECT</h1>
+              <p>Password Change Required • Temporary Password Detected</p>
+            </div>
+
+            <div className="login-form">
+              <input
+                type="password"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+
+              <input
+                type="password"
+                placeholder="Confirm New Password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+              />
+
+              <button
+                onClick={handleRequiredPasswordChange}
+                disabled={passwordChangeLoading}
+              >
+                {passwordChangeLoading ? "Updating..." : "Change Password"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  background: "rgba(15, 23, 42, 0.72)",
+                  border: "1px solid rgba(147, 197, 253, 0.35)",
+                }}
+              >
+                Logout
+              </button>
+
+              {passwordChangeMessage && (
+                <p
+                  style={{
+                    marginTop: "4px",
+                    color:
+                      passwordChangeMessage.includes("failed") ||
+                      passwordChangeMessage.includes("required") ||
+                      passwordChangeMessage.includes("match") ||
+                      passwordChangeMessage.includes("not found")
+                        ? "#fecaca"
+                        : "#dbeafe",
+                    fontWeight: 800,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {passwordChangeMessage}
+                </p>
+              )}
+
+              <p
+                style={{
+                  color: "#cbd5e1",
+                  fontSize: "12px",
+                  lineHeight: 1.5,
+                  marginTop: "4px",
+                }}
+              >
+                Your account was created with a temporary password. Create a new
+                password before entering INTRAL CONNECT.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
