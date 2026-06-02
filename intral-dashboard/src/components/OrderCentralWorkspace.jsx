@@ -18,6 +18,13 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
   const [checkedWorkItems, setCheckedWorkItems] = useState([]);
   const [message, setMessage] = useState("");
   const [expandedSection, setExpandedSection] = useState("queue");
+  const [savedInvoices, setSavedInvoices] = useState({});
+  const [invoiceForm, setInvoiceForm] = useState({
+    invoiceNumber: "",
+    invoiceAmount: "",
+    invoiceDate: new Date().toISOString().slice(0, 10),
+    billingNotes: "",
+  });
 
   const ordersPerPage = 5;
 
@@ -76,6 +83,44 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       current === job.joNumber ? "" : job.joNumber
     );
     setExpandedSection("governance");
+  };
+
+  const updateInvoiceForm = (field, value) => {
+    setInvoiceForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const getActiveInvoice = () => {
+    if (!selectedJob) return invoiceForm;
+
+    return {
+      ...invoiceForm,
+      ...(savedInvoices[selectedJob.joNumber] || {}),
+    };
+  };
+
+  const getInvoiceNumber = () => {
+    if (!selectedJob) return invoiceForm.invoiceNumber;
+
+    const activeInvoice = getActiveInvoice();
+
+    if (activeInvoice.invoiceNumber) return activeInvoice.invoiceNumber;
+
+    const source = String(selectedJob.joNumber || "000000").replace(/\D/g, "");
+    return `INV-${source.padStart(6, "0").slice(-6)}`;
+  };
+
+  const getInvoiceAmountDisplay = (value) => {
+    const amount = Number(value || 0);
+
+    if (!amount) return "$0.00 USD";
+
+    return amount.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    }) + " USD";
   };
 
   const getViewTitle = () => {
@@ -268,6 +313,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       return selectedJob.additionalWork?.length > 0 ? "Attached" : "Optional";
     }
     if (sectionKey === "pickList") return "Printable";
+    if (sectionKey === "invoice") return savedInvoices[selectedJob.joNumber] ? "Saved" : "Optional";
     if (sectionKey === "release") return canReleaseJob(selectedJob) ? "Allowed" : "Blocked";
     return "";
   };
@@ -1123,6 +1169,423 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     );
   };
 
+  const saveInvoice = () => {
+    if (!selectedJob) {
+      alert("Select one JO before saving an invoice.");
+      return;
+    }
+
+    const amount = Number(invoiceForm.invoiceAmount || 0);
+
+    if (!amount || amount <= 0) {
+      alert("Invoice Amount ($ USD) must be greater than zero.");
+      return;
+    }
+
+    const nextInvoice = {
+      invoiceNumber: invoiceForm.invoiceNumber.trim() || getInvoiceNumber(),
+      invoiceAmount: String(invoiceForm.invoiceAmount || "").trim(),
+      invoiceDate: invoiceForm.invoiceDate || new Date().toISOString().slice(0, 10),
+      billingNotes: invoiceForm.billingNotes.trim(),
+      customer: selectedJob.customer || "",
+      joNumber: selectedJob.joNumber || "",
+      soNumber: selectedJob.soNumber || "",
+      savedAt: new Date().toISOString(),
+    };
+
+    setSavedInvoices((prev) => ({
+      ...prev,
+      [selectedJob.joNumber]: nextInvoice,
+    }));
+
+    setInvoiceForm(nextInvoice);
+    setMessage(`Invoice ${nextInvoice.invoiceNumber} saved for ${selectedJob.joNumber}.`);
+  };
+
+  const buildInvoiceHtml = (job) => {
+    if (!job) return "";
+
+    const invoice = {
+      ...getActiveInvoice(),
+      invoiceNumber: getInvoiceNumber(),
+      invoiceDate: getActiveInvoice().invoiceDate || new Date().toISOString().slice(0, 10),
+    };
+
+    return `
+      <!doctype html>
+      <html>
+        <head>
+          <title>INTRAL Invoice - ${invoice.invoiceNumber}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              background: #f3f4f6;
+              font-family: Arial, Helvetica, sans-serif;
+              color: #111827;
+            }
+
+            .actions {
+              display: flex;
+              justify-content: flex-end;
+              gap: 10px;
+              width: 8.5in;
+              margin: 0 auto 12px;
+              padding-top: 12px;
+            }
+
+            .actions button {
+              border: none;
+              border-radius: 8px;
+              padding: 9px 14px;
+              font-weight: 800;
+              cursor: pointer;
+            }
+
+            .print-button {
+              background: #00615f;
+              color: #ffffff;
+            }
+
+            .close-button {
+              background: #e5e7eb;
+              color: #111827;
+            }
+
+            .page {
+              width: 8.5in;
+              min-height: 11in;
+              margin: 0 auto;
+              padding: 0.55in 0.62in;
+              background: #ffffff;
+            }
+
+            .top {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 18px;
+              align-items: start;
+              border-bottom: 2px solid #00615f;
+              padding-bottom: 14px;
+              margin-bottom: 18px;
+            }
+
+            .brand {
+              color: #00615f;
+              font-size: 26px;
+              font-weight: 900;
+              letter-spacing: 0.04em;
+            }
+
+            .company {
+              margin-top: 10px;
+              font-size: 12px;
+              line-height: 1.35;
+            }
+
+            .title {
+              text-align: right;
+            }
+
+            .title h1 {
+              margin: 0;
+              color: #00615f;
+              font-size: 28px;
+              letter-spacing: 0.04em;
+            }
+
+            .title p {
+              margin: 6px 0 0;
+              font-size: 13px;
+              font-weight: 800;
+            }
+
+            .grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 10px;
+              margin-bottom: 18px;
+            }
+
+            .field {
+              border: 1px solid #cbd5e1;
+              padding: 10px;
+              min-height: 54px;
+            }
+
+            .field span {
+              display: block;
+              font-size: 10px;
+              text-transform: uppercase;
+              color: #6b7280;
+              font-weight: 800;
+              margin-bottom: 4px;
+            }
+
+            .field strong {
+              font-size: 15px;
+            }
+
+            .amount-box {
+              border: 2px solid #00615f;
+              padding: 18px;
+              margin: 18px 0;
+              text-align: right;
+            }
+
+            .amount-box span {
+              display: block;
+              font-size: 12px;
+              color: #6b7280;
+              font-weight: 800;
+              text-transform: uppercase;
+            }
+
+            .amount-box strong {
+              color: #00615f;
+              font-size: 28px;
+            }
+
+            .section {
+              border: 1px solid #cbd5e1;
+              margin-bottom: 16px;
+            }
+
+            .section-title {
+              background: #00615f;
+              color: #ffffff;
+              padding: 9px 10px;
+              font-weight: 900;
+              text-transform: uppercase;
+              font-size: 13px;
+            }
+
+            .section-body {
+              padding: 12px;
+              font-size: 13px;
+              line-height: 1.4;
+              min-height: 80px;
+            }
+
+            .signature {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 18px;
+              margin-top: 36px;
+            }
+
+            .signature div {
+              border-top: 1px solid #111827;
+              padding-top: 8px;
+              font-size: 11px;
+              text-transform: uppercase;
+              color: #374151;
+            }
+
+            @media print {
+              body { background: #ffffff; }
+              .actions { display: none; }
+              .page {
+                width: auto;
+                min-height: auto;
+                margin: 0;
+                padding: 0.35in 0.45in;
+              }
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="actions">
+            <button class="close-button" onclick="window.close()">Close Preview</button>
+            <button class="print-button" onclick="window.print()">Print Invoice</button>
+          </div>
+
+          <main class="page">
+            <div class="top">
+              <div>
+                <div class="brand">INTRAL CONNECT</div>
+                <div class="company">
+                  1900 Crown Colony Drive, Suite 407<br />
+                  Quincy, MA 02169<br />
+                  (617) 439-5880
+                </div>
+              </div>
+
+              <div class="title">
+                <h1>INVOICE</h1>
+                <p>${invoice.invoiceNumber}</p>
+              </div>
+            </div>
+
+            <section class="grid">
+              <div class="field"><span>Customer</span><strong>${job.customer || "-"}</strong></div>
+              <div class="field"><span>Invoice Date</span><strong>${invoice.invoiceDate || "-"}</strong></div>
+              <div class="field"><span>JO Number</span><strong>${job.joNumber || "-"}</strong></div>
+              <div class="field"><span>SO Number</span><strong>${job.soNumber || "Not Released"}</strong></div>
+              <div class="field"><span>Job Type</span><strong>${job.jobType || "-"}</strong></div>
+              <div class="field"><span>Status</span><strong>${job.releaseStatus || "-"}</strong></div>
+            </section>
+
+            <div class="amount-box">
+              <span>Invoice Amount</span>
+              <strong>${getInvoiceAmountDisplay(invoice.invoiceAmount)}</strong>
+            </div>
+
+            <section class="section">
+              <div class="section-title">Billing Notes</div>
+              <div class="section-body">
+                ${invoice.billingNotes || "No billing notes entered."}
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-title">Operational Reference</div>
+              <div class="section-body">
+                ${job.details || "No job details provided."}
+                ${job.additionalDetails ? `<br /><br />${job.additionalDetails}` : ""}
+              </div>
+            </section>
+
+            <div class="signature">
+              <div>Prepared By / Date</div>
+              <div>Approved By / Date</div>
+            </div>
+          </main>
+        </body>
+      </html>
+    `;
+  };
+
+  const printInvoice = () => {
+    if (!selectedJob) {
+      alert("Select one JO before printing an invoice.");
+      return;
+    }
+
+    const activeInvoice = getActiveInvoice();
+    const amount = Number(activeInvoice.invoiceAmount || invoiceForm.invoiceAmount || 0);
+
+    if (!amount || amount <= 0) {
+      alert("Invoice Amount ($ USD) must be entered before printing.");
+      setExpandedSection("invoice");
+      return;
+    }
+
+    const invoiceWindow = window.open("", "_blank", "width=950,height=850");
+
+    if (!invoiceWindow) {
+      alert("Popup blocked. Please allow popups to print the invoice.");
+      return;
+    }
+
+    invoiceWindow.document.open();
+    invoiceWindow.document.write(buildInvoiceHtml(selectedJob));
+    invoiceWindow.document.close();
+  };
+
+  const renderInvoiceControlSection = () => {
+    if (!selectedJob) return null;
+
+    const activeInvoice = getActiveInvoice();
+
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "invoice",
+          "Invoice Control",
+          "Create and print invoice independently from job completion"
+        )}
+
+        {expandedSection === "invoice" && (
+          <div className="phase17-accordion-body">
+            <div className="order-release-summary-grid order-workbench-field-grid">
+              <div className="order-detail-field">
+                <span>Invoice Number</span>
+                <input
+                  value={activeInvoice.invoiceNumber || getInvoiceNumber()}
+                  onChange={(e) => updateInvoiceForm("invoiceNumber", e.target.value)}
+                  placeholder="Invoice Number"
+                />
+              </div>
+
+              <div className="order-detail-field">
+                <span>Customer</span>
+                <strong>{selectedJob.customer || "-"}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>JO Number</span>
+                <strong>{selectedJob.joNumber}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>SO Number</span>
+                <strong>{selectedJob.soNumber || "Not Released"}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Invoice Amount ($ USD)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={activeInvoice.invoiceAmount || ""}
+                  onChange={(e) => updateInvoiceForm("invoiceAmount", e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="order-detail-field">
+                <span>Invoice Date</span>
+                <input
+                  type="date"
+                  value={activeInvoice.invoiceDate || new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => updateInvoiceForm("invoiceDate", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Billing Notes</h3>
+              <textarea
+                rows="4"
+                value={activeInvoice.billingNotes || ""}
+                onChange={(e) => updateInvoiceForm("billingNotes", e.target.value)}
+                placeholder="Enter invoice notes, billing explanation, customer reference, charge details, or special billing instruction."
+                style={{
+                  width: "100%",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(147, 197, 253, 0.28)",
+                  background: "rgba(15, 23, 42, 0.84)",
+                  color: "#ffffff",
+                  padding: "10px",
+                  fontWeight: 800,
+                }}
+              />
+            </div>
+
+            {savedInvoices[selectedJob.joNumber] && (
+              <div className="dashboard-message">
+                Invoice {savedInvoices[selectedJob.joNumber].invoiceNumber} saved for {selectedJob.joNumber}.
+              </div>
+            )}
+
+            <div className="shipping-station-actions shipping-workbench-actions">
+              <button className="inventory-primary-button" onClick={saveInvoice}>
+                Save Invoice
+              </button>
+
+              <button className="order-success-button" onClick={printInvoice}>
+                Print Invoice
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderSelectedSummary = () => {
     return (
       <aside className="phase17-smart-summary order-workbench-summary">
@@ -1183,6 +1646,17 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
             </button>
           )}
 
+          {selectedJob && (
+            <button
+              type="button"
+              className="phase17-secondary-button"
+              onClick={() => setExpandedSection("invoice")}
+              style={{ marginTop: "8px", width: "100%" }}
+            >
+              Invoice Control
+            </button>
+          )}
+
           <p className="job-summary-note">
             Order Central controls allocation review, additional work, SO generation,
             and release into Shipping Operations.
@@ -1227,6 +1701,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               {renderAllocationSection()}
               {renderAdditionalWorkSection()}
               {renderPickAuthorizationSection()}
+              {renderInvoiceControlSection()}
               {renderReleaseSection()}
             </div>
 
