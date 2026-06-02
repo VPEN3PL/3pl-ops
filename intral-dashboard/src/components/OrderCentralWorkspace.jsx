@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import logo from "../assets/intral-logo.jpg";
 
 const additionalWorkOptions = [
   "Add forklift support",
@@ -266,6 +267,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     if (sectionKey === "additionalWork") {
       return selectedJob.additionalWork?.length > 0 ? "Attached" : "Optional";
     }
+    if (sectionKey === "pickList") return "Printable";
     if (sectionKey === "release") return canReleaseJob(selectedJob) ? "Allowed" : "Blocked";
     return "";
   };
@@ -557,6 +559,462 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     );
   };
 
+  const isAMCratingJob = (job) => {
+    if (!job) return false;
+
+    const searchableText = [
+      job.shipTo,
+      job.finalDestination,
+      job.details,
+      job.additionalDetails,
+      ...(job.additionalWork || []),
+      job.inventoryDetails?.destinationLocation,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes("a&m") || searchableText.includes("crating");
+  };
+
+  const getPickListNumber = (job) => {
+    const source = String(job?.joNumber || "000000").replace(/\D/g, "");
+    return `PL-${source.padStart(6, "0").slice(-6)}`;
+  };
+
+  const getJobNumberNumeric = (job) => {
+    const source = String(job?.joNumber || "000000").replace(/\D/g, "");
+    return source.padStart(6, "0").slice(-6);
+  };
+
+  const getPickRows = (job) => {
+    if (!job) return [];
+
+    const inventory = job.inventoryDetails;
+
+    if (inventory) {
+      return [
+        {
+          line: 1,
+          qty: inventory.requestedQty || job.pieces || "1",
+          uom: job.jobType === "Shipping" ? "PLT" : "EA",
+          partNumber: inventory.partNumber || "-",
+          inventoryId: inventory.inventoryId || "-",
+          description:
+            job.details ||
+            job.additionalDetails ||
+            "Customer material staged for operational request.",
+          storageDate: job.requestedDate || "-",
+          barcode: inventory.inventoryId || job.joNumber || "-",
+        },
+      ];
+    }
+
+    return [
+      {
+        line: 1,
+        qty: job.pieces || "1",
+        uom: "EA",
+        partNumber: job.jobType || "-",
+        inventoryId: job.joNumber || "-",
+        description:
+          job.details ||
+          job.additionalDetails ||
+          "Operational request pending inventory assignment.",
+        storageDate: job.requestedDate || "-",
+        barcode: job.soNumber || job.joNumber || "-",
+      },
+    ];
+  };
+
+  const buildPickListDocumentHtml = (job, autoPrint = false) => {
+    if (!job) return "";
+
+    const rows = getPickRows(job);
+    const amJob = isAMCratingJob(job);
+
+    const shipFromName = amJob ? "A&M Warehouse" : "INTRAL Warehouse";
+    const shipFromLines = [
+      amJob
+        ? `Tag Location: A&M; ${job.inventoryDetails?.destinationLocation || "TAG / Location pending"}`
+        : `Warehouse / STG: ${job.stagingLocation || "Generated at Release"}`,
+      `Warehouse Zone: ${job.inventoryDetails?.subInventory || job.originalLocation || "INTRAL STG"}`,
+      `Sq Ft: ${job.squareFeet || "N/A"}`,
+      "Contact: Warehouse Receiving Team",
+    ];
+
+    const shipToName = job.customer || "Customer / Project Site";
+    const shipToLines = [
+      job.shipTo || job.finalDestination || "Destination pending",
+      job.finalDestination && job.finalDestination !== job.shipTo
+        ? job.finalDestination
+        : "",
+      job.additionalDetails?.includes("Attn:")
+        ? job.additionalDetails
+        : "Attn: Receiving / Project Contact",
+      "Address pending final confirmation",
+    ].filter(Boolean);
+
+    const additionalWork =
+      job.additionalWork && job.additionalWork.length > 0
+        ? job.additionalWork.map((item) => `<li>${item}</li>`).join("")
+        : "<li>No additional work attached.</li>";
+
+    const rowHtml = rows
+      .map(
+        (row) => `
+          <tr>
+            <td class="line-col">${row.line}</td>
+            <td class="qty-col">${row.qty}</td>
+            <td class="uom-col">${row.uom}</td>
+            <td class="pn-col">${row.partNumber}</td>
+            <td class="inv-col">${row.inventoryId}</td>
+            <td class="desc-col">${row.description}</td>
+            <td class="date-col">${row.storageDate}</td>
+            <td class="scan-col">*${row.barcode}*</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const amChecklist = amJob
+      ? `
+        <div class="section checklist-section">
+          <div class="section-title">A&M CRATING CHECKLIST</div>
+          <div class="checklist-grid">
+            <span>□ Plywood</span>
+            <span>□ Heat Treat Lumber Spec</span>
+            <span>□ Skid</span>
+            <span>□ Net Weight Required</span>
+            <span>□ Verify Parts / Packing List</span>
+            <span>□ P&G Crating Specifications</span>
+          </div>
+        </div>
+      `
+      : "";
+
+    return `
+      <!doctype html>
+      <html>
+        <head>
+          <title>INTRAL Pick List - ${getPickListNumber(job)}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; background: #f3f4f6; font-family: Arial, Helvetica, sans-serif; color: #111827; }
+            .page { width: 8.5in; min-height: 11in; margin: 0 auto; padding: 0.55in 0.62in; background: #ffffff; }
+            .top { display: grid; grid-template-columns: 1fr 1.15fr 1.4fr; gap: 18px; align-items: start; margin-bottom: 14px; }
+            .logo { width: 92px; height: 92px; object-fit: cover; display: block; margin-bottom: 10px; }
+            .company-info { font-size: 12px; line-height: 1.25; }
+            .pick-meta { font-size: 13px; line-height: 1.25; margin-top: 102px; }
+            .pick-meta strong { font-weight: 800; }
+            .title { text-align: right; color: #00615f; font-weight: 900; font-size: 24px; line-height: 1.12; letter-spacing: 0.02em; text-transform: uppercase; margin-top: 2px; }
+            .rule { border: 0; border-top: 2px solid #00615f; margin: 12px 0 14px; }
+            .two-col-section { border: 1px solid #cbd5e1; margin-bottom: 12px; }
+            .two-col-header { display: grid; grid-template-columns: 1fr 1fr; background: #00615f; color: #ffffff; font-weight: 900; font-size: 13px; text-transform: uppercase; }
+            .two-col-header div, .two-col-body div { padding: 9px 10px; }
+            .two-col-body { display: grid; grid-template-columns: 1fr 1fr; font-size: 12.5px; line-height: 1.25; }
+            .section { border: 1px solid #cbd5e1; margin-bottom: 12px; }
+            .section-title { background: #00615f; color: #ffffff; font-weight: 900; font-size: 13px; text-transform: uppercase; padding: 9px 10px; }
+            .section-body { padding: 11px 10px; font-size: 12.5px; line-height: 1.28; }
+            .section-body p { margin: 0 0 4px; }
+            .pick-body-title { font-weight: 900; font-size: 13px; margin: 8px 0 4px; }
+            table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10px; }
+            th { background: #00615f; color: #ffffff; font-weight: 900; padding: 8px 5px; border: 1px solid #d1d5db; vertical-align: middle; white-space: normal; line-height: 1.08; }
+            td { border: 1px solid #d1d5db; padding: 8px 6px; vertical-align: top; line-height: 1.22; word-break: normal; overflow-wrap: break-word; }
+            .line-col { width: 58px; min-width: 58px; text-align: center; white-space: nowrap !important; word-break: keep-all !important; overflow-wrap: normal !important; }
+            th.line-col { white-space: nowrap !important; word-break: keep-all !important; overflow-wrap: normal !important; }
+            .qty-col { width: 42px; text-align: center; }
+            .uom-col { width: 46px; text-align: center; }
+            .pn-col { width: 112px; }
+            .inv-col { width: 116px; }
+            .desc-col { width: auto; }
+            .date-col { width: 86px; text-align: center; }
+            .scan-col { width: 104px; text-align: center; }
+            .signature-table { margin-top: 16px; font-size: 11px; }
+            .signature-table th { background: #e5ecef; color: #555; text-align: left; height: 28px; }
+            .signature-table td { height: 48px; }
+            .system-note { margin-top: 10px; font-size: 9.5px; line-height: 1.25; color: #374151; }
+            .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; padding: 11px 10px; font-size: 12px; font-weight: 700; }
+            .actions { display: flex; justify-content: flex-end; gap: 10px; margin: 0 auto 12px; width: 8.5in; padding-top: 12px; }
+            .actions button { border: none; border-radius: 8px; padding: 9px 14px; font-weight: 800; cursor: pointer; }
+            .print-button { background: #00615f; color: #ffffff; }
+            .close-button { background: #e5e7eb; color: #111827; }
+            @media print { body { background: #ffffff; } .page { width: auto; min-height: auto; margin: 0; padding: 0.35in 0.45in; } .actions { display: none; } }
+          </style>
+        </head>
+
+        <body>
+          <div class="actions">
+            <button class="close-button" onclick="window.close()">Close Preview</button>
+            <button class="print-button" onclick="window.print()">Print Pick List</button>
+          </div>
+
+          <main class="page">
+            <div class="top">
+              <div>
+                <img src="${logo}" alt="INTRAL" class="logo" />
+                <div class="company-info">
+                  1900 Crown Colony Drive, Suite 407<br />
+                  Quincy, MA 02169<br />
+                  (617) 439-5880
+                </div>
+              </div>
+
+              <div class="pick-meta">
+                <strong>Pick List #:</strong> ${getPickListNumber(job)}<br />
+                <strong>Job #:</strong> ${getJobNumberNumeric(job)}<br />
+                <strong>Date:</strong> ${new Date().toLocaleDateString()}
+              </div>
+
+              <div class="title">
+                INTRAL PICK LIST / MATERIAL<br />
+                RELEASE
+              </div>
+            </div>
+
+            <hr class="rule" />
+
+            <section class="two-col-section">
+              <div class="two-col-header">
+                <div>Ship From</div>
+                <div>Ship To</div>
+              </div>
+
+              <div class="two-col-body">
+                <div>
+                  <strong>${shipFromName}</strong><br />
+                  ${shipFromLines.join("<br />")}
+                </div>
+
+                <div>
+                  <strong>${shipToName}</strong><br />
+                  ${shipToLines.join("<br />")}
+                </div>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-title">Internal Request Details</div>
+              <div class="section-body">
+                <p><strong>Internal Request From</strong></p>
+                <p>Required Customer Department: ${job.customer || "Operations"}</p>
+                <p>Requested By: ${job.requestor || "-"}</p>
+                <p>Charge # / SWO: ${job.chargeNumber || job.swoNumber || "Pending"}</p>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-title">Description of Request</div>
+              <div class="section-body">
+                ${
+                  job.details ||
+                  "Pull stored customer material for outbound preparation. Verify tag, system inventory ID, part number, and quantity before staging. Scan each line item barcode to confirm pick completion. Any mismatch must be placed on hold and escalated before shipment."
+                }
+                ${job.additionalDetails ? `<br /><br />${job.additionalDetails}` : ""}
+                ${
+                  job.additionalWork?.length
+                    ? `<br /><br /><strong>Additional Work:</strong><ul>${additionalWork}</ul>`
+                    : ""
+                }
+              </div>
+            </section>
+
+            ${amChecklist}
+
+            <div class="pick-body-title">Pick List Body</div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th class="line-col">Line</th>
+                  <th class="qty-col">Qty</th>
+                  <th class="uom-col">UOM</th>
+                  <th class="pn-col">PN</th>
+                  <th class="inv-col">System Inventory<br />ID</th>
+                  <th class="desc-col">Description</th>
+                  <th class="date-col">Storage<br />Date</th>
+                  <th class="scan-col">Barcode / Scan</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                ${rowHtml}
+              </tbody>
+            </table>
+
+            <table class="signature-table">
+              <thead>
+                <tr>
+                  <th>Picker Name / Signature</th>
+                  <th>Scanner Confirmation</th>
+                  <th>Date / Time Closed</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="system-note">
+              <strong>System note:</strong> When all lines are scanned and confirmed, inventory status changes to Picked/Closed and the selected quantity is removed from available stock. A full transaction history remains attached to each System Inventory ID and Job #.
+            </div>
+          </main>
+
+          ${
+            autoPrint
+              ? `<script>window.onload = function() { setTimeout(function() { window.print(); }, 250); };</script>`
+              : ""
+          }
+        </body>
+      </html>
+    `;
+  };
+
+  const previewPickList = () => {
+    if (!selectedJob) {
+      alert("Select one job first before previewing the Pick List.");
+      return;
+    }
+
+    const previewWindow = window.open("", "_blank", "width=1050,height=900");
+
+    if (!previewWindow) {
+      alert("Popup blocked. Please allow popups to preview the Pick List.");
+      return;
+    }
+
+    previewWindow.document.open();
+    previewWindow.document.write(buildPickListDocumentHtml(selectedJob, false));
+    previewWindow.document.close();
+  };
+
+  const printPickList = () => {
+    if (!selectedJob) {
+      alert("Select one job first before printing the Pick List.");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank", "width=1050,height=900");
+
+    if (!printWindow) {
+      alert("Popup blocked. Please allow popups to print the Pick List.");
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(buildPickListDocumentHtml(selectedJob, true));
+    printWindow.document.close();
+  };
+
+  const renderPickAuthorizationSection = () => {
+    if (!selectedJob) return null;
+
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "pickList",
+          "Pick List / Material Release",
+          "Preview and print the INTRAL material release document"
+        )}
+
+        {expandedSection === "pickList" && (
+          <div className="phase17-accordion-body">
+            <div className="order-release-summary-grid order-workbench-field-grid">
+              <div className="order-detail-field">
+                <span>Pick List #</span>
+                <strong>{getPickListNumber(selectedJob)}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>JO Number</span>
+                <strong>{selectedJob.joNumber}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>SO Number</span>
+                <strong>{selectedJob.soNumber || "Not Released"}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Customer</span>
+                <strong>{selectedJob.customer}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Inventory ID</span>
+                <strong>{selectedJob.inventoryDetails?.inventoryId || "-"}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Pull Location</span>
+                <strong>
+                  {selectedJob.inventoryDetails?.pullFromLocation ||
+                    selectedJob.originalLocation ||
+                    "-"}
+                </strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Qty</span>
+                <strong>
+                  {selectedJob.inventoryDetails?.requestedQty ||
+                    selectedJob.pieces ||
+                    "-"}
+                </strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Destination</span>
+                <strong>
+                  {selectedJob.inventoryDetails?.destinationLocation ||
+                    selectedJob.shipTo ||
+                    selectedJob.finalDestination ||
+                    "-"}
+                </strong>
+              </div>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Document Format</h3>
+              <p>
+                Generates the INTRAL Pick List / Material Release document with
+                ship-from, ship-to, internal request details, description,
+                pick body, and signature fields.
+              </p>
+            </div>
+
+            {isAMCratingJob(selectedJob) && (
+              <div className="order-detail-section compact-order-section">
+                <h3>A&M Crating Checklist Included</h3>
+                <p>□ Plywood</p>
+                <p>□ Heat Treat Lumber Spec</p>
+                <p>□ Skid</p>
+                <p>□ Net Weight Required</p>
+                <p>□ Verify Parts / Packing List</p>
+                <p>□ P&G Crating Specifications</p>
+              </div>
+            )}
+
+            <div className="shipping-station-actions shipping-workbench-actions">
+              <button className="inventory-primary-button" onClick={previewPickList}>
+                Preview Pick List
+              </button>
+
+              <button className="order-success-button" onClick={printPickList}>
+                Print Pick List
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderAdditionalWorkSection = () => {
     if (!selectedJob) return null;
 
@@ -714,6 +1172,17 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
             {selectedJob ? "Open Release Control" : "Select JO"}
           </button>
 
+          {selectedJob && (
+            <button
+              type="button"
+              className="phase17-secondary-button"
+              onClick={() => setExpandedSection("pickList")}
+              style={{ marginTop: "8px", width: "100%" }}
+            >
+              Preview Pick List
+            </button>
+          )}
+
           <p className="job-summary-note">
             Order Central controls allocation review, additional work, SO generation,
             and release into Shipping Operations.
@@ -757,6 +1226,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               {renderSelectedGovernanceSection()}
               {renderAllocationSection()}
               {renderAdditionalWorkSection()}
+              {renderPickAuthorizationSection()}
               {renderReleaseSection()}
             </div>
 
