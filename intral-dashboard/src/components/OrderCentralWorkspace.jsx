@@ -45,6 +45,8 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
     if (orderMode === "view") setExpandedSection("governance");
     if (orderMode === "addWork") setExpandedSection("additionalWork");
+    if (orderMode === "pickList") setExpandedSection("pickList");
+    if (orderMode === "invoice") setExpandedSection("invoice");
     if (orderMode === "release") setExpandedSection("release");
   }, [orderMode]);
 
@@ -78,11 +80,19 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
   const totalPages = Math.ceil(activeList.length / ordersPerPage);
 
+  const getDefaultSectionForMode = () => {
+    if (orderMode === "addWork") return "additionalWork";
+    if (orderMode === "pickList") return "pickList";
+    if (orderMode === "invoice") return "invoice";
+    if (orderMode === "release") return "release";
+    return "governance";
+  };
+
   const selectJob = (job) => {
     setSelectedJobNumber((current) =>
       current === job.joNumber ? "" : job.joNumber
     );
-    setExpandedSection("governance");
+    setExpandedSection(getDefaultSectionForMode());
   };
 
   const updateInvoiceForm = (field, value) => {
@@ -1666,6 +1676,109 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     );
   };
 
+  const isDedicatedActionMode = () => {
+    return orderMode === "pickList" || orderMode === "invoice" || orderMode === "release";
+  };
+
+  const getOrderCentralHeaderText = () => {
+    if (orderMode === "pickList") return "Pick List / Material Release";
+    if (orderMode === "invoice") return "Invoice Control";
+    if (orderMode === "release") return "Release Control";
+    if (orderMode === "addWork") return "Additional Work";
+    if (orderMode === "view") return "Order Detail View";
+    return "Order Central Workbench";
+  };
+
+  const getOrderCentralHeaderDescription = () => {
+    if (orderMode === "pickList") {
+      return "Preview and print the INTRAL Pick List / Material Release document for the selected JO.";
+    }
+
+    if (orderMode === "invoice") {
+      return "Create, save, and print customer invoice details independently from job completion.";
+    }
+
+    if (orderMode === "release") {
+      return "Validate allocation, generate SO/STG, and release approved work to Shipping Operations.";
+    }
+
+    if (orderMode === "addWork") {
+      return "Add forklift, labor, crating review, carrier coordination, or special handling to the selected JO.";
+    }
+
+    if (orderMode === "view") {
+      return "Review selected job order governance, allocation, and release readiness.";
+    }
+
+    return "Review job orders, govern allocation, add work, generate SO/STG, and release approved work.";
+  };
+
+  const renderOrderCentralSections = () => {
+    if (orderMode === "pickList") {
+      return (
+        <>
+          {renderOrderQueueSection()}
+          {renderPickAuthorizationSection()}
+        </>
+      );
+    }
+
+    if (orderMode === "invoice") {
+      return (
+        <>
+          {renderOrderQueueSection()}
+          {renderInvoiceControlSection()}
+        </>
+      );
+    }
+
+    if (orderMode === "release") {
+      return (
+        <>
+          {renderOrderQueueSection()}
+          {renderAllocationSection()}
+          {renderReleaseSection()}
+        </>
+      );
+    }
+
+    if (orderMode === "addWork") {
+      return (
+        <>
+          {renderOrderQueueSection()}
+          {renderAdditionalWorkSection()}
+        </>
+      );
+    }
+
+    if (orderMode === "view") {
+      return (
+        <>
+          {renderOrderQueueSection()}
+          {renderSelectedGovernanceSection()}
+          {renderAllocationSection()}
+        </>
+      );
+    }
+
+    if (orderMode === "open" || orderMode === "released" || orderMode === "closed") {
+      return (
+        <>
+          {renderOrderQueueSection()}
+          {renderSelectedGovernanceSection()}
+          {renderAllocationSection()}
+        </>
+      );
+    }
+
+    return (
+      <>
+        {renderOrderQueueSection()}
+        {selectedJob && renderSelectedGovernanceSection()}
+      </>
+    );
+  };
+
   return (
     <div className="inventory-subview order-central-workspace phase17-workbench-screen">
       <div className="inventory-header-row order-central-header">
@@ -1683,26 +1796,28 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
           <div className="phase17-smart-card-header">
             <div>
               <span>Smart Order Control Card</span>
-              <strong>Order Central Workbench</strong>
-              <p>Review job orders, govern allocation, add work, generate SO/STG, and release approved work.</p>
+              <strong>{getOrderCentralHeaderText()}</strong>
+              <p>{getOrderCentralHeaderDescription()}</p>
             </div>
 
             <div className="phase17-progress">
               <span className="active">1 Select JO</span>
-              <span className={selectedJob ? "active" : ""}>2 Govern</span>
-              <span className={selectedJob && canReleaseJob(selectedJob) ? "active" : ""}>3 Release</span>
+              <span className={selectedJob ? "active" : ""}>
+                {isDedicatedActionMode() ? "2 Action" : "2 Govern"}
+              </span>
+              <span className={selectedJob && canReleaseJob(selectedJob) ? "active" : ""}>
+                {orderMode === "invoice"
+                  ? "3 Invoice"
+                  : orderMode === "pickList"
+                  ? "3 Print"
+                  : "3 Release"}
+              </span>
             </div>
           </div>
 
           <div className="phase17-smart-card-body">
             <div className="phase17-smart-sections">
-              {renderOrderQueueSection()}
-              {renderSelectedGovernanceSection()}
-              {renderAllocationSection()}
-              {renderAdditionalWorkSection()}
-              {renderPickAuthorizationSection()}
-              {renderInvoiceControlSection()}
-              {renderReleaseSection()}
+              {renderOrderCentralSections()}
             </div>
 
             {renderSelectedSummary()}
@@ -1723,9 +1838,39 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
             <button
               type="button"
               className="inventory-primary-button phase17-review-button"
-              onClick={() => setExpandedSection(selectedJob ? "release" : "queue")}
+              onClick={() => {
+                if (!selectedJob) {
+                  setExpandedSection("queue");
+                  return;
+                }
+
+                if (orderMode === "pickList") {
+                  setExpandedSection("pickList");
+                  return;
+                }
+
+                if (orderMode === "invoice") {
+                  setExpandedSection("invoice");
+                  return;
+                }
+
+                if (orderMode === "addWork") {
+                  setExpandedSection("additionalWork");
+                  return;
+                }
+
+                setExpandedSection("release");
+              }}
             >
-              {selectedJob ? "Release Control →" : "Select JO →"}
+              {!selectedJob
+                ? "Select JO →"
+                : orderMode === "pickList"
+                ? "Pick List →"
+                : orderMode === "invoice"
+                ? "Invoice Control →"
+                : orderMode === "addWork"
+                ? "Additional Work →"
+                : "Release Control →"}
             </button>
           </div>
         </div>

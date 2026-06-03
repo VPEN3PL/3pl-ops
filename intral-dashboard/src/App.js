@@ -543,6 +543,26 @@ function App() {
       );
     }
 
+    if (tab === "orders-action-picklist") {
+      return (
+        <OrderCentralWorkspace
+          orderMode="pickList"
+          orders={orders}
+          setOrders={setOrders}
+        />
+      );
+    }
+
+    if (tab === "orders-action-invoice") {
+      return (
+        <OrderCentralWorkspace
+          orderMode="invoice"
+          orders={orders}
+          setOrders={setOrders}
+        />
+      );
+    }
+
     if (tab === "orders-action-release") {
       return (
         <OrderCentralWorkspace

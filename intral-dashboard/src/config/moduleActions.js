@@ -57,6 +57,8 @@ export const moduleActions = {
       items: [
         { label: "View", tab: "orders-action-view" },
         { label: "Add Additional Work", tab: "orders-action-add-work" },
+        { label: "Pick List / Material Release", tab: "orders-action-picklist" },
+        { label: "Invoice Control", tab: "orders-action-invoice" },
         { label: "Release", tab: "orders-action-release" },
       ],
     },
@@ -113,6 +115,8 @@ export const getModuleKeyFromTab = (tab) => {
     tab === "orders-closed" ||
     tab === "orders-action-view" ||
     tab === "orders-action-add-work" ||
+    tab === "orders-action-picklist" ||
+    tab === "orders-action-invoice" ||
     tab === "orders-action-release"
   ) {
     return "orders";
