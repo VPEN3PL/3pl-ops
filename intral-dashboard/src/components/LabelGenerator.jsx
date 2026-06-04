@@ -21,6 +21,24 @@ function LabelGenerator({ initialData }) {
   const [isReprintMode, setIsReprintMode] = useState(false);
   const [labelPrintQty, setLabelPrintQty] = useState("1");
   const [printStatus, setPrintStatus] = useState("");
+  const [printerProfile, setPrinterProfile] = useState(() => {
+    try {
+      const savedProfile = localStorage.getItem("intral-connect-printer-profile");
+      return savedProfile
+        ? JSON.parse(savedProfile)
+        : {
+            profileName: "Default Zebra Printer",
+            printMode: "serial",
+            notes: "Zebra ZT411 / COM / Bluetooth",
+          };
+    } catch (error) {
+      return {
+        profileName: "Default Zebra Printer",
+        printMode: "serial",
+        notes: "Zebra ZT411 / COM / Bluetooth",
+      };
+    }
+  });
 
   useEffect(() => {
     if (initialData) {
@@ -63,6 +81,39 @@ function LabelGenerator({ initialData }) {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const updatePrinterProfile = (field, value) => {
+    setPrinterProfile((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const savePrinterProfile = () => {
+    localStorage.setItem(
+      "intral-connect-printer-profile",
+      JSON.stringify(printerProfile)
+    );
+
+    setPrintStatus(
+      `Printer profile saved: ${printerProfile.profileName || "Printer Profile"}`
+    );
+  };
+
+  const resetPrinterProfile = () => {
+    const defaultProfile = {
+      profileName: "Default Zebra Printer",
+      printMode: "serial",
+      notes: "Zebra ZT411 / COM / Bluetooth",
+    };
+
+    setPrinterProfile(defaultProfile);
+    localStorage.setItem(
+      "intral-connect-printer-profile",
+      JSON.stringify(defaultProfile)
+    );
+    setPrintStatus("Printer profile reset to Zebra Serial / COM mode.");
   };
 
   const cleanZplText = (value) => {
@@ -268,6 +319,99 @@ ${logoZpl}
     }
   };
 
+  const buildBrowserPreviewHtml = () => {
+    const isAmSite = label.site === "AM" || label.site === "A&M";
+
+    return `
+      <!doctype html>
+      <html>
+        <head>
+          <title>INTRAL Inventory Label Preview - ${cleanZplText(label.inventoryId)}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; background: #f3f4f6; font-family: Arial, Helvetica, sans-serif; color: #111827; }
+            .actions { width: 4.25in; margin: 16px auto 10px; display: flex; justify-content: flex-end; gap: 8px; }
+            .actions button { border: none; border-radius: 8px; padding: 9px 12px; font-weight: 800; cursor: pointer; }
+            .print-button { background: #2563eb; color: white; }
+            .close-button { background: #e5e7eb; color: #111827; }
+            .label { width: 4.25in; min-height: 4.25in; margin: 0 auto; border: 2px solid #111827; padding: 10px; background: #ffffff; color: #111827; }
+            .header { display: grid; grid-template-columns: 190px 1fr; gap: 10px; align-items: center; border-bottom: 2px solid #111827; padding-bottom: 7px; margin-bottom: 7px; }
+            .logo { height: 72px; max-width: 190px; object-fit: contain; }
+            h3 { margin: 0; font-size: 17px; line-height: 18px; }
+            .subtitle { font-weight: bold; font-size: 12px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 13px; }
+            p { margin: 3px 0; }
+            .description { margin: 6px 0 3px; font-size: 13px; }
+            .inventory-id { margin: 8px 0 4px; font-size: 17px; }
+            .barcode { margin-top: 6px; padding: 8px; border: 1px solid #111827; text-align: center; font-weight: bold; letter-spacing: 2px; min-height: 48px; }
+            @media print {
+              body { background: #ffffff; }
+              .actions { display: none; }
+              .label { margin: 0; border: 2px solid #111827; page-break-after: always; }
+              @page { size: 4.25in 4.25in; margin: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="actions">
+            <button class="close-button" onclick="window.close()">Close Preview</button>
+            <button class="print-button" onclick="window.print()">Print Preview Label</button>
+          </div>
+
+          <div class="label">
+            <div class="header">
+              <img src="${intralLogo}" alt="INTRAL Logo" class="logo" />
+              <div>
+                <h3>INTRAL INVENTORY LABEL</h3>
+                <div class="subtitle">3PL Warehouse Operations</div>
+              </div>
+            </div>
+
+            <div class="grid">
+              <p><strong>Part #:</strong> ${cleanZplText(label.partNumber)}</p>
+              <p><strong>Qty:</strong> ${cleanZplText(label.quantity)}</p>
+              <p><strong>Customer:</strong> ${cleanZplText(label.customer)}</p>
+              <p><strong>PO #:</strong> ${cleanZplText(label.poNumber)}</p>
+              <p><strong>COO:</strong> ${cleanZplText(label.countryOfOrigin)}</p>
+              <p><strong>${isAmSite ? "A&M Tag:" : "Site:"}</strong> ${
+                isAmSite ? cleanZplText(label.amTag) : cleanZplText(label.site)
+              }</p>
+              <p><strong>Sq Ft:</strong> ${cleanZplText(label.squareFeet)}</p>
+              <p><strong>Date:</strong> ${cleanZplText(label.date)}</p>
+            </div>
+
+            <p class="description"><strong>Description:</strong> ${cleanZplText(label.description)}</p>
+            <p class="inventory-id"><strong>Inventory ID:</strong> ${cleanZplText(label.inventoryId)}</p>
+
+            <div class="barcode">
+              *${cleanZplText(label.inventoryId) || "SCAN-ID"}*
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  };
+
+  const printBrowserPreviewLabel = () => {
+    if (!label.inventoryId) {
+      alert("Inventory ID is required before previewing.");
+      return;
+    }
+
+    const previewWindow = window.open("", "_blank", "width=720,height=720");
+
+    if (!previewWindow) {
+      alert("Popup blocked. Please allow popups to preview the label.");
+      return;
+    }
+
+    previewWindow.document.open();
+    previewWindow.document.write(buildBrowserPreviewHtml());
+    previewWindow.document.close();
+
+    setPrintStatus("Browser preview opened. Use Print Preview Label if needed.");
+  };
+
   const printLabel = async () => {
     if (!label.inventoryId) {
       alert("Inventory ID is required before printing.");
@@ -279,9 +423,14 @@ ${logoZpl}
       return;
     }
 
+    if (printerProfile.printMode === "browser") {
+      printBrowserPreviewLabel();
+      return;
+    }
+
     if (!("serial" in navigator)) {
       alert(
-        "Serial printing is not supported in this browser. Use Google Chrome or Microsoft Edge on the computer connected to the Zebra ZT411 printer."
+        "Serial printing is not supported in this browser. Switch the Printer Profile to Browser Preview Only, or use Google Chrome / Microsoft Edge on the computer connected to the Zebra ZT411 printer."
       );
       return;
     }
@@ -293,7 +442,9 @@ ${logoZpl}
       setPrintStatus("Preparing ZPL label...");
       const zpl = await buildZplLabel();
 
-      setPrintStatus("Waiting for Zebra serial / Bluetooth / COM printer selection...");
+      setPrintStatus(
+        `Waiting for printer selection: ${printerProfile.profileName || "Zebra Serial / COM Printer"}`
+      );
       port = await navigator.serial.requestPort();
 
       setPrintStatus("Opening Zebra printer port...");
@@ -363,23 +514,202 @@ ${logoZpl}
 
       <div
         style={{
-          background: "#f8fafc",
-          border: "1px solid #cbd5e1",
-          padding: "12px",
-          borderRadius: "8px",
+          background: "rgba(15, 23, 42, 0.92)",
+          border: "1px solid rgba(96, 165, 250, 0.35)",
+          padding: "14px",
+          borderRadius: "12px",
           marginBottom: "12px",
+          boxShadow: "0 8px 22px rgba(0, 0, 0, 0.22)",
         }}
       >
-        <strong>Printer Instructions</strong>
-        <p style={{ margin: "6px 0" }}>Label Size: 4.25 x 4.25</p>
-        <p style={{ margin: "6px 0" }}>
-          Click Print Label → select the Zebra serial / Bluetooth / COM printer
-          connection when prompted.
-        </p>
-        <p style={{ margin: "6px 0", fontSize: "13px", color: "#475569" }}>
-          This uses the Zebra serial/COM function and sends ZPL directly to the printer.
-          It does not use window.print().
-        </p>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "10px",
+          }}
+        >
+          <div>
+            <strong
+              style={{
+                color: "#ffffff",
+                fontSize: "16px",
+                letterSpacing: "0.02em",
+              }}
+            >
+              Printer Profile
+            </strong>
+            <p
+              style={{
+                color: "#cbd5e1",
+                fontSize: "12px",
+                margin: "4px 0 0",
+                fontWeight: 700,
+              }}
+            >
+              Saved locally for this browser / workstation.
+            </p>
+          </div>
+
+          <span
+            style={{
+              background:
+                printerProfile.printMode === "serial"
+                  ? "rgba(37, 99, 235, 0.28)"
+                  : "rgba(22, 163, 74, 0.24)",
+              border:
+                printerProfile.printMode === "serial"
+                  ? "1px solid rgba(147, 197, 253, 0.55)"
+                  : "1px solid rgba(134, 239, 172, 0.55)",
+              color:
+                printerProfile.printMode === "serial" ? "#bfdbfe" : "#bbf7d0",
+              borderRadius: "999px",
+              padding: "7px 10px",
+              fontSize: "11px",
+              fontWeight: 900,
+              whiteSpace: "nowrap",
+              textTransform: "uppercase",
+            }}
+          >
+            {printerProfile.printMode === "serial"
+              ? "Zebra Serial / COM"
+              : "Browser Preview"}
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+            gap: "10px",
+          }}
+        >
+          <div>
+            <label style={{ color: "#dbeafe", fontWeight: 900 }}>
+              Profile Name
+            </label>
+            <input
+              value={printerProfile.profileName}
+              onChange={(e) =>
+                updatePrinterProfile("profileName", e.target.value)
+              }
+              placeholder="Example: Oscar Zebra ZT411"
+              style={{
+                background: "#f8fafc",
+                color: "#0f172a",
+                border: "1px solid #bfdbfe",
+                borderRadius: "8px",
+                padding: "9px",
+                width: "100%",
+                fontWeight: 800,
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ color: "#dbeafe", fontWeight: 900 }}>
+              Print Mode
+            </label>
+            <select
+              value={printerProfile.printMode}
+              onChange={(e) =>
+                updatePrinterProfile("printMode", e.target.value)
+              }
+              style={{
+                background: "#f8fafc",
+                color: "#0f172a",
+                border: "1px solid #bfdbfe",
+                borderRadius: "8px",
+                padding: "9px",
+                width: "100%",
+                fontWeight: 800,
+              }}
+            >
+              <option value="serial">Zebra Serial / COM / Bluetooth</option>
+              <option value="browser">Browser Preview Only</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ color: "#dbeafe", fontWeight: 900 }}>
+              Printer Notes
+            </label>
+            <input
+              value={printerProfile.notes}
+              onChange={(e) => updatePrinterProfile("notes", e.target.value)}
+              placeholder="Example: Warehouse Zebra / COM3"
+              style={{
+                background: "#f8fafc",
+                color: "#0f172a",
+                border: "1px solid #bfdbfe",
+                borderRadius: "8px",
+                padding: "9px",
+                width: "100%",
+                fontWeight: 800,
+              }}
+            />
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            marginTop: "12px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={savePrinterProfile}
+            style={{
+              background: "#2563eb",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              fontWeight: 900,
+              cursor: "pointer",
+            }}
+          >
+            Save Printer Profile
+          </button>
+
+          <button
+            type="button"
+            onClick={resetPrinterProfile}
+            style={{
+              background: "rgba(71, 85, 105, 0.92)",
+              color: "#ffffff",
+              border: "1px solid rgba(203, 213, 225, 0.35)",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              fontWeight: 900,
+              cursor: "pointer",
+            }}
+          >
+            Reset
+          </button>
+
+          <button
+            type="button"
+            onClick={printBrowserPreviewLabel}
+            style={{
+              background: "#16a34a",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "9px 12px",
+              fontWeight: 900,
+              cursor: "pointer",
+            }}
+          >
+            Preview Label
+          </button>
+        </div>
+
       </div>
 
       {printStatus && (
@@ -403,17 +733,17 @@ ${logoZpl}
       {isReprintMode && (
         <div
           style={{
-            background: "#ecfdf5",
-            border: "1px solid #86efac",
-            color: "#166534",
-            padding: "12px",
+            background: "rgba(22, 163, 74, 0.16)",
+            border: "1px solid rgba(134, 239, 172, 0.45)",
+            color: "#bbf7d0",
+            padding: "8px 10px",
             borderRadius: "8px",
-            marginBottom: "12px",
-            fontWeight: "700",
+            marginBottom: "10px",
+            fontWeight: "800",
+            fontSize: "13px",
           }}
         >
-          Reprint mode: fields are locked. This screen is for reprinting the
-          existing inventory label only.
+          Reprint mode active — fields are locked.
         </div>
       )}
 

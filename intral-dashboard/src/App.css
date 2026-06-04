@@ -9300,3 +9300,27 @@ PHASE 22E COMMAND HEADER VISUAL SYNC
   height: 13px !important;
 }
 
+/* PHASE 22H-3B3 FIX — Executive Action Queue readability */
+
+.phase18-dashboard .dashboard-command-panel .dashboard-command-row > div,
+.phase14-dashboard .dashboard-command-panel .dashboard-command-row > div {
+  background: #f8fafc !important;
+}
+
+.phase18-dashboard .dashboard-command-panel .dashboard-command-row > div span,
+.phase14-dashboard .dashboard-command-panel .dashboard-command-row > div span {
+  color: #1e293b !important;
+  opacity: 1 !important;
+}
+
+.phase18-dashboard .dashboard-command-panel .dashboard-command-row > div strong,
+.phase14-dashboard .dashboard-command-panel .dashboard-command-row > div strong {
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+.phase18-dashboard .dashboard-command-panel .dashboard-command-row > div p,
+.phase14-dashboard .dashboard-command-panel .dashboard-command-row > div p {
+  color: #334155 !important;
+  opacity: 1 !important;
+}
