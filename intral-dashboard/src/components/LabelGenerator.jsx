@@ -16,6 +16,19 @@ function LabelGenerator({ initialData }) {
     amTag: "",
     squareFeet: "",
     date: new Date().toISOString().slice(0, 10),
+    labelType: "inventory",
+    netWeight: "",
+    dimensions: "",
+    crateNumber: "",
+    projectNumber: "",
+    destinationCountry: "",
+    shipTo: "",
+    jobNumber: "",
+    soNumber: "",
+    carrier: "",
+    trackingNumber: "",
+    pieces: "",
+    destination: "",
   });
 
   const [isReprintMode, setIsReprintMode] = useState(false);
@@ -51,7 +64,17 @@ function LabelGenerator({ initialData }) {
           initialData.partNumber ||
           initialData.part_number ||
           "",
-        quantity: initialData.quantity || "",
+        quantity:
+          initialData.quantity ||
+          initialData.qty ||
+          initialData.availableQty ||
+          initialData.available_qty ||
+          initialData.requestedQty ||
+          initialData.requested_qty ||
+          initialData.receivedQty ||
+          initialData.received_qty ||
+          initialData.pieces ||
+          "",
         description: initialData.description || "",
         poNumber:
           initialData.poNumber ||
@@ -72,6 +95,25 @@ function LabelGenerator({ initialData }) {
           initialData.square_feet ||
           "",
         date: initialData.date || new Date().toISOString().slice(0, 10),
+        labelType: initialData.labelType || initialData.label_type || "inventory",
+        netWeight: initialData.netWeight || initialData.net_weight || "",
+        dimensions: initialData.dimensions || "",
+        crateNumber: initialData.crateNumber || initialData.crate_number || "",
+        projectNumber: initialData.projectNumber || initialData.project_number || "",
+        destinationCountry:
+          initialData.destinationCountry ||
+          initialData.destination_country ||
+          "",
+        shipTo: initialData.shipTo || initialData.ship_to || "",
+        jobNumber: initialData.jobNumber || initialData.job_number || "",
+        soNumber: initialData.soNumber || initialData.so_number || "",
+        carrier: initialData.carrier || "",
+        trackingNumber:
+          initialData.trackingNumber ||
+          initialData.tracking_number ||
+          "",
+        pieces: initialData.pieces || "",
+        destination: initialData.destination || "",
       });
     }
   }, [initialData]);
@@ -126,6 +168,33 @@ function LabelGenerator({ initialData }) {
   const truncate = (value, maxLength) => {
     const text = cleanZplText(value);
     return text.length > maxLength ? text.slice(0, maxLength) : text;
+  };
+
+  const getLabelQuantity = () => {
+    return (
+      label.quantity ||
+      label.qty ||
+      label.availableQty ||
+      label.available_qty ||
+      label.requestedQty ||
+      label.requested_qty ||
+      label.receivedQty ||
+      label.received_qty ||
+      label.pieces ||
+      ""
+    );
+  };
+
+  const validateLabelQuantity = () => {
+    const quantityValue = Number(getLabelQuantity() || 0);
+
+    if (!quantityValue || quantityValue <= 0) {
+      alert("Label quantity must be greater than zero. QTY 0 labels are not allowed.");
+      setPrintStatus("Label blocked: QTY must be greater than zero.");
+      return false;
+    }
+
+    return true;
   };
 
   const convertLogoToZplGraphic = () => {
@@ -222,7 +291,7 @@ function LabelGenerator({ initialData }) {
     const inventoryId = truncate(label.inventoryId, 34);
     const customer = truncate(label.customer, 30);
     const partNumber = truncate(label.partNumber, 32);
-    const quantity = truncate(label.quantity, 18);
+    const quantity = truncate(getLabelQuantity(), 18);
     const descriptionLine1 = truncate(label.description, 42);
     const descriptionLine2 = truncate(String(label.description || "").slice(42), 42);
     const poNumber = truncate(label.poNumber, 28);
@@ -231,11 +300,67 @@ function LabelGenerator({ initialData }) {
     const amTag = truncate(label.amTag, 28);
     const squareFeet = truncate(label.squareFeet, 18);
     const date = truncate(label.date, 18);
+    const labelType = label.labelType || "inventory";
+    const netWeight = truncate(label.netWeight, 22);
+    const dimensions = truncate(label.dimensions, 24);
+    const crateNumber = truncate(label.crateNumber, 22);
+    const projectNumber = truncate(label.projectNumber, 22);
+    const destinationCountry = truncate(label.destinationCountry, 24);
+    const shipTo = truncate(label.shipTo, 34);
+    const jobNumber = truncate(label.jobNumber, 24);
+    const soNumber = truncate(label.soNumber, 24);
+    const carrier = truncate(label.carrier, 24);
+    const trackingNumber = truncate(label.trackingNumber, 34);
+    const pieces = truncate(label.pieces, 18);
+    // reserved for future Shipping Label destination field
     const printQty = Math.max(1, Number(labelPrintQty || 1));
 
     const isAmSite = site === "AM" || site === "A&M";
     const locationLabel = isAmSite ? "A&M TAG:" : "SITE:";
     const locationValue = isAmSite ? amTag || "N/A" : site || "INTRAL";
+
+    const labelTitle =
+      labelType === "am-crating"
+        ? "A&M CRATING LABEL"
+        : labelType === "shipping"
+        ? "SHIPPING LABEL"
+        : "INTRAL INVENTORY LABEL";
+
+    const templateBlock =
+      labelType === "am-crating"
+        ? `
+^FO45,463^A0N,26,26^FDNET WT:^FS
+^FO205,463^A0N,26,26^FD${netWeight}^FS
+^FO445,421^A0N,26,26^FDDIMS:^FS
+^FO600,421^A0N,26,26^FD${dimensions}^FS
+^FO445,463^A0N,26,26^FDCRATE #:^FS
+^FO600,463^A0N,26,26^FD${crateNumber}^FS
+^FO45,505^A0N,26,26^FDPROJECT:^FS
+^FO205,505^A0N,26,26^FD${projectNumber}^FS
+^FO445,505^A0N,26,26^FDDEST COO:^FS
+^FO600,505^A0N,26,26^FD${destinationCountry}^FS
+`
+        : labelType === "shipping"
+        ? `
+^FO45,463^A0N,26,26^FDSHIP TO:^FS
+^FO205,463^A0N,26,26^FD${shipTo}^FS
+^FO45,505^A0N,26,26^FDJOB #:^FS
+^FO205,505^A0N,26,26^FD${jobNumber}^FS
+^FO445,421^A0N,26,26^FDSO #:^FS
+^FO600,421^A0N,26,26^FD${soNumber}^FS
+^FO445,463^A0N,26,26^FDCARRIER:^FS
+^FO600,463^A0N,26,26^FD${carrier}^FS
+^FO445,505^A0N,26,26^FDPIECES:^FS
+^FO600,505^A0N,26,26^FD${pieces}^FS
+`
+        : "";
+
+    const barcodeValue =
+      labelType === "shipping"
+        ? trackingNumber || soNumber || inventoryId
+        : labelType === "am-crating"
+        ? crateNumber || amTag || inventoryId
+        : inventoryId;
 
     const logoZpl = logoGraphic
       ? `^FO38,30${logoGraphic.graphicCommand}^FS`
@@ -251,7 +376,7 @@ function LabelGenerator({ initialData }) {
 ^FO24,22^GB815,818,4^FS
 
 ${logoZpl}
-^FO430,42^A0N,34,34^FDINTRAL INVENTORY LABEL^FS
+^FO430,42^A0N,34,34^FD${labelTitle}^FS
 ^FO430,82^A0N,22,22^FD3PL Warehouse Operations^FS
 ^FO38,152^GB785,3,3^FS
 
@@ -280,14 +405,15 @@ ${logoZpl}
 ^FO445,379^A0N,28,28^FDSQ FT:^FS
 ^FO600,379^A0N,28,28^FD${squareFeet}^FS
 
-^FO45,485^GB775,3,3^FS
+${templateBlock}
+^FO45,545^GB775,3,3^FS
 
-^FO45,515^A0N,32,32^FDINV ID:^FS
-^FO205,515^A0N,34,34^FD${inventoryId}^FS
+^FO45,575^A0N,32,32^FD${labelType === "shipping" ? "TRACK:" : labelType === "am-crating" ? "CRATE/INV:" : "INV ID:"}^FS
+^FO205,575^A0N,34,34^FD${barcodeValue}^FS
 
-^FO105,585^BY3,2,130
-^BCN,130,Y,N,N
-^FD${inventoryId}^FS
+^FO105,635^BY3,2,110
+^BCN,110,Y,N,N
+^FD${barcodeValue}^FS
 
 ^FO45,800^A0N,24,24^FDDATE: ${date}^FS
 ^FO570,800^A0N,24,24^FDLABEL: 4.25 x 4.25^FS
@@ -321,6 +447,40 @@ ${logoZpl}
 
   const buildBrowserPreviewHtml = () => {
     const isAmSite = label.site === "AM" || label.site === "A&M";
+    const labelType = label.labelType || "inventory";
+    const labelTitle =
+      labelType === "am-crating"
+        ? "A&M CRATING LABEL"
+        : labelType === "shipping"
+        ? "SHIPPING LABEL"
+        : "INTRAL INVENTORY LABEL";
+    const barcodeValue =
+      labelType === "shipping"
+        ? cleanZplText(label.trackingNumber || label.soNumber || label.inventoryId)
+        : labelType === "am-crating"
+        ? cleanZplText(label.crateNumber || label.amTag || label.inventoryId)
+        : cleanZplText(label.inventoryId);
+
+    const templatePreviewRows =
+      labelType === "am-crating"
+        ? `
+              <p><strong>Net Wt:</strong> ${cleanZplText(label.netWeight)}</p>
+              <p><strong>Dimensions:</strong> ${cleanZplText(label.dimensions)}</p>
+              <p><strong>Crate #:</strong> ${cleanZplText(label.crateNumber)}</p>
+              <p><strong>Project #:</strong> ${cleanZplText(label.projectNumber)}</p>
+              <p><strong>Destination Country:</strong> ${cleanZplText(label.destinationCountry)}</p>
+        `
+        : labelType === "shipping"
+        ? `
+              <p><strong>Ship To:</strong> ${cleanZplText(label.shipTo)}</p>
+              <p><strong>Job #:</strong> ${cleanZplText(label.jobNumber)}</p>
+              <p><strong>SO #:</strong> ${cleanZplText(label.soNumber)}</p>
+              <p><strong>Carrier:</strong> ${cleanZplText(label.carrier)}</p>
+              <p><strong>Tracking:</strong> ${cleanZplText(label.trackingNumber)}</p>
+              <p><strong>Pieces:</strong> ${cleanZplText(label.pieces)}</p>
+              <p><strong>Destination:</strong> ${cleanZplText(label.destination)}</p>
+        `
+        : "";
 
     return `
       <!doctype html>
@@ -362,14 +522,14 @@ ${logoZpl}
             <div class="header">
               <img src="${intralLogo}" alt="INTRAL Logo" class="logo" />
               <div>
-                <h3>INTRAL INVENTORY LABEL</h3>
+                <h3>${labelTitle}</h3>
                 <div class="subtitle">3PL Warehouse Operations</div>
               </div>
             </div>
 
             <div class="grid">
               <p><strong>Part #:</strong> ${cleanZplText(label.partNumber)}</p>
-              <p><strong>Qty:</strong> ${cleanZplText(label.quantity)}</p>
+              <p><strong>Qty:</strong> ${cleanZplText(getLabelQuantity())}</p>
               <p><strong>Customer:</strong> ${cleanZplText(label.customer)}</p>
               <p><strong>PO #:</strong> ${cleanZplText(label.poNumber)}</p>
               <p><strong>COO:</strong> ${cleanZplText(label.countryOfOrigin)}</p>
@@ -378,13 +538,14 @@ ${logoZpl}
               }</p>
               <p><strong>Sq Ft:</strong> ${cleanZplText(label.squareFeet)}</p>
               <p><strong>Date:</strong> ${cleanZplText(label.date)}</p>
+              ${templatePreviewRows}
             </div>
 
             <p class="description"><strong>Description:</strong> ${cleanZplText(label.description)}</p>
             <p class="inventory-id"><strong>Inventory ID:</strong> ${cleanZplText(label.inventoryId)}</p>
 
             <div class="barcode">
-              *${cleanZplText(label.inventoryId) || "SCAN-ID"}*
+              *${barcodeValue || "SCAN-ID"}*
             </div>
           </div>
         </body>
@@ -395,6 +556,10 @@ ${logoZpl}
   const printBrowserPreviewLabel = () => {
     if (!label.inventoryId) {
       alert("Inventory ID is required before previewing.");
+      return;
+    }
+
+    if (!validateLabelQuantity()) {
       return;
     }
 
@@ -415,6 +580,10 @@ ${logoZpl}
   const printLabel = async () => {
     if (!label.inventoryId) {
       alert("Inventory ID is required before printing.");
+      return;
+    }
+
+    if (!validateLabelQuantity()) {
       return;
     }
 
@@ -501,10 +670,29 @@ ${logoZpl}
       amTag: "",
       squareFeet: "",
       date: new Date().toISOString().slice(0, 10),
+      labelType: "inventory",
+      netWeight: "",
+      dimensions: "",
+      crateNumber: "",
+      projectNumber: "",
+      destinationCountry: "",
+      shipTo: "",
+      jobNumber: "",
+      soNumber: "",
+      carrier: "",
+      trackingNumber: "",
+      pieces: "",
+      destination: "",
     });
   };
 
   const isAmPreview = label.site === "AM" || label.site === "A&M";
+  const previewBarcodeValue =
+    label.labelType === "shipping"
+      ? label.trackingNumber || label.soNumber || label.inventoryId
+      : label.labelType === "am-crating"
+      ? label.crateNumber || label.amTag || label.inventoryId
+      : label.inventoryId;
 
   return (
     <div className="card">
@@ -747,6 +935,76 @@ ${logoZpl}
         </div>
       )}
 
+      <div
+        style={{
+          background: "rgba(15, 23, 42, 0.82)",
+          border: "1px solid rgba(96, 165, 250, 0.28)",
+          padding: "10px",
+          borderRadius: "10px",
+          marginBottom: "12px",
+        }}
+      >
+        <label
+          style={{
+            color: "#dbeafe",
+            fontWeight: 900,
+            display: "block",
+            marginBottom: "6px",
+          }}
+        >
+          Label Type
+        </label>
+
+        <select
+          value={label.labelType}
+          onChange={(e) => updateLabel("labelType", e.target.value)}
+          style={{
+            background: "#f8fafc",
+            color: "#0f172a",
+            border: "1px solid #bfdbfe",
+            borderRadius: "8px",
+            padding: "9px",
+            width: "100%",
+            maxWidth: "360px",
+            fontWeight: 800,
+          }}
+        >
+          <option value="inventory">Inventory Label</option>
+          <option value="am-crating">A&M Crating Label</option>
+          <option value="shipping">Shipping Label</option>
+        </select>
+
+        {isReprintMode && (
+          <p
+            style={{
+              color: "#cbd5e1",
+              fontSize: "12px",
+              margin: "7px 0 0",
+              fontWeight: 700,
+            }}
+          >
+            Reprint data is locked, but label template can be selected before printing.
+          </p>
+        )}
+      </div>
+
+      {Number(getLabelQuantity() || 0) <= 0 && (
+        <div
+          style={{
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            color: "#991b1b",
+            padding: "8px 10px",
+            borderRadius: "8px",
+            marginBottom: "10px",
+            fontWeight: "900",
+            fontSize: "13px",
+          }}
+        >
+          QTY must be greater than zero before previewing or printing a label.
+        </div>
+      )}
+
       {!isReprintMode && (
         <>
           <div className="grid">
@@ -845,6 +1103,126 @@ ${logoZpl}
             </div>
           </div>
 
+          {label.labelType === "am-crating" && (
+            <div className="grid">
+              <div>
+                <label>Net Weight</label>
+                <input
+                  value={label.netWeight}
+                  onChange={(e) => updateLabel("netWeight", e.target.value)}
+                  placeholder="Net Weight"
+                />
+              </div>
+
+              <div>
+                <label>Dimensions</label>
+                <input
+                  value={label.dimensions}
+                  onChange={(e) => updateLabel("dimensions", e.target.value)}
+                  placeholder="Dimensions"
+                />
+              </div>
+
+              <div>
+                <label>Crate Number</label>
+                <input
+                  value={label.crateNumber}
+                  onChange={(e) => updateLabel("crateNumber", e.target.value)}
+                  placeholder="Crate Number"
+                />
+              </div>
+
+              <div>
+                <label>Project Number</label>
+                <input
+                  value={label.projectNumber}
+                  onChange={(e) => updateLabel("projectNumber", e.target.value)}
+                  placeholder="Project Number"
+                />
+              </div>
+
+              <div>
+                <label>Destination Country</label>
+                <input
+                  value={label.destinationCountry}
+                  onChange={(e) =>
+                    updateLabel("destinationCountry", e.target.value)
+                  }
+                  placeholder="Destination Country"
+                />
+              </div>
+            </div>
+          )}
+
+          {label.labelType === "shipping" && (
+            <div className="grid">
+              <div>
+                <label>Ship To</label>
+                <input
+                  value={label.shipTo}
+                  onChange={(e) => updateLabel("shipTo", e.target.value)}
+                  placeholder="Ship To"
+                />
+              </div>
+
+              <div>
+                <label>Job Number</label>
+                <input
+                  value={label.jobNumber}
+                  onChange={(e) => updateLabel("jobNumber", e.target.value)}
+                  placeholder="Job Number"
+                />
+              </div>
+
+              <div>
+                <label>SO Number</label>
+                <input
+                  value={label.soNumber}
+                  onChange={(e) => updateLabel("soNumber", e.target.value)}
+                  placeholder="SO Number"
+                />
+              </div>
+
+              <div>
+                <label>Carrier</label>
+                <input
+                  value={label.carrier}
+                  onChange={(e) => updateLabel("carrier", e.target.value)}
+                  placeholder="Carrier"
+                />
+              </div>
+
+              <div>
+                <label>Tracking Number</label>
+                <input
+                  value={label.trackingNumber}
+                  onChange={(e) =>
+                    updateLabel("trackingNumber", e.target.value)
+                  }
+                  placeholder="Tracking Number"
+                />
+              </div>
+
+              <div>
+                <label>Pieces</label>
+                <input
+                  value={label.pieces}
+                  onChange={(e) => updateLabel("pieces", e.target.value)}
+                  placeholder="Pieces"
+                />
+              </div>
+
+              <div>
+                <label>Destination</label>
+                <input
+                  value={label.destination}
+                  onChange={(e) => updateLabel("destination", e.target.value)}
+                  placeholder="Destination"
+                />
+              </div>
+            </div>
+          )}
+
           <label>Description</label>
           <input
             value={label.description}
@@ -890,7 +1268,11 @@ ${logoZpl}
           />
           <div>
             <h3 style={{ margin: 0, fontSize: "17px", lineHeight: "18px" }}>
-              INTRAL INVENTORY LABEL
+              {label.labelType === "am-crating"
+                ? "A&M CRATING LABEL"
+                : label.labelType === "shipping"
+                ? "SHIPPING LABEL"
+                : "INTRAL INVENTORY LABEL"}
             </h3>
             <div style={{ fontWeight: "bold", fontSize: "12px" }}>
               3PL Warehouse Operations
@@ -903,7 +1285,7 @@ ${logoZpl}
             <strong>Part #:</strong> {label.partNumber}
           </p>
           <p style={{ margin: "3px 0" }}>
-            <strong>Qty:</strong> {label.quantity}
+            <strong>Qty:</strong> {getLabelQuantity()}
           </p>
           <p style={{ margin: "3px 0" }}>
             <strong>Customer:</strong> {label.customer}
@@ -924,6 +1306,40 @@ ${logoZpl}
           <p style={{ margin: "3px 0" }}>
             <strong>Date:</strong> {label.date}
           </p>
+
+          {label.labelType === "am-crating" && (
+            <>
+              <p style={{ margin: "3px 0" }}>
+                <strong>Net Wt:</strong> {label.netWeight}
+              </p>
+              <p style={{ margin: "3px 0" }}>
+                <strong>Crate #:</strong> {label.crateNumber}
+              </p>
+              <p style={{ margin: "3px 0" }}>
+                <strong>Project #:</strong> {label.projectNumber}
+              </p>
+              <p style={{ margin: "3px 0" }}>
+                <strong>Dest COO:</strong> {label.destinationCountry}
+              </p>
+            </>
+          )}
+
+          {label.labelType === "shipping" && (
+            <>
+              <p style={{ margin: "3px 0" }}>
+                <strong>Ship To:</strong> {label.shipTo}
+              </p>
+              <p style={{ margin: "3px 0" }}>
+                <strong>SO #:</strong> {label.soNumber}
+              </p>
+              <p style={{ margin: "3px 0" }}>
+                <strong>Carrier:</strong> {label.carrier}
+              </p>
+              <p style={{ margin: "3px 0" }}>
+                <strong>Tracking:</strong> {label.trackingNumber}
+              </p>
+            </>
+          )}
         </div>
 
         <p style={{ margin: "6px 0 3px 0" }}>
@@ -945,7 +1361,7 @@ ${logoZpl}
             minHeight: "48px",
           }}
         >
-          *{label.inventoryId || "SCAN-ID"}*
+          *{previewBarcodeValue || "SCAN-ID"}*
         </div>
       </div>
 
