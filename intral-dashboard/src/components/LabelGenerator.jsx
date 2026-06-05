@@ -207,8 +207,8 @@ function LabelGenerator({ initialData }) {
       image.crossOrigin = "anonymous";
 
       image.onload = () => {
-        const targetWidth = 350;
-        const targetHeight = 118;
+        const targetWidth = 380;
+        const targetHeight = 122;
         const canvas = document.createElement("canvas");
 
         canvas.width = targetWidth;
@@ -220,21 +220,19 @@ function LabelGenerator({ initialData }) {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, targetWidth, targetHeight);
 
-        const imageRatio = image.width / image.height;
-        const targetRatio = targetWidth / targetHeight;
-
-        let drawWidth = targetWidth;
-        let drawHeight = targetHeight;
-        let drawX = 0;
-        let drawY = 0;
-
-        if (imageRatio > targetRatio) {
-          drawHeight = targetWidth / imageRatio;
-          drawY = (targetHeight - drawHeight) / 2;
-        } else {
-          drawWidth = targetHeight * imageRatio;
-          drawX = (targetWidth - drawWidth) / 2;
-        }
+        /*
+          Zebra logo calibration:
+          - The physical ZT411 output was clipping the left edge.
+          - Moving ^FO alone did not visibly correct the logo enough because
+            the rendered graphic is generated as one image block.
+          - We shift the drawn logo inside the graphic canvas instead.
+          - drawY is locked to 0 to remove the blank top space.
+          - drawX = 14 corrects the remaining 1/4 inch right offset.
+        */
+        const drawHeight = 116;
+        const drawWidth = 116;
+        const drawX = 14;
+        const drawY = 0;
 
         ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
 
@@ -355,6 +353,13 @@ function LabelGenerator({ initialData }) {
 `
         : "";
 
+    const squareFeetBlock = squareFeet
+      ? `
+^FO505,505^A0N,34,34^FDSQ FT:^FS
+^FO665,505^A0N,34,34^FD${squareFeet}^FS
+`
+      : "";
+
     const barcodeValue =
       labelType === "shipping"
         ? trackingNumber || soNumber || inventoryId
@@ -363,60 +368,58 @@ function LabelGenerator({ initialData }) {
         : inventoryId;
 
     const logoZpl = logoGraphic
-      ? `^FO38,30${logoGraphic.graphicCommand}^FS`
-      : "^FO55,48^A0N,58,58^FDINTRAL^FS";
+      ? `^FO38,38${logoGraphic.graphicCommand}^FS`
+      : "^FO88,48^A0N,56,56^FDINTRAL^FS";
 
     return `
 ^XA
 ^CI28
 ^PW863
-^LL863
+^LL820
 ^LH0,0
 
-^FO24,22^GB815,818,4^FS
+^FO18,18^GB827,790,4^FS
 
 ${logoZpl}
-^FO430,42^A0N,34,34^FD${labelTitle}^FS
-^FO430,82^A0N,22,22^FD3PL Warehouse Operations^FS
-^FO38,152^GB785,3,3^FS
+^FO310,44^A0N,42,42^FD${labelTitle}^FS
+^FO310,94^A0N,30,30^FD3PL Warehouse Operations^FS
+^FO38,160^GB785,5,5^FS
 
-^FO45,176^A0N,28,28^FDPART #:^FS
-^FO205,176^A0N,30,30^FD${partNumber}^FS
+^FO45,178^A0N,35,35^FDPART #:^FS
+^FO220,178^A0N,36,36^FD${partNumber}^FS
 
-^FO45,218^A0N,28,28^FDDESC:^FS
-^FO205,218^A0N,25,25^FD${descriptionLine1}^FS
-^FO205,250^A0N,25,25^FD${descriptionLine2}^FS
+^FO45,228^A0N,35,35^FDDESC:^FS
+^FO220,228^A0N,35,35^FD${descriptionLine1}^FS
+^FO220,266^A0N,30,30^FD${descriptionLine2}^FS
 
-^FO45,295^A0N,28,28^FDCUSTOMER:^FS
-^FO205,295^A0N,28,28^FD${customer}^FS
+^FO45,310^A0N,35,35^FDCUSTOMER:^FS
+^FO260,310^A0N,34,34^FD${customer}^FS
 
-^FO45,337^A0N,28,28^FDPO #:^FS
-^FO205,337^A0N,28,28^FD${poNumber}^FS
+^FO45,368^A0N,35,35^FDPO #:^FS
+^FO220,368^A0N,34,34^FD${poNumber}^FS
 
-^FO45,379^A0N,28,28^FDCOO:^FS
-^FO205,379^A0N,31,31^FD${countryOfOrigin}^FS
+^FO45,420^A0N,35,35^FDCOO:^FS
+^FO220,420^A0N,36,36^FD${countryOfOrigin}^FS
 
-^FO45,421^A0N,28,28^FDQTY:^FS
-^FO205,421^A0N,34,34^FD${quantity}^FS
+^FO45,472^A0N,35,35^FDQTY:^FS
+^FO220,472^A0N,38,38^FD${quantity}^FS
 
-^FO445,337^A0N,28,28^FD${locationLabel}^FS
-^FO600,337^A0N,28,28^FD${locationValue}^FS
+^FO505,368^A0N,35,35^FD${locationLabel}^FS
+^FO665,368^A0N,36,36^FD${locationValue}^FS
 
-^FO445,379^A0N,28,28^FDSQ FT:^FS
-^FO600,379^A0N,28,28^FD${squareFeet}^FS
-
+${squareFeetBlock}
 ${templateBlock}
-^FO45,545^GB775,3,3^FS
+^FO38,548^GB785,5,5^FS
 
-^FO45,575^A0N,32,32^FD${labelType === "shipping" ? "TRACK:" : labelType === "am-crating" ? "CRATE/INV:" : "INV ID:"}^FS
-^FO205,575^A0N,34,34^FD${barcodeValue}^FS
+^FO45,578^A0N,39,39^FD${labelType === "shipping" ? "TRACK:" : labelType === "am-crating" ? "CRATE/INV:" : "INV ID:"}^FS
+^FO220,578^A0N,41,41^FD${barcodeValue}^FS
 
-^FO105,635^BY3,2,110
-^BCN,110,Y,N,N
+^FO95,640^BY3,2,115
+^BCN,115,Y,N,N
 ^FD${barcodeValue}^FS
 
-^FO45,800^A0N,24,24^FDDATE: ${date}^FS
-^FO570,800^A0N,24,24^FDLABEL: 4.25 x 4.25^FS
+^FO45,785^A0N,24,24^FDDATE: ${date}^FS
+^FO560,785^A0N,24,24^FDLABEL: 4.25 x 4.25^FS
 
 ^PQ${printQty}
 ^XZ
