@@ -202,6 +202,7 @@ const initialOperationalOrders = [
 function App() {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [guestSession, setGuestSession] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authView, setAuthView] = useState("login");
@@ -361,6 +362,20 @@ function App() {
     }
   };
 
+  const handleGuestLogin = () => {
+    setGuestSession(true);
+    setProfile({
+      id: "guest-user",
+      role: "guest",
+      email: "guest@intral.local",
+      display_name: "Guest User",
+      department: "Guest Portal",
+      must_change_password: false,
+    });
+    setTab("jobs");
+    localStorage.setItem("intral-connect-active-tab", "jobs");
+  };
+
   const handleRequiredPasswordChange = async () => {
     setPasswordChangeMessage("");
 
@@ -422,6 +437,20 @@ function App() {
   };
 
   const handleLogout = async () => {
+    if (guestSession) {
+      setGuestSession(false);
+      setTab("portal");
+      localStorage.setItem("intral-connect-active-tab", "portal");
+      setEmail("");
+      setPassword("");
+      setAuthView("login");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setPasswordChangeMessage("");
+      setProfile(null);
+      return;
+    }
+
     await supabase.auth.signOut();
     setTab("portal");
     localStorage.setItem("intral-connect-active-tab", "portal");
@@ -446,7 +475,72 @@ function App() {
     }
   };
 
+  const isGuest = guestSession || profile?.role === "guest";
+
+  const enforceGuestTab = (requestedTab) => {
+    const allowedGuestTabs = [
+      "portal",
+      "jobs",
+      "jobs-request-movement",
+      "jobs-request-shipping",
+      "jobs-request-logistics",
+      "jobs-track",
+    ];
+
+    if (!isGuest) {
+      setTab(requestedTab);
+      return;
+    }
+
+    if (allowedGuestTabs.includes(requestedTab)) {
+      setTab(requestedTab);
+      return;
+    }
+
+    alert("Guest access is limited to Job Request and Track Request.");
+    setTab("jobs");
+  };
+
+  const renderGuestBlockedWorkspace = () => {
+    return (
+      <div className="module-panel">
+        <div className="module-panel-header">
+          <div>
+            <h1>Guest Access Limited</h1>
+            <p>Guest users can submit and track requests only.</p>
+          </div>
+
+          <button className="module-home-button" onClick={() => setTab("jobs")}>
+            Go to Job Request
+          </button>
+        </div>
+
+        <div className="module-placeholder-card">
+          <h2>Restricted Workspace</h2>
+          <p>
+            Receiving, Inventory, Order Central, Shipping Operations, Score Cards,
+            Audit Logs, and Admin are available only to authorized INTRAL users.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const renderWorkspace = () => {
+    if (
+      isGuest &&
+      ![
+        "portal",
+        "jobs",
+        "jobs-request-movement",
+        "jobs-request-shipping",
+        "jobs-request-logistics",
+        "jobs-track",
+      ].includes(tab)
+    ) {
+      return renderGuestBlockedWorkspace();
+    }
+
     if (tab === "dashboard") return <DashboardWorkspace setTab={setTab} />;
     if (tab === "scorecards") return <ScoreCardsWorkspace />;
     if (tab === "admin") return <AdminWorkspace session={session} profile={profile} />;
@@ -606,7 +700,7 @@ function App() {
     );
   };
 
-  if (!session) {
+  if (!session && !guestSession) {
     return (
       <div className="workspace-portal">
         <div className="workspace-overlay">
@@ -660,6 +754,17 @@ function App() {
                 >
                   Request Credentials
                 </button>
+
+                <button
+                  type="button"
+                  onClick={handleGuestLogin}
+                  style={{
+                    background: "linear-gradient(135deg, #16a34a, #15803d)",
+                    border: "1px solid rgba(134, 239, 172, 0.45)",
+                  }}
+                >
+                  Continue as Guest
+                </button>
               </div>
             </div>
           )}
@@ -668,7 +773,7 @@ function App() {
     );
   }
 
-  if (session && profile?.must_change_password === true) {
+  if (session && !guestSession && profile?.must_change_password === true) {
     return (
       <div className="workspace-portal">
         <div className="workspace-overlay">
@@ -752,14 +857,14 @@ function App() {
 
   return (
     <WorkspacePortal
-      setTab={setTab}
+      setTab={isGuest ? enforceGuestTab : setTab}
       tab={tab}
       profile={profile}
       liveTime={liveTime}
       currentDate={currentDate}
-      userEmail={session?.user?.email}
+      userEmail={guestSession ? "guest@intral.local" : session?.user?.email}
       handleLogout={handleLogout}
-      operationalNotifications={operationalNotifications}
+      operationalNotifications={isGuest ? [] : operationalNotifications}
     >
       {renderWorkspace()}
     </WorkspacePortal>

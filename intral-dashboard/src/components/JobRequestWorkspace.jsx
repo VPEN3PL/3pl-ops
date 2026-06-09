@@ -58,9 +58,11 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
   const [requestorForm, setRequestorForm] = useState({
     chargeType: "",
     chargeNumber: "",
+    companyName: "",
     requestorName: "",
     telephone: "",
     email: "",
+    submissionStatus: "Pending Internal Review",
   });
 
   const [movementForm, setMovementForm] = useState({
@@ -198,6 +200,11 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
   };
 
   const validateRequestor = () => {
+    if (!requestorForm.companyName.trim()) {
+      alert("Company name is required.");
+      return false;
+    }
+
     if (!requestorForm.requestorName.trim()) {
       alert("Requestor name is required.");
       return false;
@@ -488,10 +495,35 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
           <strong>{getRequestTitle()}</strong>
         </div>
 
+        <div
+          style={{
+            background: "rgba(37, 99, 235, 0.1)",
+            border: "1px solid rgba(37, 99, 235, 0.25)",
+            color: "#1e3a8a",
+            borderRadius: "9px",
+            padding: "8px",
+            marginBottom: "10px",
+            fontWeight: 900,
+            fontSize: "12px",
+          }}
+        >
+          External / Guest Request • Pending Internal Review
+        </div>
+
         <div className="job-summary-grid">
           <div>
             <span>Requestor</span>
             <strong>{getSummaryValue(requestorForm.requestorName)}</strong>
+          </div>
+
+          <div>
+            <span>Company</span>
+            <strong>{getSummaryValue(requestorForm.companyName)}</strong>
+          </div>
+
+          <div>
+            <span>Status</span>
+            <strong>{requestorForm.submissionStatus}</strong>
           </div>
 
           <div>
@@ -634,11 +666,10 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                 value={requestorForm.chargeType}
                 onChange={(e) => updateRequestorForm("chargeType", e.target.value)}
               >
-                <option value="">Charge Number or PO Type</option>
                 <option value="Charge Number">Charge Number</option>
                 <option value="PO Number">PO Number</option>
-                <option value="No Charge / PO Available">
-                  No Charge / PO Available
+                <option value="No PO/Charge Numbers Available">
+                  No PO/Charge Numbers Available
                 </option>
               </select>
 
@@ -646,6 +677,12 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                 value={requestorForm.chargeNumber}
                 onChange={(e) => updateRequestorForm("chargeNumber", e.target.value)}
                 placeholder="Charge Number or PO"
+              />
+
+              <input
+                value={requestorForm.companyName}
+                onChange={(e) => updateRequestorForm("companyName", e.target.value)}
+                placeholder="Company Name"
               />
 
               <input
@@ -1079,7 +1116,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
           Job Order {submittedJobOrder} has been successfully submitted as a{" "}
           {getRequestTitle()} request. Please retain this reference number for
           tracking purposes. This request is now locked and cannot be edited from
-          this screen.
+          this screen. Status: Pending Internal Review.
         </div>
       )}
 

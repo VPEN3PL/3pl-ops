@@ -145,9 +145,61 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     return "Required - Pending Confirmation";
   };
 
+  const getRequestSource = (job) => {
+    if (!job) return "Internal";
+    return job.requestSource || job.source || (job.isGuestRequest ? "Guest Portal" : "Internal");
+  };
+
+  const getReviewStatus = (job) => {
+    if (!job) return "Pending";
+    return job.reviewStatus || job.governanceStatus || "Approved";
+  };
+
+  const isPendingInternalReview = (job) => {
+    return getReviewStatus(job) === "Pending Internal Review";
+  };
+
+  const isCustomerRequest = (job) => {
+    const source = getRequestSource(job).toLowerCase();
+    return source.includes("guest") || source.includes("customer");
+  };
+
+  const approveSelectedJobReview = () => {
+    if (!selectedJob) {
+      alert("Select one JO before approving internal review.");
+      return;
+    }
+
+    if (!isPendingInternalReview(selectedJob)) {
+      alert("This job is not pending internal review.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Approve internal review for ${selectedJob.joNumber}?\n\nThis will allow the request to continue through allocation and release governance.`
+    );
+
+    if (!confirmed) return;
+
+    const updatedOrders = orders.map((item) =>
+      item.joNumber === selectedJob.joNumber
+        ? {
+            ...item,
+            reviewStatus: "Approved",
+            reviewedAt: new Date().toISOString(),
+          }
+        : item
+    );
+
+    setOrders(updatedOrders);
+    setMessage(`${selectedJob.joNumber} internal review approved.`);
+    setExpandedSection("allocation");
+  };
+
   const canReleaseJob = (job) => {
     if (!job) return false;
     if (job.releaseStatus !== "Open") return false;
+    if (isPendingInternalReview(job)) return false;
     if (job.allocationRequired && !job.allocationConfirmed) return false;
     return true;
   };
@@ -217,6 +269,12 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
     if (selectedJob.releaseStatus !== "Open") {
       alert("This job has already been released or closed. It cannot be released again.");
+      return;
+    }
+
+    if (isPendingInternalReview(selectedJob)) {
+      alert("Internal review must be approved before this job can be released.");
+      setExpandedSection("governance");
       return;
     }
 
@@ -317,7 +375,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
   const getSectionStatus = (sectionKey) => {
     if (sectionKey === "queue") return `${activeList.length} Records`;
     if (!selectedJob) return "Waiting";
-    if (sectionKey === "governance") return selectedJob.releaseStatus;
+    if (sectionKey === "governance") return isPendingInternalReview(selectedJob) ? "Review Required" : selectedJob.releaseStatus;
     if (sectionKey === "allocation") return getAllocationDisplay(selectedJob);
     if (sectionKey === "additionalWork") {
       return selectedJob.additionalWork?.length > 0 ? "Attached" : "Optional";
@@ -393,6 +451,8 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
                   <th>Requestor</th>
                   <th>Job Type</th>
                   <th>Details</th>
+                  <th>Source</th>
+                  <th>Review Status</th>
                   <th>Allocation</th>
                   <th>Inventory ID</th>
                   <th>Original Pull From</th>
@@ -403,7 +463,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               <tbody>
                 {paginatedOrders.length === 0 ? (
                   <tr>
-                    <td colSpan="9">No orders found.</td>
+                    <td colSpan="11">No orders found.</td>
                   </tr>
                 ) : (
                   paginatedOrders.map((job) => (
@@ -425,6 +485,8 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
                       <td>{job.requestor}</td>
                       <td>{job.jobType}</td>
                       <td>{job.details}</td>
+                      <td>{getRequestSource(job)}</td>
+                      <td>{getReviewStatus(job)}</td>
                       <td>{getAllocationDisplay(job)}</td>
                       <td>{job.inventoryDetails?.inventoryId || "-"}</td>
                       <td>{job.inventoryDetails?.pullFromLocation || "-"}</td>
@@ -496,6 +558,21 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               </div>
 
               <div className="order-detail-field">
+                <span>Request Source</span>
+                <strong>{getRequestSource(selectedJob)}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Review Status</span>
+                <strong>{getReviewStatus(selectedJob)}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Request Origin</span>
+                <strong>{isCustomerRequest(selectedJob) ? "Customer Request" : "Internal Request"}</strong>
+              </div>
+
+              <div className="order-detail-field">
                 <span>Job Type</span>
                 <strong>{selectedJob.jobType}</strong>
               </div>
@@ -530,6 +607,23 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               <h3>Request Details</h3>
               <p>{selectedJob.details}</p>
             </div>
+
+            {isPendingInternalReview(selectedJob) && (
+              <div className="order-detail-section compact-order-section">
+                <h3>Pending Internal Review</h3>
+                <p>
+                  This request originated from a customer / guest workflow and must
+                  be reviewed before allocation or release.
+                </p>
+
+                <button
+                  className="inventory-primary-button"
+                  onClick={approveSelectedJobReview}
+                >
+                  Approve Internal Review
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1154,6 +1248,11 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
               </div>
 
               <div className="order-detail-field">
+                <span>Internal Review</span>
+                <strong>{getReviewStatus(selectedJob)}</strong>
+              </div>
+
+              <div className="order-detail-field">
                 <span>Release Eligibility</span>
                 <strong>{canReleaseJob(selectedJob) ? "Allowed" : "Blocked"}</strong>
               </div>
@@ -1614,6 +1713,16 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
             <div>
               <span>Customer</span>
               <strong>{selectedJob?.customer || "Pending"}</strong>
+            </div>
+
+            <div>
+              <span>Source</span>
+              <strong>{selectedJob ? getRequestSource(selectedJob) : "Pending"}</strong>
+            </div>
+
+            <div>
+              <span>Review</span>
+              <strong>{selectedJob ? getReviewStatus(selectedJob) : "Pending"}</strong>
             </div>
 
             <div>
