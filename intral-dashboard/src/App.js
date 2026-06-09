@@ -231,6 +231,26 @@ function App() {
     const alerts = [];
 
     orders.forEach((order) => {
+      const normalizedStatus = String(
+        order?.releaseStatus ||
+          order?.status ||
+          order?.workflowStatus ||
+          ""
+      ).toLowerCase();
+
+      const isClosedOrComplete =
+        normalizedStatus === "closed" ||
+        normalizedStatus === "shipped" ||
+        normalizedStatus === "complete" ||
+        normalizedStatus === "completed" ||
+        normalizedStatus === "order complete" ||
+        Boolean(order?.completedAt) ||
+        Boolean(order?.closedAt);
+
+      if (isClosedOrComplete) {
+        return;
+      }
+
       const requestedDate = order?.requestedDate
         ? new Date(`${order.requestedDate}T00:00:00`)
         : null;
@@ -262,7 +282,7 @@ function App() {
         });
       }
 
-      if (order.releaseStatus !== "Closed" && ageHours >= 24) {
+      if (order.releaseStatus === "Open" && ageHours >= 24) {
         alerts.push({
           id: `${order.joNumber}-aging`,
           title: "Aging Work > 24 Hours",
@@ -272,7 +292,11 @@ function App() {
         });
       }
 
-      if (order.allocationRequired && !order.allocationConfirmed) {
+      if (
+        order.releaseStatus === "Open" &&
+        order.allocationRequired &&
+        !order.allocationConfirmed
+      ) {
         alerts.push({
           id: `${order.joNumber}-allocation`,
           title: "Allocation Pending",

@@ -164,6 +164,17 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     return source.includes("guest") || source.includes("customer");
   };
 
+  const customerRequestOrders = orders
+    .filter((item) => isCustomerRequest(item))
+    .sort((a, b) => {
+      const aPending = isPendingInternalReview(a) ? 0 : 1;
+      const bPending = isPendingInternalReview(b) ? 0 : 1;
+
+      if (aPending !== bPending) return aPending - bPending;
+
+      return String(a.joNumber || "").localeCompare(String(b.joNumber || ""));
+    });
+
   const approveSelectedJobReview = () => {
     if (!selectedJob) {
       alert("Select one JO before approving internal review.");
@@ -374,6 +385,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
   const getSectionStatus = (sectionKey) => {
     if (sectionKey === "queue") return `${activeList.length} Records`;
+    if (sectionKey === "customerQueue") return `${customerRequestOrders.length} Records`;
     if (!selectedJob) return "Waiting";
     if (sectionKey === "governance") return isPendingInternalReview(selectedJob) ? "Review Required" : selectedJob.releaseStatus;
     if (sectionKey === "allocation") return getAllocationDisplay(selectedJob);
@@ -428,6 +440,76 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
           <h2>{closedOrders.length}</h2>
           <p>Completed order records</p>
         </div>
+
+        <div className="inventory-kpi-card">
+          <span>Customer Requests</span>
+          <h2>{customerRequestOrders.length}</h2>
+          <p>Guest / customer submitted work</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCustomerRequestQueueSection = () => {
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "customerQueue",
+          "Customer Request Queue",
+          "Guest and customer submitted requests requiring governance review"
+        )}
+
+        {expandedSection === "customerQueue" && (
+          <div className="phase17-accordion-body">
+            <table className="inventory-table order-workbench-table">
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>JO #</th>
+                  <th>Customer</th>
+                  <th>Requestor</th>
+                  <th>Source</th>
+                  <th>Review Status</th>
+                  <th>Job Type</th>
+                  <th>Release Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {customerRequestOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan="8">No customer requests found.</td>
+                  </tr>
+                ) : (
+                  customerRequestOrders.map((job) => (
+                    <tr
+                      key={`customer-${job.joNumber}`}
+                      className={selectedJobNumber === job.joNumber ? "selected-row" : ""}
+                      onClick={() => selectJob(job)}
+                    >
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedJobNumber === job.joNumber}
+                          onChange={() => selectJob(job)}
+                          onClick={(event) => event.stopPropagation()}
+                        />
+                      </td>
+
+                      <td>{job.joNumber}</td>
+                      <td>{job.customer || "-"}</td>
+                      <td>{job.requestor || "-"}</td>
+                      <td>{getRequestSource(job)}</td>
+                      <td>{getReviewStatus(job)}</td>
+                      <td>{job.jobType || "-"}</td>
+                      <td>{job.releaseStatus || "-"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     );
   };
@@ -541,6 +623,12 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
         {expandedSection === "governance" && (
           <div className="phase17-accordion-body">
+            {isCustomerRequest(selectedJob) && (
+              <div className="dashboard-message">
+                CUSTOMER REQUEST • {getReviewStatus(selectedJob)} • Internal review required before release.
+              </div>
+            )}
+
             <div className="order-release-summary-grid order-workbench-field-grid">
               <div className="order-detail-field">
                 <span>JO Number</span>
@@ -1726,6 +1814,17 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
             </div>
 
             <div>
+              <span>Queue Type</span>
+              <strong>
+                {selectedJob
+                  ? isCustomerRequest(selectedJob)
+                    ? "Customer Queue"
+                    : "Internal Queue"
+                  : "Pending"}
+              </strong>
+            </div>
+
+            <div>
               <span>Job Type</span>
               <strong>{selectedJob?.jobType || "Pending"}</strong>
             </div>
@@ -1864,6 +1963,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       return (
         <>
           {renderOrderQueueSection()}
+          {renderCustomerRequestQueueSection()}
           {renderSelectedGovernanceSection()}
           {renderAllocationSection()}
         </>
@@ -1874,6 +1974,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       return (
         <>
           {renderOrderQueueSection()}
+          {renderCustomerRequestQueueSection()}
           {renderSelectedGovernanceSection()}
           {renderAllocationSection()}
         </>
@@ -1883,6 +1984,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     return (
       <>
         {renderOrderQueueSection()}
+        {renderCustomerRequestQueueSection()}
         {selectedJob && renderSelectedGovernanceSection()}
       </>
     );
