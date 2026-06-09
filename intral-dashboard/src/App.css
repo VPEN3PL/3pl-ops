@@ -9382,3 +9382,140 @@ PHASE 22E COMMAND HEADER VISUAL SYNC
 .oracle-notification-dropdown::-webkit-scrollbar-thumb:hover {
   background: rgba(147, 197, 253, 0.85);
 }
+
+/* =========================================
+   PHASE 23C-2B — EXECUTIVE ACTION QUEUE DIGITAL POLISH
+   Scoped CSS only. Does not change dashboard logic or functions.
+========================================= */
+
+.dashboard-command-panel {
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 36%),
+    linear-gradient(145deg, rgba(5, 18, 34, 0.96), rgba(3, 12, 24, 0.94)) !important;
+  border: 1px solid rgba(96, 165, 250, 0.34) !important;
+  border-radius: 18px !important;
+  padding: 18px !important;
+  color: #ffffff !important;
+  box-shadow:
+    inset 0 0 26px rgba(96, 165, 250, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.28) !important;
+}
+
+.dashboard-command-panel h2 {
+  color: #ffffff !important;
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 18px !important;
+}
+
+.dashboard-command-panel .phase14-action-row,
+.dashboard-command-panel .dashboard-command-row,
+.phase14-action-row,
+.dashboard-command-row {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+
+.dashboard-command-panel .phase14-action-row > *,
+.dashboard-command-panel .dashboard-command-row > *,
+.phase14-action-row > *,
+.dashboard-command-row > * {
+  background:
+    radial-gradient(circle at 20px 22px, rgba(96, 165, 250, 0.16), transparent 38%),
+    linear-gradient(145deg, rgba(7, 24, 45, 0.98), rgba(3, 13, 27, 0.98)) !important;
+  border: 1px solid rgba(96, 165, 250, 0.42) !important;
+  border-radius: 14px !important;
+  min-height: 116px !important;
+  padding: 16px 16px !important;
+  color: #ffffff !important;
+  box-shadow:
+    inset 0 0 18px rgba(96, 165, 250, 0.08),
+    0 0 14px rgba(0, 0, 0, 0.22) !important;
+  overflow: hidden !important;
+}
+
+.dashboard-command-panel .phase14-action-row > *:nth-child(1),
+.dashboard-command-panel .dashboard-command-row > *:nth-child(1),
+.phase14-action-row > *:nth-child(1),
+.dashboard-command-row > *:nth-child(1) {
+  border-color: rgba(248, 113, 113, 0.78) !important;
+}
+
+.dashboard-command-panel .phase14-action-row > *:nth-child(2),
+.dashboard-command-panel .dashboard-command-row > *:nth-child(2),
+.phase14-action-row > *:nth-child(2),
+.dashboard-command-row > *:nth-child(2) {
+  border-color: rgba(74, 222, 128, 0.78) !important;
+}
+
+.dashboard-command-panel .phase14-action-row > *:nth-child(3),
+.dashboard-command-panel .dashboard-command-row > *:nth-child(3),
+.phase14-action-row > *:nth-child(3),
+.dashboard-command-row > *:nth-child(3) {
+  border-color: rgba(192, 132, 252, 0.78) !important;
+}
+
+.dashboard-command-panel .phase14-action-row > *:nth-child(4),
+.dashboard-command-panel .dashboard-command-row > *:nth-child(4),
+.phase14-action-row > *:nth-child(4),
+.dashboard-command-row > *:nth-child(4) {
+  border-color: rgba(251, 191, 36, 0.88) !important;
+}
+
+.dashboard-command-panel span,
+.dashboard-command-panel small,
+.phase14-action-row span,
+.dashboard-command-row span,
+.phase14-action-row small,
+.dashboard-command-row small {
+  color: #60a5fa !important;
+  font-size: 11px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.055em !important;
+}
+
+.dashboard-command-panel strong,
+.phase14-action-row strong,
+.dashboard-command-row strong {
+  color: #ffffff !important;
+  display: block !important;
+  font-size: 24px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  margin: 7px 0 4px !important;
+  letter-spacing: -0.02em !important;
+}
+
+.dashboard-command-panel p,
+.phase14-action-row p,
+.dashboard-command-row p {
+  color: #dbeafe !important;
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+  font-weight: 800 !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 1300px) {
+  .dashboard-command-panel .phase14-action-row,
+  .dashboard-command-panel .dashboard-command-row,
+  .phase14-action-row,
+  .dashboard-command-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-command-panel .phase14-action-row,
+  .dashboard-command-panel .dashboard-command-row,
+  .phase14-action-row,
+  .dashboard-command-row {
+    grid-template-columns: 1fr !important;
+  }
+}

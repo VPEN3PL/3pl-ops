@@ -175,6 +175,81 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       return String(a.joNumber || "").localeCompare(String(b.joNumber || ""));
     });
 
+  const pendingCustomerReviewCount = customerRequestOrders.filter((job) =>
+    isPendingInternalReview(job)
+  ).length;
+
+  const getGovernanceBadgeStyle = (type) => {
+    const baseStyle = {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "999px",
+      padding: "5px 9px",
+      fontSize: "11px",
+      fontWeight: 900,
+      letterSpacing: "0.03em",
+      textTransform: "uppercase",
+      whiteSpace: "nowrap",
+    };
+
+    if (type === "customer") {
+      return {
+        ...baseStyle,
+        background: "#2563eb",
+border: "1px solid #60a5fa",
+color: "#ffffff",
+      };
+    }
+
+    if (type === "pending") {
+      return {
+        ...baseStyle,
+        background: "#f59e0b",
+border: "1px solid #fbbf24",
+color: "#111827",
+      };
+    }
+
+    if (type === "approved") {
+      return {
+        ...baseStyle,
+        background: "#16a34a",
+border: "1px solid #86efac",
+color: "#ffffff",
+      };
+    }
+
+    if (type === "released") {
+      return {
+        ...baseStyle,
+        background: "#7c3aed",
+border: "1px solid #c4b5fd",
+color: "#ffffff",
+      };
+    }
+
+    return {
+      ...baseStyle,
+      background: "rgba(71, 85, 105, 0.18)",
+      border: "1px solid rgba(148, 163, 184, 0.35)",
+      color: "#cbd5e1",
+    };
+  };
+
+  const getReviewBadgeType = (job) => {
+    if (!job) return "default";
+    if (job.releaseStatus === "Active") return "released";
+    if (job.releaseStatus === "Closed") return "released";
+    if (isPendingInternalReview(job)) return "pending";
+    if (getReviewStatus(job) === "Approved") return "approved";
+    return "default";
+  };
+
+  const renderGovernanceBadge = (label, type = "default") => {
+    return <span style={getGovernanceBadgeStyle(type)}>{label}</span>;
+  };
+
   const approveSelectedJobReview = () => {
     if (!selectedJob) {
       alert("Select one JO before approving internal review.");
@@ -446,6 +521,12 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
           <h2>{customerRequestOrders.length}</h2>
           <p>Guest / customer submitted work</p>
         </div>
+
+        <div className="inventory-kpi-card">
+          <span>Pending Customer Reviews</span>
+          <h2>{pendingCustomerReviewCount}</h2>
+          <p>Customer requests awaiting approval</p>
+        </div>
       </div>
     );
   };
@@ -499,10 +580,27 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
                       <td>{job.joNumber}</td>
                       <td>{job.customer || "-"}</td>
                       <td>{job.requestor || "-"}</td>
-                      <td>{getRequestSource(job)}</td>
-                      <td>{getReviewStatus(job)}</td>
+                      <td>
+                        {renderGovernanceBadge(
+                          getRequestSource(job),
+                          isCustomerRequest(job) ? "customer" : "default"
+                        )}
+                      </td>
+                      <td>
+                        {renderGovernanceBadge(
+                          getReviewStatus(job),
+                          getReviewBadgeType(job)
+                        )}
+                      </td>
                       <td>{job.jobType || "-"}</td>
-                      <td>{job.releaseStatus || "-"}</td>
+                      <td>
+                        {renderGovernanceBadge(
+                          job.releaseStatus || "-",
+                          job.releaseStatus === "Active" || job.releaseStatus === "Closed"
+                            ? "released"
+                            : "default"
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -624,8 +722,23 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
         {expandedSection === "governance" && (
           <div className="phase17-accordion-body">
             {isCustomerRequest(selectedJob) && (
-              <div className="dashboard-message">
-                CUSTOMER REQUEST • {getReviewStatus(selectedJob)} • Internal review required before release.
+              <div
+                className="dashboard-message"
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                  alignItems: "center",
+                }}
+              >
+                {renderGovernanceBadge("Customer Request", "customer")}
+                {renderGovernanceBadge(
+                  getReviewStatus(selectedJob),
+                  getReviewBadgeType(selectedJob)
+                )}
+                <span style={{ fontWeight: 900 }}>
+                  Internal review required before release.
+                </span>
               </div>
             )}
 
@@ -647,17 +760,32 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
               <div className="order-detail-field">
                 <span>Request Source</span>
-                <strong>{getRequestSource(selectedJob)}</strong>
+                <strong>
+                  {renderGovernanceBadge(
+                    getRequestSource(selectedJob),
+                    isCustomerRequest(selectedJob) ? "customer" : "default"
+                  )}
+                </strong>
               </div>
 
               <div className="order-detail-field">
                 <span>Review Status</span>
-                <strong>{getReviewStatus(selectedJob)}</strong>
+                <strong>
+                  {renderGovernanceBadge(
+                    getReviewStatus(selectedJob),
+                    getReviewBadgeType(selectedJob)
+                  )}
+                </strong>
               </div>
 
               <div className="order-detail-field">
                 <span>Request Origin</span>
-                <strong>{isCustomerRequest(selectedJob) ? "Customer Request" : "Internal Request"}</strong>
+                <strong>
+                  {renderGovernanceBadge(
+                    isCustomerRequest(selectedJob) ? "Customer Request" : "Internal Request",
+                    isCustomerRequest(selectedJob) ? "customer" : "default"
+                  )}
+                </strong>
               </div>
 
               <div className="order-detail-field">
@@ -1337,7 +1465,12 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
               <div className="order-detail-field">
                 <span>Internal Review</span>
-                <strong>{getReviewStatus(selectedJob)}</strong>
+                <strong>
+                  {renderGovernanceBadge(
+                    getReviewStatus(selectedJob),
+                    getReviewBadgeType(selectedJob)
+                  )}
+                </strong>
               </div>
 
               <div className="order-detail-field">
@@ -1805,21 +1938,38 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
             <div>
               <span>Source</span>
-              <strong>{selectedJob ? getRequestSource(selectedJob) : "Pending"}</strong>
+              <strong>
+                {selectedJob
+                  ? renderGovernanceBadge(
+                      getRequestSource(selectedJob),
+                      isCustomerRequest(selectedJob) ? "customer" : "default"
+                    )
+                  : "Pending"}
+              </strong>
             </div>
 
             <div>
               <span>Review</span>
-              <strong>{selectedJob ? getReviewStatus(selectedJob) : "Pending"}</strong>
+              <strong>
+                {selectedJob
+                  ? renderGovernanceBadge(
+                      getReviewStatus(selectedJob),
+                      getReviewBadgeType(selectedJob)
+                    )
+                  : "Pending"}
+              </strong>
             </div>
 
             <div>
               <span>Queue Type</span>
               <strong>
                 {selectedJob
-                  ? isCustomerRequest(selectedJob)
-                    ? "Customer Queue"
-                    : "Internal Queue"
+                  ? renderGovernanceBadge(
+                      isCustomerRequest(selectedJob)
+                        ? "Customer Queue"
+                        : "Internal Queue",
+                      isCustomerRequest(selectedJob) ? "customer" : "default"
+                    )
                   : "Pending"}
               </strong>
             </div>
