@@ -195,6 +195,11 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+  loadSupabaseJobs();
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
   const loadProfile = async (userId) => {
     const { data, error } = await supabase
       .from("profiles")
@@ -205,6 +210,74 @@ function App() {
     if (!error && data) {
       setProfile(data);
     }
+  };
+
+  const mapSupabaseJobToOperationalOrder = (job) => {
+    const rawStatus = String(job?.status || "").trim();
+
+    const releaseStatus =
+      rawStatus.toLowerCase().includes("closed") ||
+      rawStatus.toLowerCase().includes("complete") ||
+      rawStatus.toLowerCase().includes("shipped")
+        ? "Closed"
+        : rawStatus.toLowerCase().includes("active") ||
+          rawStatus.toLowerCase().includes("released") ||
+          rawStatus.toLowerCase().includes("shipping")
+        ? "Active"
+        : "Open";
+
+    const createdDate = job?.created_at ? new Date(job.created_at) : null;
+
+    return {
+      dbId: job?.id,
+      joNumber: job?.job_number || `JO-${String(job?.id || "").slice(0, 6)}`,
+      requestor: job?.requestor_name || "Requestor",
+      jobType: job?.request_category || job?.job_type || "Work Request",
+      details: job?.notes || "",
+      allocationRequired:
+        String(job?.request_category || "").toLowerCase() === "movement",
+      allocationConfirmed: false,
+      releaseStatus,
+      reviewStatus: rawStatus || "Pending Internal Review",
+      soNumber: releaseStatus === "Active" ? `SO-${job?.job_number || ""}` : "",
+      priority: "Normal",
+      requestedDate: createdDate
+        ? createdDate.toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10),
+      customer: job?.ship_to_company || job?.ship_from_company || "Customer",
+      shipTo: job?.location || job?.ship_to_company || "Pending",
+      additionalWork: [],
+      stagingLocation: "",
+      originalLocation: "",
+      startedAt: job?.start_time || "",
+      completedAt: job?.complete_time || "",
+      pieces: "1",
+      weight: "TBD",
+      dimensions: "TBD",
+      finalDestination: job?.location || job?.ship_to_company || "Pending",
+      additionalDetails: job?.notes || "",
+      chargeNumber: job?.charge_number || "",
+      chargeCode: job?.charge_code || job?.charge_number || "",
+      chargeable: Boolean(job?.chargeable),
+      requestSource: job?.request_source || "Internal Request",
+      requestorEmail: job?.requestor_email || "",
+      location: job?.location || "",
+      inventoryDetails: null,
+    };
+  };
+
+  const loadSupabaseJobs = async () => {
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("Unable to load live jobs:", error.message);
+      return;
+    }
+
+    setOrders((data || []).map(mapSupabaseJobToOperationalOrder));
   };
 
   const handleRecoveryPasswordReset = async () => {
