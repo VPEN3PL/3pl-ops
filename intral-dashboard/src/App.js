@@ -212,6 +212,25 @@ function App() {
     }
   };
 
+  const getShippingWorkflowFromJob = (job) => {
+    const directWorkflow = String(
+      job?.shipping_workflow ||
+        job?.shipping_type ||
+        job?.shippingWorkflow ||
+        job?.shippingType ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+    if (directWorkflow) return directWorkflow;
+
+    const notes = String(job?.notes || "");
+    const match = notes.match(/Shipping Workflow:\s*([^\n]+)/i);
+
+    return match ? match[1].trim().toLowerCase() : "";
+  };
+
   const mapSupabaseJobToOperationalOrder = (job) => {
     const rawStatus = String(job?.status || "").trim();
 
@@ -261,6 +280,8 @@ function App() {
       chargeable: Boolean(job?.chargeable),
       requestSource: job?.request_source || "Internal Request",
       requestorEmail: job?.requestor_email || "",
+      shippingWorkflow: getShippingWorkflowFromJob(job),
+      shippingType: getShippingWorkflowFromJob(job),
       location: job?.location || "",
       inventoryDetails: null,
     };
@@ -278,6 +299,165 @@ function App() {
     }
 
     setOrders((data || []).map(mapSupabaseJobToOperationalOrder));
+  };
+
+  const extractJobNumberValue = (jobNumber) => {
+    const match = String(jobNumber || "").match(/^JO-(\d+)$/i);
+
+    if (!match) return 0;
+
+    return Number(match[1]) || 0;
+  };
+
+  const getNextJobNumber = async () => {
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("job_number");
+
+    if (error) {
+      throw new Error(`Unable to generate next JO number: ${error.message}`);
+    }
+
+    const highestDatabaseNumber = (data || []).reduce((highest, job) => {
+      return Math.max(highest, extractJobNumberValue(job.job_number));
+    }, 99);
+
+    const highestLoadedNumber = orders.reduce((highest, order) => {
+      return Math.max(highest, extractJobNumberValue(order.joNumber));
+    }, 99);
+
+    const nextNumber = Math.max(highestDatabaseNumber, highestLoadedNumber) + 1;
+
+    return `JO-${String(nextNumber).padStart(6, "0")}`;
+  };
+
+  const handleCreateJobRequest = async (requestPayload) => {
+    let generatedJobNumber = "";
+
+    try {
+      generatedJobNumber = await getNextJobNumber();
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+    const requestTitle = String(requestPayload?.requestTitle || "Work Request").trim();
+    const requestCategory = String(requestPayload?.requestMode || "work-request").trim();
+    const requestor = requestPayload?.requestorForm || {};
+    const movement = requestPayload?.movementForm || {};
+    const shipping = requestPayload?.shippingForm || {};
+    const logistics = requestPayload?.logisticsForm || {};
+    const selectedInventory = requestPayload?.selectedInventory || null;
+    const shippingWorkflow = requestPayload?.shippingType || "";
+    const requestSource = isGuest ? "Guest Portal" : "Internal Request";
+
+    const detailLines = [
+      `Request Type: ${requestTitle}`,
+      requestCategory === "shipping" && shippingWorkflow
+        ? `Shipping Workflow: ${shippingWorkflow}`
+        : "",
+      requestCategory === "movement"
+        ? `Inventory ID: ${movement.inventoryId || ""}`
+        : "",
+      requestCategory === "movement"
+        ? `Move Qty: ${movement.moveQty || ""}`
+        : "",
+      requestCategory === "movement"
+        ? `Move To: ${movement.toLocation || ""}`
+        : "",
+      requestCategory === "movement"
+        ? `Move Reason: ${movement.reason || ""}`
+        : "",
+      selectedInventory
+        ? `Selected Inventory: ${selectedInventory.id || ""} | ${selectedInventory.partNumber || ""} | ${selectedInventory.location || ""}`
+        : "",
+      requestCategory === "shipping"
+        ? `PCS: ${shipping.pcs || ""}`
+        : "",
+      requestCategory === "shipping"
+        ? `Ship From: ${shipping.shipFromCompany || ""} | Address: ${shipping.shipFromAddress || ""} | City: ${shipping.shipFromStreet || ""} | State: ${shipping.shipFromState || ""} | Zip: ${shipping.shipFromZip || ""} | Country: ${shipping.shipFromCountry || ""}`
+        : "",
+      requestCategory === "shipping" && shippingWorkflow === "am-crating"
+        ? `A&M Stored Address: ${shipping.amStoredAddress || ""}`
+        : "",
+      requestCategory === "shipping"
+        ? `Ship To: ${shipping.shipToCompany || ""} | Address: ${shipping.shipToAddress || ""} | City: ${shipping.shipToStreet || ""} | State: ${shipping.shipToState || ""} | Zip: ${shipping.shipToZip || ""} | Country: ${shipping.shipToCountry || ""}`
+        : "",
+      requestCategory === "shipping"
+        ? `Ship To Contact: ${shipping.shipToContactName || ""} | ${shipping.shipToTelephone || ""} | ${shipping.shipToEmail || ""}`
+        : "",
+      requestCategory === "logistics"
+        ? `Support Type: ${logistics.supportType || ""}`
+        : "",
+      requestCategory === "logistics"
+        ? `Current Location: ${logistics.currentLocation || ""}`
+        : "",
+      requestCategory === "logistics"
+        ? `Support Destination: ${logistics.supportDestination || ""}`
+        : "",
+      requestCategory === "logistics"
+        ? `Equipment / Labor Needed: ${logistics.equipmentNeeded || ""}`
+        : "",
+      requestCategory === "logistics"
+        ? `Due Date: ${logistics.dueDate || ""}`
+        : "",
+      requestCategory === "logistics"
+        ? `Logistics Notes: ${logistics.notes || ""}`
+        : "",
+      requestPayload?.additionalDetails
+        ? `Additional Details: ${requestPayload.additionalDetails}`
+        : "",
+    ].filter(Boolean);
+
+    const insertPayload = {
+      job_number: generatedJobNumber,
+      status: "Pending Internal Review",
+      request_category: requestCategory,
+      job_type: requestTitle,
+      requestor_name: String(requestor.requestorName || "").trim(),
+      requestor_email: String(requestor.email || "").trim(),
+      charge_number: String(requestor.chargeNumber || "").trim(),
+      charge_code: String(requestor.chargeType || "").trim(),
+      chargeable: Boolean(String(requestor.chargeNumber || "").trim()),
+      request_source: requestSource,
+      ship_from_company:
+        requestCategory === "shipping"
+          ? String(shipping.shipFromCompany || "").trim()
+          : String(requestor.companyName || "").trim(),
+      ship_to_company:
+        requestCategory === "shipping"
+          ? String(shipping.shipToCompany || "").trim()
+          : String(requestor.companyName || "").trim(),
+      location:
+        requestCategory === "movement"
+          ? String(movement.toLocation || "").trim()
+          : requestCategory === "shipping"
+          ? String(shipping.shipToCompany || shipping.shipToAddress || "").trim()
+          : String(logistics.supportDestination || logistics.currentLocation || "").trim(),
+      notes: detailLines.join("\n"),
+    };
+
+    const { data, error } = await supabase
+      .from("jobs")
+      .insert(insertPayload)
+      .select("*")
+      .single();
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    await loadSupabaseJobs();
+
+    return {
+      success: true,
+      jobNumber: data?.job_number || generatedJobNumber,
+      data,
+    };
   };
 
   const handleRecoveryPasswordReset = async () => {
@@ -558,19 +738,19 @@ function App() {
     }
 
     if (tab === "jobs-request-movement") {
-      return <JobRequestWorkspace requestMode="movement" />;
+      return <JobRequestWorkspace requestMode="movement" onCreateJobRequest={handleCreateJobRequest} />;
     }
 
     if (tab === "jobs-request-shipping") {
-      return <JobRequestWorkspace requestMode="shipping" />;
+      return <JobRequestWorkspace requestMode="shipping" onCreateJobRequest={handleCreateJobRequest} />;
     }
 
     if (tab === "jobs-request-logistics") {
-      return <JobRequestWorkspace requestMode="logistics" />;
+      return <JobRequestWorkspace requestMode="logistics" onCreateJobRequest={handleCreateJobRequest} />;
     }
 
     if (tab === "jobs-track") {
-      return <JobRequestWorkspace requestMode="track" />;
+      return <JobRequestWorkspace requestMode="track" onCreateJobRequest={handleCreateJobRequest} />;
     }
 
     if (tab === "orders") {

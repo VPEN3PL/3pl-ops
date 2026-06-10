@@ -14,16 +14,16 @@ function DashboardWorkspace({ setTab }) {
     }
   };
 
-  const isToday = (value) => {
+  const isToday = useCallback((value) => {
     if (!value) return false;
 
     const date = new Date(value);
     const today = new Date();
 
     return date.toDateString() === today.toDateString();
-  };
+  }, []);
 
-  const isOpenJob = (job) => {
+  const isOpenJob = useCallback((job) => {
     const status = String(job.status || "").toLowerCase();
 
     return (
@@ -32,10 +32,46 @@ function DashboardWorkspace({ setTab }) {
       status !== "complete" &&
       status !== "order complete"
     );
-  };
+  }, []);
+
+  const getShippingWorkflow = useCallback((job) => {
+    const directWorkflow = String(
+      job?.shipping_workflow ||
+        job?.shipping_type ||
+        job?.shippingWorkflow ||
+        job?.shippingType ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+    if (directWorkflow) return directWorkflow;
+
+    const notes = String(job?.notes || "");
+    const match = notes.match(/Shipping Workflow:\s*([^\n]+)/i);
+
+    return match ? match[1].trim().toLowerCase() : "";
+  }, []);
+
+  const isExactAMCratingJob = useCallback((job) => {
+    if (!isOpenJob(job)) return false;
+
+    const requestCategory = String(job?.request_category || job?.job_type || "")
+      .trim()
+      .toLowerCase();
+    const workflow = getShippingWorkflow(job);
+
+    return requestCategory.includes("shipping") && workflow === "am-crating";
+  }, [getShippingWorkflow, isOpenJob]);
 
   const isPendingShipmentJob = useCallback((job) => {
     if (!isOpenJob(job)) return false;
+
+    const requestCategory = String(job?.request_category || job?.job_type || "")
+      .trim()
+      .toLowerCase();
+
+    if (requestCategory.includes("shipping")) return true;
 
     const combinedText = [
       job.request_category,
@@ -60,37 +96,14 @@ function DashboardWorkspace({ setTab }) {
       "move to",
       "transfer out",
       "outbound",
-      "crating",
-      "crate",
-      "a&m",
-      "am",
     ];
 
     return outboundKeywords.some((keyword) => combinedText.includes(keyword));
-  }, []);
+  }, [isOpenJob]);
 
   const isAMCratingJob = useCallback((job) => {
-    if (!isOpenJob(job)) return false;
-
-    const combinedText = [
-      job.request_category,
-      job.job_type,
-      job.request_source,
-      job.notes,
-      job.location,
-      job.ship_to,
-      job.destination,
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    return (
-      combinedText.includes("a&m") ||
-      combinedText.includes("am ") ||
-      combinedText.includes("crating") ||
-      combinedText.includes("crate")
-    );
-  }, []);
+    return isExactAMCratingJob(job);
+  }, [isExactAMCratingJob]);
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -226,11 +239,19 @@ function DashboardWorkspace({ setTab }) {
       queuePressure,
       completedJobs: completedJobs.length,
     };
-  }, [jobs, inventoryItems, allocations, isPendingShipmentJob, isAMCratingJob]);
+  }, [
+    jobs,
+    inventoryItems,
+    allocations,
+    isToday,
+    isOpenJob,
+    isPendingShipmentJob,
+    isAMCratingJob,
+  ]);
 
   const recentOpenJobs = useMemo(() => {
     return jobs.filter(isOpenJob).slice(0, 8);
-  }, [jobs]);
+  }, [jobs, isOpenJob]);
 
   const recentPendingShipments = useMemo(() => {
     return jobs.filter(isPendingShipmentJob).slice(0, 8);

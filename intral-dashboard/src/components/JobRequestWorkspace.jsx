@@ -50,10 +50,11 @@ const amStoredAddresses = [
   },
 ];
 
-function JobRequestWorkspace({ requestMode = "movement" }) {
+function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest }) {
   const [submittedJobOrder, setSubmittedJobOrder] = useState("");
   const [isSubmittedLocked, setIsSubmittedLocked] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [requestorForm, setRequestorForm] = useState({
     chargeType: "",
@@ -82,6 +83,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     shipFromCompany: "",
     shipFromAddress: "",
     shipFromStreet: "",
+    shipFromState: "",
     shipFromZip: "",
     shipFromCountry: "",
 
@@ -90,6 +92,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     shipToCompany: "",
     shipToAddress: "",
     shipToStreet: "",
+    shipToState: "",
     shipToZip: "",
     shipToCountry: "",
     shipToContactName: "",
@@ -133,6 +136,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
       shipFromAddress: "",
       shipFromStreet: "",
       shipFromZip: "",
+      shipFromCountry: "",
 
       amStoredAddress: "",
 
@@ -140,6 +144,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
       shipToAddress: "",
       shipToStreet: "",
       shipToZip: "",
+      shipToCountry: "",
       shipToContactName: "",
       shipToTelephone: "",
       shipToEmail: "",
@@ -277,15 +282,6 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
       return false;
     }
 
-    if (!shippingForm.weight.trim()) {
-      alert("Weight is required.");
-      return false;
-    }
-
-    if (!shippingForm.dimensions.trim()) {
-      alert("Dimensions are required.");
-      return false;
-    }
 
     if (!shippingForm.shipFromCompany.trim()) {
       alert("Ship From company name is required.");
@@ -298,7 +294,12 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     }
 
     if (!shippingForm.shipFromStreet.trim()) {
-      alert("Ship From street is required.");
+      alert("Ship From city is required.");
+      return false;
+    }
+
+    if (!shippingForm.shipFromState.trim()) {
+      alert("Ship From state is required.");
       return false;
     }
 
@@ -323,7 +324,12 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     }
 
     if (!shippingForm.shipToStreet.trim()) {
-      alert("Ship To street is required.");
+      alert("Ship To city is required.");
+      return false;
+    }
+
+    if (!shippingForm.shipToState.trim()) {
+      alert("Ship To state is required.");
       return false;
     }
 
@@ -378,7 +384,9 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     return true;
   };
 
-  const handleSubmitRequest = () => {
+  const handleSubmitRequest = async () => {
+    if (isSubmitting) return;
+
     if (isSubmittedLocked || submittedJobOrder) {
       alert(
         "Request already submitted. This request is locked and cannot be edited from this screen. Please submit a new request or contact INTRAL operations if changes are required."
@@ -392,17 +400,47 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
     if (requestMode === "shipping" && !validateShipping()) return;
     if (requestMode === "logistics" && !validateLogistics()) return;
 
+    if (typeof onCreateJobRequest !== "function") {
+      alert(
+        "Job Request submit is not connected to Supabase from this screen. Please contact INTRAL operations."
+      );
+      return;
+    }
+
     const confirmed = window.confirm(
       "Confirm Job Release\n\nPlease confirm that all required additional work, shipping details, destination information, special handling instructions, and supporting documentation have been included before releasing this job."
     );
 
     if (!confirmed) return;
 
-    const nextJobNumber = `JO-${String(Date.now()).slice(-6)}`;
+    setIsSubmitting(true);
 
-    setSubmittedJobOrder(nextJobNumber);
-    setIsSubmittedLocked(true);
-    setExpandedSection("");
+    try {
+      const result = await onCreateJobRequest({
+        requestMode,
+        requestTitle: getRequestTitle(),
+        requestorForm,
+        movementForm,
+        shippingType,
+        shippingForm,
+        logisticsForm,
+        additionalDetails,
+        selectedInventory,
+      });
+
+      if (!result?.success) {
+        alert(`Job Request was not submitted: ${result?.error || "Unknown Supabase error"}`);
+        return;
+      }
+
+      setSubmittedJobOrder(result.jobNumber);
+      setIsSubmittedLocked(true);
+      setExpandedSection("");
+    } catch (error) {
+      alert(`Job Request was not submitted: ${error?.message || "Unexpected error"}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getSummaryValue = (value, fallback = "Pending") => {
@@ -609,9 +647,9 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
         <button
           className="inventory-primary-button job-submit-button"
           onClick={handleSubmitRequest}
-          disabled={isSubmittedLocked}
+          disabled={isSubmittedLocked || isSubmitting}
         >
-          {isSubmittedLocked ? "Request Submitted / Locked" : "Submit Job Request"}
+          {isSubmittedLocked ? "Request Submitted / Locked" : isSubmitting ? "Submitting..." : "Submit Job Request"}
         </button>
 
         <p className="job-summary-note">
@@ -842,8 +880,9 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                 <select
                   value={shippingType}
                   onChange={(e) => {
-                    setShippingType(e.target.value);
-                    setExpandedSection("shipmentDetails");
+                    const nextShippingType = e.target.value;
+                    setShippingType(nextShippingType);
+                    setExpandedSection(nextShippingType === "am-crating" ? "amCrating" : "shipmentDetails");
                   }}
                 >
                   <option value="">Select Shipping Workflow</option>
@@ -893,7 +932,7 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
               {renderAccordionHeader(
                 "shipmentDetails",
                 "Shipment Details",
-                "Pieces, weight, dimensions",
+                "Pieces",
                 shippingForm.pcs ? "Started" : "Pending"
               )}
 
@@ -907,17 +946,6 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                       placeholder="PCS"
                     />
 
-                    <input
-                      value={shippingForm.weight}
-                      onChange={(e) => updateShippingForm("weight", e.target.value)}
-                      placeholder="Weight"
-                    />
-
-                    <input
-                      value={shippingForm.dimensions}
-                      onChange={(e) => updateShippingForm("dimensions", e.target.value)}
-                      placeholder="Dimensions"
-                    />
                   </div>
                 </div>
               )}
@@ -936,7 +964,8 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                   <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
                     <input value={shippingForm.shipFromCompany} onChange={(e) => updateShippingForm("shipFromCompany", e.target.value)} placeholder="Company Name" />
                     <input value={shippingForm.shipFromAddress} onChange={(e) => updateShippingForm("shipFromAddress", e.target.value)} placeholder="Address" />
-                    <input value={shippingForm.shipFromStreet} onChange={(e) => updateShippingForm("shipFromStreet", e.target.value)} placeholder="Street" />
+                    <input value={shippingForm.shipFromStreet} onChange={(e) => updateShippingForm("shipFromStreet", e.target.value)} placeholder="City" />
+                    <input value={shippingForm.shipFromState} onChange={(e) => updateShippingForm("shipFromState", e.target.value)} placeholder="State" />
                     <input value={shippingForm.shipFromZip} onChange={(e) => updateShippingForm("shipFromZip", e.target.value)} placeholder="Zip / Postal Code" />
                     <input value={shippingForm.shipFromCountry} onChange={(e) => updateShippingForm("shipFromCountry", e.target.value)} placeholder="Origin Country" />
                   </div>
@@ -976,7 +1005,8 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
                   <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
                     <input value={shippingForm.shipToCompany} onChange={(e) => updateShippingForm("shipToCompany", e.target.value)} placeholder="Company Name" />
                     <input value={shippingForm.shipToAddress} onChange={(e) => updateShippingForm("shipToAddress", e.target.value)} placeholder="Address" />
-                    <input value={shippingForm.shipToStreet} onChange={(e) => updateShippingForm("shipToStreet", e.target.value)} placeholder="Street" />
+                    <input value={shippingForm.shipToStreet} onChange={(e) => updateShippingForm("shipToStreet", e.target.value)} placeholder="City" />
+                    <input value={shippingForm.shipToState} onChange={(e) => updateShippingForm("shipToState", e.target.value)} placeholder="State" />
                     <input value={shippingForm.shipToZip} onChange={(e) => updateShippingForm("shipToZip", e.target.value)} placeholder="Zip / Postal Code" />
                     <input value={shippingForm.shipToCountry} onChange={(e) => updateShippingForm("shipToCountry", e.target.value)} placeholder="Destination Country" />
                     <input value={shippingForm.shipToContactName} onChange={(e) => updateShippingForm("shipToContactName", e.target.value)} placeholder="Contact Name" />
@@ -1169,9 +1199,9 @@ function JobRequestWorkspace({ requestMode = "movement" }) {
               type="button"
               className="inventory-primary-button phase17-review-button"
               onClick={handleSubmitRequest}
-              disabled={isSubmittedLocked}
+              disabled={isSubmittedLocked || isSubmitting}
             >
-              {isSubmittedLocked ? "Submitted / Locked" : "Review & Submit →"}
+              {isSubmittedLocked ? "Submitted / Locked" : isSubmitting ? "Submitting..." : "Review & Submit →"}
             </button>
           </div>
         </div>

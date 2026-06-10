@@ -925,22 +925,44 @@ color: "#ffffff",
     );
   };
 
+  const getShippingWorkflow = (job) => {
+    const directWorkflow = String(
+      job?.shippingWorkflow ||
+        job?.shippingType ||
+        job?.shipping_workflow ||
+        job?.shipping_type ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+    if (directWorkflow) return directWorkflow;
+
+    const detailText = String(
+      job?.details || job?.additionalDetails || job?.notes || ""
+    );
+    const match = detailText.match(/Shipping Workflow:\s*([^\n]+)/i);
+
+    return match ? match[1].trim().toLowerCase() : "";
+  };
+
   const isAMCratingJob = (job) => {
     if (!job) return false;
 
-    const searchableText = [
-      job.shipTo,
-      job.finalDestination,
-      job.details,
-      job.additionalDetails,
-      ...(job.additionalWork || []),
-      job.inventoryDetails?.destinationLocation,
-    ]
-      .filter(Boolean)
-      .join(" ")
+    const requestType = String(
+      job?.requestMode ||
+        job?.requestCategory ||
+        job?.request_category ||
+        job?.jobType ||
+        job?.job_type ||
+        ""
+    )
+      .trim()
       .toLowerCase();
 
-    return searchableText.includes("a&m") || searchableText.includes("crating");
+    const workflow = getShippingWorkflow(job);
+
+    return requestType.includes("shipping") && workflow === "am-crating";
   };
 
   const getPickListNumber = (job) => {
