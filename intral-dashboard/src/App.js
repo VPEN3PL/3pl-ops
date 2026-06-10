@@ -26,6 +26,11 @@ function App() {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [passwordChangeMessage, setPasswordChangeMessage] = useState("");
   const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
+  const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false);
+  const [recoveryPassword, setRecoveryPassword] = useState("");
+  const [confirmRecoveryPassword, setConfirmRecoveryPassword] = useState("");
+  const [recoveryMessage, setRecoveryMessage] = useState("");
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
 
   const [tab, setTab] = useState(() => {
     return localStorage.getItem("intral-connect-active-tab") || "portal";
@@ -166,13 +171,24 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+
+      if (event === "PASSWORD_RECOVERY") {
+        setPasswordRecoveryMode(true);
+        setRecoveryMessage("Password recovery verified. Please create a new password.");
+        setTab("portal");
+        localStorage.setItem("intral-connect-active-tab", "portal");
+      }
 
       if (session?.user) {
         loadProfile(session.user.id);
       } else {
         setProfile(null);
+        setPasswordRecoveryMode(false);
+        setRecoveryPassword("");
+        setConfirmRecoveryPassword("");
+        setRecoveryMessage("");
       }
     });
 
@@ -188,6 +204,65 @@ function App() {
 
     if (!error && data) {
       setProfile(data);
+    }
+  };
+
+  const handleRecoveryPasswordReset = async () => {
+    setRecoveryMessage("");
+
+    if (!recoveryPassword.trim()) {
+      setRecoveryMessage("New password is required.");
+      return;
+    }
+
+    if (recoveryPassword.length < 8) {
+      setRecoveryMessage("New password must be at least 8 characters.");
+      return;
+    }
+
+    if (recoveryPassword !== confirmRecoveryPassword) {
+      setRecoveryMessage("New password and confirmation do not match.");
+      return;
+    }
+
+    if (!session?.user?.id) {
+      setRecoveryMessage("Recovery session not found. Please request a new password reset link.");
+      return;
+    }
+
+    setRecoveryLoading(true);
+    setRecoveryMessage("Updating password...");
+
+    const { error: passwordError } = await supabase.auth.updateUser({
+      password: recoveryPassword,
+    });
+
+    if (passwordError) {
+      setRecoveryMessage(`Password reset failed: ${passwordError.message}`);
+      setRecoveryLoading(false);
+      return;
+    }
+
+    await supabase
+      .from("profiles")
+      .update({
+        must_change_password: false,
+      })
+      .eq("id", session.user.id);
+
+    setRecoveryPassword("");
+    setConfirmRecoveryPassword("");
+    setPasswordRecoveryMode(false);
+    setRecoveryMessage("Password reset successfully. Loading workspace...");
+
+    await loadProfile(session.user.id);
+
+    setRecoveryLoading(false);
+  };
+
+  const handleRecoveryKeyDown = (event) => {
+    if (event.key === "Enter") {
+      handleRecoveryPasswordReset();
     }
   };
 
@@ -287,6 +362,10 @@ function App() {
       setNewPassword("");
       setConfirmNewPassword("");
       setPasswordChangeMessage("");
+      setPasswordRecoveryMode(false);
+      setRecoveryPassword("");
+      setConfirmRecoveryPassword("");
+      setRecoveryMessage("");
       setProfile(null);
       return;
     }
@@ -300,6 +379,10 @@ function App() {
     setNewPassword("");
     setConfirmNewPassword("");
     setPasswordChangeMessage("");
+    setPasswordRecoveryMode(false);
+    setRecoveryPassword("");
+    setConfirmRecoveryPassword("");
+    setRecoveryMessage("");
     setProfile(null);
   };
 
@@ -608,6 +691,88 @@ function App() {
               </div>
             </div>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  if (session && !guestSession && passwordRecoveryMode) {
+    return (
+      <div className="workspace-portal">
+        <div className="workspace-overlay">
+          <div className="login-panel">
+            <div className="login-header">
+              <h1>INTRAL CONNECT</h1>
+              <p>Password Recovery • Create New Password</p>
+            </div>
+
+            <div className="login-form">
+              <input
+                type="password"
+                placeholder="New Password"
+                value={recoveryPassword}
+                onChange={(e) => setRecoveryPassword(e.target.value)}
+                onKeyDown={handleRecoveryKeyDown}
+              />
+
+              <input
+                type="password"
+                placeholder="Confirm New Password"
+                value={confirmRecoveryPassword}
+                onChange={(e) => setConfirmRecoveryPassword(e.target.value)}
+                onKeyDown={handleRecoveryKeyDown}
+              />
+
+              <button
+                onClick={handleRecoveryPasswordReset}
+                disabled={recoveryLoading}
+              >
+                {recoveryLoading ? "Updating..." : "Reset Password"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  background: "rgba(15, 23, 42, 0.72)",
+                  border: "1px solid rgba(147, 197, 253, 0.35)",
+                }}
+              >
+                Cancel / Logout
+              </button>
+
+              {recoveryMessage && (
+                <p
+                  style={{
+                    marginTop: "4px",
+                    color:
+                      recoveryMessage.includes("failed") ||
+                      recoveryMessage.includes("required") ||
+                      recoveryMessage.includes("match") ||
+                      recoveryMessage.includes("not found")
+                        ? "#fecaca"
+                        : "#dbeafe",
+                    fontWeight: 800,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {recoveryMessage}
+                </p>
+              )}
+
+              <p
+                style={{
+                  color: "#cbd5e1",
+                  fontSize: "12px",
+                  lineHeight: 1.5,
+                  marginTop: "4px",
+                }}
+              >
+                Your recovery link was verified. Create a new password before
+                entering INTRAL CONNECT.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
