@@ -66,11 +66,48 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     return orders.find((item) => item.joNumber === selectedJobNumber) || null;
   }, [orders, selectedJobNumber]);
 
+  useEffect(() => {
+    if (!selectedJob) {
+      setInvoiceForm({
+        invoiceNumber: "",
+        invoiceAmount: "",
+        invoiceDate: new Date().toISOString().slice(0, 10),
+        billingNotes: "",
+      });
+      return;
+    }
+
+    const savedInvoice =
+      savedInvoices[selectedJob.joNumber] ||
+      selectedJob.invoiceDetails ||
+      (selectedJob.invoiceAmount
+        ? {
+            invoiceNumber: selectedJob.invoiceNumber || "",
+            invoiceAmount: selectedJob.invoiceAmount || "",
+            invoiceDate: selectedJob.invoiceDate || new Date().toISOString().slice(0, 10),
+            billingNotes: selectedJob.billingNotes || "",
+          }
+        : null);
+
+    if (savedInvoice) {
+      setInvoiceForm(savedInvoice);
+      return;
+    }
+
+    setInvoiceForm({
+      invoiceNumber: "",
+      invoiceAmount: "",
+      invoiceDate: new Date().toISOString().slice(0, 10),
+      billingNotes: "",
+    });
+  }, [selectedJob, savedInvoices]);
+
   const activeList = useMemo(() => {
     if (orderMode === "released") return activeOrders;
     if (orderMode === "closed") return closedOrders;
+    if (orderMode === "invoice" || orderMode === "pickList" || orderMode === "view") return orders;
     return openOrders;
-  }, [orderMode, openOrders, activeOrders, closedOrders]);
+  }, [orderMode, orders, openOrders, activeOrders, closedOrders]);
 
   const paginatedOrders = useMemo(() => {
     const startIndex = (currentPage - 1) * ordersPerPage;
@@ -103,12 +140,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
   };
 
   const getActiveInvoice = () => {
-    if (!selectedJob) return invoiceForm;
-
-    return {
-      ...invoiceForm,
-      ...(savedInvoices[selectedJob.joNumber] || {}),
-    };
+    return invoiceForm;
   };
 
   const getInvoiceNumber = () => {
@@ -131,6 +163,62 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       style: "currency",
       currency: "USD",
     }) + " USD";
+  };
+
+  const formatDateTimeDisplay = (value) => {
+    if (!value) return "-";
+
+    const parsed = new Date(value);
+
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleString([], {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    return value;
+  };
+
+  const getJobStartedAt = (job) => {
+    return job?.startedAtIso || job?.startTimeIso || job?.start_time || job?.startedAt || job?.startTime || "";
+  };
+
+  const getJobCompletedAt = (job) => {
+    return job?.completedAtIso || job?.completeTimeIso || job?.complete_time || job?.closedAtIso || job?.completedAt || job?.closedAt || "";
+  };
+
+  const getJobDurationDisplay = (job) => {
+    const startedValue = getJobStartedAt(job);
+    const completedValue = getJobCompletedAt(job);
+
+    if (!startedValue || !completedValue) return "Pending";
+
+    const started = new Date(startedValue);
+    const completed = new Date(completedValue);
+
+    if (Number.isNaN(started.getTime()) || Number.isNaN(completed.getTime())) {
+      return "Pending";
+    }
+
+    const diffMs = completed.getTime() - started.getTime();
+
+    if (diffMs < 0) return "Pending";
+
+    const totalMinutes = Math.max(1, Math.round(diffMs / 60000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours && minutes) return `${hours} hr ${minutes} min`;
+    if (hours) return `${hours} hr`;
+    return `${minutes} min`;
+  };
+
+  const isClosedJob = (job) => {
+    return String(job?.releaseStatus || "").toLowerCase() === "closed";
   };
 
   const getViewTitle = () => {
@@ -1020,6 +1108,14 @@ color: "#ffffff",
 
     const rows = getPickRows(job);
     const amJob = isAMCratingJob(job);
+    const closedJob = isClosedJob(job);
+    const documentTitle = closedJob
+      ? "INTRAL PICK LIST / COMPLETION"
+      : "INTRAL PICK LIST / MATERIAL RELEASE";
+    const printButtonLabel = closedJob ? "Print Completion" : "Print Pick List";
+    const startedAtDisplay = formatDateTimeDisplay(getJobStartedAt(job));
+    const completedAtDisplay = formatDateTimeDisplay(getJobCompletedAt(job));
+    const jobDurationDisplay = getJobDurationDisplay(job);
 
     const shipFromName = amJob ? "A&M Warehouse" : "INTRAL Warehouse";
     const shipFromLines = [
@@ -1085,7 +1181,7 @@ color: "#ffffff",
       <!doctype html>
       <html>
         <head>
-          <title>INTRAL Pick List - ${getPickListNumber(job)}</title>
+          <title>${documentTitle} - ${getPickListNumber(job)}</title>
           <style>
             * { box-sizing: border-box; }
             body { margin: 0; background: #f3f4f6; font-family: Arial, Helvetica, sans-serif; color: #111827; }
@@ -1134,7 +1230,7 @@ color: "#ffffff",
         <body>
           <div class="actions">
             <button class="close-button" onclick="window.close()">Close Preview</button>
-            <button class="print-button" onclick="window.print()">Print Pick List</button>
+            <button class="print-button" onclick="window.print()">${printButtonLabel}</button>
           </div>
 
           <main class="page">
@@ -1155,8 +1251,7 @@ color: "#ffffff",
               </div>
 
               <div class="title">
-                INTRAL PICK LIST / MATERIAL<br />
-                RELEASE
+                ${closedJob ? "INTRAL PICK LIST /<br />COMPLETION" : "INTRAL PICK LIST / MATERIAL<br />RELEASE"}
               </div>
             </div>
 
@@ -1190,6 +1285,17 @@ color: "#ffffff",
                 <p>Charge # / SWO: ${job.chargeNumber || job.swoNumber || "Pending"}</p>
               </div>
             </section>
+
+            ${closedJob ? `
+            <section class="section">
+              <div class="section-title">Completion Timing</div>
+              <div class="section-body">
+                <p><strong>Started At:</strong> ${startedAtDisplay}</p>
+                <p><strong>Completed At:</strong> ${completedAtDisplay}</p>
+                <p><strong>Total Job Duration:</strong> ${jobDurationDisplay}</p>
+              </div>
+            </section>
+            ` : ""}
 
             <section class="section">
               <div class="section-title">Description of Request</div>
@@ -1243,7 +1349,7 @@ color: "#ffffff",
                 <tr>
                   <td></td>
                   <td></td>
-                  <td></td>
+                  <td>${closedJob ? completedAtDisplay : ""}</td>
                 </tr>
               </tbody>
             </table>
@@ -1306,8 +1412,10 @@ color: "#ffffff",
       <div className="phase17-accordion-section">
         {renderAccordionHeader(
           "pickList",
-          "Pick List / Material Release",
-          "Preview and print the INTRAL material release document"
+          isClosedJob(selectedJob) ? "Pick List / Completion" : "Pick List / Material Release",
+          isClosedJob(selectedJob)
+            ? "Preview and print the completed Pick List with total job duration"
+            : "Preview and print the INTRAL material release document"
         )}
 
         {expandedSection === "pickList" && (
@@ -1365,14 +1473,29 @@ color: "#ffffff",
                     "-"}
                 </strong>
               </div>
+
+              <div className="order-detail-field">
+                <span>Started At</span>
+                <strong>{formatDateTimeDisplay(getJobStartedAt(selectedJob))}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Completed At</span>
+                <strong>{formatDateTimeDisplay(getJobCompletedAt(selectedJob))}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Total Job Duration</span>
+                <strong>{getJobDurationDisplay(selectedJob)}</strong>
+              </div>
             </div>
 
             <div className="order-detail-section compact-order-section">
-              <h3>Document Format</h3>
+              <h3>{isClosedJob(selectedJob) ? "Completion Document Format" : "Document Format"}</h3>
               <p>
-                Generates the INTRAL Pick List / Material Release document with
-                ship-from, ship-to, internal request details, description,
-                pick body, and signature fields.
+                {isClosedJob(selectedJob)
+                  ? "Generates the INTRAL Pick List / Completion document with started time, completed time, total job duration, work details, pick body, and signature fields."
+                  : "Generates the INTRAL Pick List / Material Release document with ship-from, ship-to, internal request details, description, pick body, and signature fields."}
               </p>
             </div>
 
@@ -1390,11 +1513,11 @@ color: "#ffffff",
 
             <div className="shipping-station-actions shipping-workbench-actions">
               <button className="inventory-primary-button" onClick={previewPickList}>
-                Preview Pick List
+                {isClosedJob(selectedJob) ? "Preview Completion" : "Preview Pick List"}
               </button>
 
               <button className="order-success-button" onClick={printPickList}>
-                Print Pick List
+                {isClosedJob(selectedJob) ? "Print Completion" : "Print Pick List"}
               </button>
             </div>
           </div>
@@ -1550,8 +1673,25 @@ color: "#ffffff",
       [selectedJob.joNumber]: nextInvoice,
     }));
 
+    if (setOrders) {
+      setOrders((currentOrders) =>
+        currentOrders.map((order) =>
+          order.joNumber === selectedJob.joNumber
+            ? {
+                ...order,
+                invoiceDetails: nextInvoice,
+                invoiceNumber: nextInvoice.invoiceNumber,
+                invoiceAmount: nextInvoice.invoiceAmount,
+                invoiceDate: nextInvoice.invoiceDate,
+                billingNotes: nextInvoice.billingNotes,
+              }
+            : order
+        )
+      );
+    }
+
     setInvoiceForm(nextInvoice);
-    setMessage(`Invoice ${nextInvoice.invoiceNumber} saved for ${selectedJob.joNumber}.`);
+    setMessage(`Invoice ${nextInvoice.invoiceNumber} saved / updated for ${selectedJob.joNumber}.`);
   };
 
   const buildInvoiceHtml = (job) => {
@@ -1846,7 +1986,7 @@ color: "#ffffff",
         {renderAccordionHeader(
           "invoice",
           "Invoice Control",
-          "Create and print invoice independently from job completion"
+          "Create, update, and print invoice amounts before or after job closure"
         )}
 
         {expandedSection === "invoice" && (
@@ -1917,15 +2057,21 @@ color: "#ffffff",
               />
             </div>
 
+            <div className="dashboard-message">
+              {selectedJob.releaseStatus === "Closed"
+                ? "Job closed. Invoice Control remains open for creating, updating, and printing invoice amounts."
+                : "Job is not closed yet. Invoice amount can be drafted or updated now and adjusted again after completion if additional billable work is identified."}
+            </div>
+
             {savedInvoices[selectedJob.joNumber] && (
               <div className="dashboard-message">
-                Invoice {savedInvoices[selectedJob.joNumber].invoiceNumber} saved for {selectedJob.joNumber}.
+                Invoice {savedInvoices[selectedJob.joNumber].invoiceNumber} saved / updated for {selectedJob.joNumber}.
               </div>
             )}
 
             <div className="shipping-station-actions shipping-workbench-actions">
               <button className="inventory-primary-button" onClick={saveInvoice}>
-                Save Invoice
+                Save / Update Invoice
               </button>
 
               <button className="order-success-button" onClick={printInvoice}>
@@ -2032,7 +2178,7 @@ color: "#ffffff",
               onClick={() => setExpandedSection("pickList")}
               style={{ marginTop: "8px", width: "100%" }}
             >
-              Preview Pick List
+              {isClosedJob(selectedJob) ? "Preview Completion" : "Preview Pick List"}
             </button>
           )}
 
@@ -2142,7 +2288,19 @@ color: "#ffffff",
       );
     }
 
-    if (orderMode === "open" || orderMode === "released" || orderMode === "closed") {
+    if (orderMode === "closed") {
+      return (
+        <>
+          {renderOrderQueueSection()}
+          {renderCustomerRequestQueueSection()}
+          {renderSelectedGovernanceSection()}
+          {renderPickAuthorizationSection()}
+          {renderInvoiceControlSection()}
+        </>
+      );
+    }
+
+    if (orderMode === "open" || orderMode === "released") {
       return (
         <>
           {renderOrderQueueSection()}

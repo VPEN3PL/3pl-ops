@@ -234,14 +234,20 @@ function App() {
   const mapSupabaseJobToOperationalOrder = (job) => {
     const rawStatus = String(job?.status || "").trim();
 
+    const normalizedStatus = rawStatus.toLowerCase();
+
     const releaseStatus =
-      rawStatus.toLowerCase().includes("closed") ||
-      rawStatus.toLowerCase().includes("complete") ||
-      rawStatus.toLowerCase().includes("shipped")
+      normalizedStatus.includes("closed") ||
+      normalizedStatus.includes("complete") ||
+      normalizedStatus.includes("shipped")
         ? "Closed"
-        : rawStatus.toLowerCase().includes("active") ||
-          rawStatus.toLowerCase().includes("released") ||
-          rawStatus.toLowerCase().includes("shipping")
+        : normalizedStatus.includes("started") ||
+          normalizedStatus.includes("in progress") ||
+          normalizedStatus.includes("executing")
+        ? "Started"
+        : normalizedStatus.includes("active") ||
+          normalizedStatus.includes("released") ||
+          normalizedStatus.includes("shipping")
         ? "Active"
         : "Open";
 
@@ -258,7 +264,12 @@ function App() {
       allocationConfirmed: false,
       releaseStatus,
       reviewStatus: rawStatus || "Pending Internal Review",
-      soNumber: releaseStatus === "Active" ? `SO-${job?.job_number || ""}` : "",
+      soNumber:
+        releaseStatus === "Active" ||
+        releaseStatus === "Started" ||
+        releaseStatus === "Closed"
+          ? `SO-${job?.job_number || ""}`
+          : "",
       priority: "Normal",
       requestedDate: createdDate
         ? createdDate.toISOString().slice(0, 10)
@@ -269,7 +280,11 @@ function App() {
       stagingLocation: "",
       originalLocation: "",
       startedAt: job?.start_time || "",
+      startedAtIso: job?.start_time || "",
       completedAt: job?.complete_time || "",
+      completedAtIso: job?.complete_time || "",
+      closedAt: job?.complete_time || "",
+      closedAtIso: job?.complete_time || "",
       pieces: "1",
       weight: "TBD",
       dimensions: "TBD",
@@ -702,6 +717,78 @@ function App() {
     );
   };
 
+
+
+  const updateOperationalOrderStatus = async (targetOrder, status, extraFields = {}) => {
+    if (!targetOrder) {
+      return { success: false, error: "Missing order details." };
+    }
+
+    const nowIso = new Date().toISOString();
+    const nextOrderFields = {
+      releaseStatus: status,
+      reviewStatus: status === "Closed" ? "Closed" : targetOrder.reviewStatus,
+      ...extraFields,
+    };
+
+    setOrders((currentOrders) =>
+      currentOrders.map((order) =>
+        order.joNumber === targetOrder.joNumber ||
+        order.soNumber === targetOrder.soNumber ||
+        (targetOrder.dbId && order.dbId === targetOrder.dbId)
+          ? {
+              ...order,
+              ...nextOrderFields,
+            }
+          : order
+      )
+    );
+
+    const databaseStatus = status;
+    const updatePayload = {
+      status: databaseStatus,
+    };
+
+    if (status === "Started") {
+      updatePayload.start_time = extraFields.startedAtIso || nowIso;
+    }
+
+    if (status === "Closed") {
+      updatePayload.complete_time = extraFields.completedAtIso || nowIso;
+    }
+
+    let query = supabase.from("jobs").update(updatePayload);
+
+    if (targetOrder.dbId) {
+      query = query.eq("id", targetOrder.dbId);
+    } else if (targetOrder.joNumber) {
+      query = query.eq("job_number", targetOrder.joNumber);
+    } else {
+      return { success: true };
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      console.warn("Unable to persist operational status update:", error.message);
+      setOperationalNotifications((current) => [
+        {
+          id: `status-update-${targetOrder.joNumber || targetOrder.soNumber || Date.now()}`,
+          title: "Status Update Not Saved",
+          detail: error.message,
+          tab: "shipping",
+          severity: "high",
+        },
+        ...current,
+      ].slice(0, 12));
+
+      return { success: false, error: error.message };
+    }
+
+    await loadSupabaseJobs();
+
+    return { success: true };
+  };
   const renderWorkspace = () => {
     if (
       isGuest &&
@@ -844,7 +931,7 @@ function App() {
     }
 
     if (tab === "shipping-dashboard") {
-      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} />;
+      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} />;
     }
 
     if (
@@ -852,7 +939,7 @@ function App() {
       tab === "shipping-started" ||
       tab === "shipping-complete"
     ) {
-      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} />;
+      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} />;
     }
 
     return (

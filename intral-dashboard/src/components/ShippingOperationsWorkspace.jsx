@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 
-function ShippingOperationsWorkspace({ orders = [], setOrders }) {
+function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStatus }) {
   const [soSearch, setSoSearch] = useState("");
   const [loadedSoNumber, setLoadedSoNumber] = useState("");
+  const [recentlyCompletedOrder, setRecentlyCompletedOrder] = useState(null);
   const [message, setMessage] = useState("");
   const [expandedSection, setExpandedSection] = useState("load");
 
@@ -11,8 +12,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
       (order) =>
         order.soNumber &&
         (order.releaseStatus === "Active" ||
-          order.releaseStatus === "Started" ||
-          order.releaseStatus === "Complete")
+          order.releaseStatus === "Started")
     );
   }, [orders]);
 
@@ -23,7 +23,9 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
   }, [shippingOrders, loadedSoNumber]);
 
   const activeOrders = useMemo(() => {
-    return shippingOrders.filter((order) => order.releaseStatus === "Active");
+    return shippingOrders.filter(
+      (order) => order.releaseStatus === "Active" || order.releaseStatus === "Started"
+    );
   }, [shippingOrders]);
 
   const handleLoadOrder = () => {
@@ -50,12 +52,13 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
 
   const clearLoadedOrder = () => {
     setLoadedSoNumber("");
+    setRecentlyCompletedOrder(null);
     setSoSearch("");
     setMessage("");
     setExpandedSection("load");
   };
 
-  const startJob = () => {
+  const startJob = async () => {
     if (!loadedOrder) {
       alert("Load an SO before starting the job.");
       return;
@@ -66,23 +69,42 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
       return;
     }
 
-    const now = new Date().toLocaleTimeString([], {
+    const nowDate = new Date();
+    const now = nowDate.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
 
     const updatedOrders = orders.map((order) =>
       order.soNumber === loadedOrder.soNumber
-        ? { ...order, releaseStatus: "Started", startedAt: now }
+        ? {
+            ...order,
+            releaseStatus: "Started",
+            startedAt: now,
+            startedAtIso: nowDate.toISOString(),
+          }
         : order
     );
 
     setOrders(updatedOrders);
+
+    if (onUpdateOrderStatus) {
+      const result = await onUpdateOrderStatus(loadedOrder, "Started", {
+        startedAt: now,
+        startedAtIso: nowDate.toISOString(),
+      });
+
+      if (result && result.success === false) {
+        alert(`Job started locally, but Supabase did not save the update: ${result.error}`);
+      }
+    }
+
+    setLoadedSoNumber(loadedOrder.soNumber);
     setExpandedSection("execution");
     setMessage(`${loadedOrder.soNumber} has been started.`);
   };
 
-  const completeJob = () => {
+  const completeJob = async () => {
     if (!loadedOrder) {
       alert("Load an SO before completing the job.");
       return;
@@ -93,20 +115,246 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
       return;
     }
 
-    const now = new Date().toLocaleTimeString([], {
+    const confirmed = window.confirm(
+      `Complete and close ${loadedOrder.soNumber}?
+
+This will remove the SO from active Shipping Operations and move the JO to Closed Orders. Invoice Control will remain open for save/update after closure.`
+    );
+
+    if (!confirmed) return;
+
+    const nowDate = new Date();
+    const now = nowDate.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
 
+    const closedOrder = {
+      ...loadedOrder,
+      releaseStatus: "Closed",
+      completedAt: now,
+      completedAtIso: nowDate.toISOString(),
+      closedAt: now,
+      closedAtIso: nowDate.toISOString(),
+    };
+
     const updatedOrders = orders.map((order) =>
-      order.soNumber === loadedOrder.soNumber
-        ? { ...order, releaseStatus: "Complete", completedAt: now }
-        : order
+      order.soNumber === loadedOrder.soNumber ? closedOrder : order
     );
 
     setOrders(updatedOrders);
+
+    if (onUpdateOrderStatus) {
+      const result = await onUpdateOrderStatus(loadedOrder, "Closed", {
+        completedAt: now,
+        completedAtIso: nowDate.toISOString(),
+        closedAt: now,
+        closedAtIso: nowDate.toISOString(),
+      });
+
+      if (result && result.success === false) {
+        alert(`Job closed locally, but Supabase did not save the update: ${result.error}`);
+      }
+    }
+
+    setRecentlyCompletedOrder(closedOrder);
+    setLoadedSoNumber("");
+    setSoSearch("");
     setExpandedSection("completion");
-    setMessage(`${loadedOrder.soNumber} has been completed.`);
+    setMessage(`${loadedOrder.soNumber} has been completed and moved to Closed Orders. Pick List / Completion is ready to preview or print.`);
+  };
+
+  const escapeHtml = (value) => {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  const formatDateTimeDisplay = (value) => {
+    if (!value) return "-";
+
+    const parsed = new Date(value);
+
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleString([], {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    return value;
+  };
+
+  const getJobStartedAt = (order) => {
+    return order?.startedAtIso || order?.startTimeIso || order?.start_time || order?.startedAt || order?.startTime || "";
+  };
+
+  const getJobCompletedAt = (order) => {
+    return order?.completedAtIso || order?.completeTimeIso || order?.complete_time || order?.closedAtIso || order?.completedAt || order?.closedAt || "";
+  };
+
+  const getJobDurationDisplay = (order) => {
+    const startedValue = getJobStartedAt(order);
+    const completedValue = getJobCompletedAt(order);
+
+    if (!startedValue || !completedValue) return "Pending";
+
+    const started = new Date(startedValue);
+    const completed = new Date(completedValue);
+
+    if (Number.isNaN(started.getTime()) || Number.isNaN(completed.getTime())) {
+      return "Pending";
+    }
+
+    const diffMs = completed.getTime() - started.getTime();
+
+    if (diffMs < 0) return "Pending";
+
+    const totalMinutes = Math.max(1, Math.round(diffMs / 60000));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours && minutes) return `${hours} hr ${minutes} min`;
+    if (hours) return `${hours} hr`;
+    return `${minutes} min`;
+  };
+
+  const getPrintableCompletionOrder = () => {
+    return loadedOrder || recentlyCompletedOrder;
+  };
+
+  const buildCompletionDocumentHtml = (order) => {
+    if (!order) return "";
+
+    const printedAt = new Date().toLocaleString();
+    const startedAtDisplay = formatDateTimeDisplay(getJobStartedAt(order));
+    const completedAtDisplay = formatDateTimeDisplay(getJobCompletedAt(order));
+    const durationDisplay = getJobDurationDisplay(order);
+    const workDetails = order.additionalDetails || order.details || "No additional details provided.";
+    const additionalWork = Array.isArray(order.additionalWork) && order.additionalWork.length > 0
+      ? order.additionalWork.join("<br />")
+      : "No additional work attached.";
+
+    return `
+      <!doctype html>
+      <html>
+        <head>
+          <title>INTRAL Pick List / Completion - ${escapeHtml(order.soNumber || order.joNumber || "")}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; background: #f3f4f6; font-family: Arial, Helvetica, sans-serif; color: #111827; }
+            .actions { display: flex; justify-content: flex-end; gap: 10px; width: 8.5in; margin: 0 auto 12px; padding-top: 12px; }
+            .actions button { border: none; border-radius: 8px; padding: 9px 14px; font-weight: 800; cursor: pointer; }
+            .print-button { background: #00615f; color: #ffffff; }
+            .close-button { background: #e5e7eb; color: #111827; }
+            .page { width: 8.5in; min-height: 11in; margin: 0 auto; padding: 0.55in 0.62in; background: #ffffff; }
+            .top { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; border-bottom: 2px solid #00615f; padding-bottom: 14px; margin-bottom: 18px; }
+            .brand { color: #00615f; font-size: 26px; font-weight: 900; letter-spacing: 0.04em; }
+            .company { margin-top: 10px; font-size: 12px; line-height: 1.35; }
+            .title { text-align: right; }
+            .title h1 { margin: 0; color: #00615f; font-size: 24px; letter-spacing: 0.04em; }
+            .title p { margin: 6px 0 0; font-size: 13px; font-weight: 800; }
+            .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+            .field { border: 1px solid #cbd5e1; padding: 10px; min-height: 54px; }
+            .field span { display: block; font-size: 10px; text-transform: uppercase; color: #6b7280; font-weight: 800; margin-bottom: 4px; }
+            .field strong { font-size: 14px; overflow-wrap: anywhere; }
+            .section { border: 1px solid #cbd5e1; margin-bottom: 16px; }
+            .section-title { background: #00615f; color: #ffffff; padding: 9px 10px; font-weight: 900; text-transform: uppercase; font-size: 13px; }
+            .section-body { padding: 12px; font-size: 13px; line-height: 1.45; min-height: 80px; white-space: pre-wrap; }
+            .signature { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 42px; }
+            .signature div { border-top: 1px solid #111827; padding-top: 8px; font-size: 11px; text-transform: uppercase; color: #374151; }
+            @media print { body { background: #ffffff; } .actions { display: none; } .page { width: auto; min-height: auto; margin: 0; padding: 0.35in 0.45in; } }
+          </style>
+        </head>
+
+        <body>
+          <div class="actions">
+            <button class="close-button" onclick="window.close()">Close Preview</button>
+            <button class="print-button" onclick="window.print()">Print Completion</button>
+          </div>
+
+          <main class="page">
+            <div class="top">
+              <div>
+                <div class="brand">INTRAL CONNECT</div>
+                <div class="company">
+                  1900 Crown Colony Drive, Suite 407<br />
+                  Quincy, MA 02169<br />
+                  (617) 439-5880
+                </div>
+              </div>
+
+              <div class="title">
+                <h1>PICK LIST / COMPLETION</h1>
+                <p>${escapeHtml(order.soNumber || "No SO")}</p>
+              </div>
+            </div>
+
+            <section class="grid">
+              <div class="field"><span>SO Number</span><strong>${escapeHtml(order.soNumber || "-")}</strong></div>
+              <div class="field"><span>JO Number</span><strong>${escapeHtml(order.joNumber || "-")}</strong></div>
+              <div class="field"><span>Customer</span><strong>${escapeHtml(order.customer || "-")}</strong></div>
+              <div class="field"><span>Job Type</span><strong>${escapeHtml(order.jobType || "-")}</strong></div>
+              <div class="field"><span>Status</span><strong>${escapeHtml(order.releaseStatus || "-")}</strong></div>
+              <div class="field"><span>STG Location</span><strong>${escapeHtml(order.stagingLocation || "-")}</strong></div>
+              <div class="field"><span>Ship To / Destination</span><strong>${escapeHtml(order.finalDestination || order.shipTo || "-")}</strong></div>
+              <div class="field"><span>Printed At</span><strong>${escapeHtml(printedAt)}</strong></div>
+              <div class="field"><span>Started At</span><strong>${escapeHtml(startedAtDisplay)}</strong></div>
+              <div class="field"><span>Completed At</span><strong>${escapeHtml(completedAtDisplay)}</strong></div>
+              <div class="field"><span>Total Job Duration</span><strong>${escapeHtml(durationDisplay)}</strong></div>
+            </section>
+
+            <section class="section">
+              <div class="section-title">Work Details</div>
+              <div class="section-body">${escapeHtml(workDetails)}</div>
+            </section>
+
+            <section class="section">
+              <div class="section-title">Additional Work</div>
+              <div class="section-body">${additionalWork}</div>
+            </section>
+
+            <section class="section">
+              <div class="section-title">Completion Confirmation</div>
+              <div class="section-body">
+                Operational work has been completed and the order has been moved to Closed Orders. Total job duration is recorded on this Pick List / Completion document. Invoice Control remains available for invoice creation or invoice amount updates when additional billable work is identified.
+              </div>
+            </section>
+
+            <div class="signature">
+              <div>Completed By / Date</div>
+              <div>Reviewed By / Date</div>
+            </div>
+          </main>
+        </body>
+      </html>
+    `;
+  };
+
+  const printCompletionDocument = () => {
+    const printableOrder = getPrintableCompletionOrder();
+
+    if (!printableOrder) {
+      alert("Load an SO or complete a job before printing the Pick List / Completion document.");
+      return;
+    }
+
+    const completionWindow = window.open("", "_blank", "width=950,height=850");
+
+    if (!completionWindow) {
+      alert("Popup blocked. Please allow popups to print the completion document.");
+      return;
+    }
+
+    completionWindow.document.open();
+    completionWindow.document.write(buildCompletionDocumentHtml(printableOrder));
+    completionWindow.document.close();
   };
 
   const toggleSection = (sectionKey) => {
@@ -121,7 +369,11 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
     if (sectionKey === "shipment") return loadedOrder.shipTo ? "Ready" : "Review";
     if (sectionKey === "work") return loadedOrder.additionalWork?.length > 0 ? "Attached" : "Optional";
     if (sectionKey === "execution") return loadedOrder.releaseStatus;
-    if (sectionKey === "completion") return loadedOrder.releaseStatus === "Complete" ? "Complete" : "Pending";
+    if (sectionKey === "completion") {
+      const printableOrder = getPrintableCompletionOrder();
+      if (!printableOrder) return "Waiting";
+      return printableOrder.releaseStatus === "Closed" ? "Closed" : "Preview";
+    }
     return "";
   };
 
@@ -445,8 +697,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
         {expandedSection === "execution" && (
           <div className="phase17-accordion-body">
             <p className="panel-note">
-              Start begins physical work against the SO. Complete finalizes the
-              operational execution record.
+              Start begins physical work against the SO. Complete closes the job and moves it to Closed Orders.
             </p>
 
             <div className="shipping-station-actions shipping-workbench-actions">
@@ -477,9 +728,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
 
               <button
                 className="history-button"
-                onClick={() =>
-                  alert("Print Completion Document will be connected in the print phase.")
-                }
+                onClick={printCompletionDocument}
               >
                 Print Completion
               </button>
@@ -494,44 +743,113 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
     );
   };
 
+  const renderCompletionSection = () => {
+    const completionOrder = getPrintableCompletionOrder();
+
+    if (!completionOrder) return null;
+
+    return (
+      <div className="phase17-accordion-section">
+        {renderAccordionHeader(
+          "completion",
+          "Pick List / Completion",
+          "Preview and print the completion record with total job duration"
+        )}
+
+        {expandedSection === "completion" && (
+          <div className="phase17-accordion-body">
+            <div className="order-release-summary-grid order-workbench-field-grid">
+              <div className="order-detail-field">
+                <span>SO Number</span>
+                <strong>{completionOrder.soNumber || "-"}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>JO Number</span>
+                <strong>{completionOrder.joNumber || "-"}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Status</span>
+                <strong>{completionOrder.releaseStatus || "-"}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Started At</span>
+                <strong>{formatDateTimeDisplay(getJobStartedAt(completionOrder))}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Completed At</span>
+                <strong>{formatDateTimeDisplay(getJobCompletedAt(completionOrder))}</strong>
+              </div>
+
+              <div className="order-detail-field">
+                <span>Total Job Duration</span>
+                <strong>{getJobDurationDisplay(completionOrder)}</strong>
+              </div>
+            </div>
+
+            <div className="dashboard-message">
+              Pick List / Completion is available after the SO is completed. The printed document includes Started At, Completed At, and Total Job Duration.
+            </div>
+
+            <div className="shipping-station-actions shipping-workbench-actions">
+              <button className="inventory-primary-button" onClick={printCompletionDocument}>
+                Preview / Print Completion
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderExecutionSummary = () => {
+    const summaryOrder = getPrintableCompletionOrder();
+
     return (
       <aside className="phase17-smart-summary shipping-workbench-summary">
         <div className="job-request-summary-panel">
           <div className="job-summary-header">
             <span>Execution Snapshot</span>
-            <strong>{loadedOrder?.soNumber || "No SO Loaded"}</strong>
+            <strong>{summaryOrder?.soNumber || "No SO Loaded"}</strong>
           </div>
 
           <div className="job-summary-grid">
             <div>
               <span>Status</span>
-              <strong>{loadedOrder?.releaseStatus || "Waiting"}</strong>
+              <strong>{summaryOrder?.releaseStatus || "Waiting"}</strong>
             </div>
 
             <div>
               <span>JO Number</span>
-              <strong>{loadedOrder?.joNumber || "Pending"}</strong>
+              <strong>{summaryOrder?.joNumber || "Pending"}</strong>
             </div>
 
             <div>
               <span>Customer</span>
-              <strong>{loadedOrder?.customer || "Pending"}</strong>
+              <strong>{summaryOrder?.customer || "Pending"}</strong>
             </div>
 
             <div>
               <span>STG Location</span>
-              <strong>{loadedOrder?.stagingLocation || "Pending"}</strong>
+              <strong>{summaryOrder?.stagingLocation || "Pending"}</strong>
             </div>
 
             <div>
               <span>Started</span>
-              <strong>{loadedOrder?.startedAt || "-"}</strong>
+              <strong>{formatDateTimeDisplay(getJobStartedAt(summaryOrder))}</strong>
             </div>
 
             <div>
               <span>Completed</span>
-              <strong>{loadedOrder?.completedAt || "-"}</strong>
+              <strong>{formatDateTimeDisplay(getJobCompletedAt(summaryOrder))}</strong>
+            </div>
+
+            <div>
+              <span>Total Duration</span>
+              <strong>{getJobDurationDisplay(summaryOrder)}</strong>
             </div>
           </div>
 
@@ -545,9 +863,21 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
             {loadedOrder ? "Open Execution Controls" : "Load Shipping Order"}
           </button>
 
+          {recentlyCompletedOrder && !loadedOrder && (
+            <button
+              type="button"
+              className="phase17-secondary-button"
+              onClick={() => setExpandedSection("completion")}
+              style={{ marginTop: "8px", width: "100%" }}
+            >
+              Pick List / Completion
+            </button>
+          )}
+
           <p className="job-summary-note">
             Shipping Operations is controlled one SO at a time to protect the
-            execution workflow.
+            execution workflow. Completed jobs move to Closed Orders, and total
+            duration prints on the Pick List / Completion document.
           </p>
         </div>
       </aside>
@@ -577,7 +907,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
               <span className={loadedOrder ? "" : "active"}>1 Load</span>
               <span className={loadedOrder ? "active" : ""}>2 Validate</span>
               <span className={loadedOrder?.releaseStatus === "Started" ? "active" : ""}>3 Execute</span>
-              <span className={loadedOrder?.releaseStatus === "Complete" ? "active" : ""}>4 Complete</span>
+              <span className={getPrintableCompletionOrder()?.releaseStatus === "Closed" ? "active" : ""}>4 Complete</span>
             </div>
           </div>
 
@@ -589,6 +919,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders }) {
               {renderShipmentSection()}
               {renderWorkSection()}
               {renderExecutionSection()}
+              {renderCompletionSection()}
             </div>
 
             {renderExecutionSummary()}
