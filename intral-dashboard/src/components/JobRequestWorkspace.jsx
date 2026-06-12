@@ -50,7 +50,7 @@ const amStoredAddresses = [
   },
 ];
 
-function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest }) {
+function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isGuest = false }) {
   const [submittedJobOrder, setSubmittedJobOrder] = useState("");
   const [isSubmittedLocked, setIsSubmittedLocked] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState("");
@@ -215,13 +215,13 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest }) {
       return false;
     }
 
-    if (!requestorForm.email.trim()) {
-      alert("Requestor email is required.");
+    if (isGuest && !requestorForm.email.trim()) {
+      alert("Requestor email is required for guest requests.");
       return false;
     }
 
-    if (!requestorForm.telephone.trim()) {
-      alert("Requestor telephone is required.");
+    if (isGuest && !requestorForm.telephone.trim()) {
+      alert("Requestor telephone is required for guest requests.");
       return false;
     }
 
@@ -545,7 +545,7 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest }) {
             fontSize: "12px",
           }}
         >
-          External / Guest Request • Pending Internal Review
+          {isGuest ? "External / Guest Request" : "Internal Logged-In Request"} • Pending Internal Review
         </div>
 
         <div className="job-summary-grid">
@@ -732,13 +732,13 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest }) {
               <input
                 value={requestorForm.telephone}
                 onChange={(e) => updateRequestorForm("telephone", e.target.value)}
-                placeholder="Telephone"
+                placeholder={isGuest ? "Telephone Required" : "Telephone Optional"}
               />
 
               <input
                 value={requestorForm.email}
                 onChange={(e) => updateRequestorForm("email", e.target.value)}
-                placeholder="Email"
+                placeholder={isGuest ? "Email Required" : "Email Optional"}
               />
             </div>
           </div>

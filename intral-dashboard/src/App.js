@@ -366,6 +366,17 @@ function App() {
     const selectedInventory = requestPayload?.selectedInventory || null;
     const shippingWorkflow = requestPayload?.shippingType || "";
     const requestSource = isGuest ? "Guest Portal" : "Internal Request";
+    const fallbackRequestorName = String(
+      requestor.requestorName ||
+        profile?.name ||
+        profile?.full_name ||
+        profile?.display_name ||
+        session?.user?.email ||
+        "Internal User"
+    ).trim();
+    const fallbackRequestorEmail = String(
+      requestor.email || (!isGuest ? session?.user?.email || "" : "")
+    ).trim();
 
     const detailLines = [
       `Request Type: ${requestTitle}`,
@@ -430,8 +441,8 @@ function App() {
       status: "Pending Internal Review",
       request_category: requestCategory,
       job_type: requestTitle,
-      requestor_name: String(requestor.requestorName || "").trim(),
-      requestor_email: String(requestor.email || "").trim(),
+      requestor_name: fallbackRequestorName,
+      requestor_email: fallbackRequestorEmail,
       charge_number: String(requestor.chargeNumber || "").trim(),
       charge_code: String(requestor.chargeType || "").trim(),
       chargeable: Boolean(String(requestor.chargeNumber || "").trim()),
@@ -821,23 +832,23 @@ function App() {
     if (tab === "inventory-history") return <InventoryWorkspace inventoryView="history" />;
 
     if (tab === "jobs") {
-      return <JobRequestWorkspace requestMode="dashboard" />;
+      return <JobRequestWorkspace requestMode="dashboard" isGuest={isGuest} />;
     }
 
     if (tab === "jobs-request-movement") {
-      return <JobRequestWorkspace requestMode="movement" onCreateJobRequest={handleCreateJobRequest} />;
+      return <JobRequestWorkspace requestMode="movement" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} />;
     }
 
     if (tab === "jobs-request-shipping") {
-      return <JobRequestWorkspace requestMode="shipping" onCreateJobRequest={handleCreateJobRequest} />;
+      return <JobRequestWorkspace requestMode="shipping" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} />;
     }
 
     if (tab === "jobs-request-logistics") {
-      return <JobRequestWorkspace requestMode="logistics" onCreateJobRequest={handleCreateJobRequest} />;
+      return <JobRequestWorkspace requestMode="logistics" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} />;
     }
 
     if (tab === "jobs-track") {
-      return <JobRequestWorkspace requestMode="track" onCreateJobRequest={handleCreateJobRequest} />;
+      return <JobRequestWorkspace requestMode="track" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} />;
     }
 
     if (tab === "orders") {
