@@ -50,7 +50,7 @@ const amStoredAddresses = [
   },
 ];
 
-function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isGuest = false }) {
+function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isGuest = false, onAfterSubmit }) {
   const [submittedJobOrder, setSubmittedJobOrder] = useState("");
   const [isSubmittedLocked, setIsSubmittedLocked] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState("");
@@ -343,18 +343,8 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
       return false;
     }
 
-    if (!shippingForm.shipToContactName.trim()) {
-      alert("Ship To contact name is required.");
-      return false;
-    }
-
-    if (
-      !shippingForm.shipToTelephone.trim() &&
-      !shippingForm.shipToEmail.trim()
-    ) {
-      alert("Ship To telephone or email is required.");
-      return false;
-    }
+    // Phase 23D-3D: Ship To contact name, telephone, and email remain visible
+    // and are saved when provided, but they are optional for submission.
 
     return true;
   };
@@ -436,6 +426,10 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
       setSubmittedJobOrder(result.jobNumber);
       setIsSubmittedLocked(true);
       setExpandedSection("");
+
+      if (typeof onAfterSubmit === "function") {
+        onAfterSubmit(result.jobNumber);
+      }
     } catch (error) {
       alert(`Job Request was not submitted: ${error?.message || "Unexpected error"}`);
     } finally {

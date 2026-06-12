@@ -836,15 +836,15 @@ function App() {
     }
 
     if (tab === "jobs-request-movement") {
-      return <JobRequestWorkspace requestMode="movement" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} />;
+      return <JobRequestWorkspace requestMode="movement" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} onAfterSubmit={() => setTab("jobs")} />;
     }
 
     if (tab === "jobs-request-shipping") {
-      return <JobRequestWorkspace requestMode="shipping" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} />;
+      return <JobRequestWorkspace requestMode="shipping" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} onAfterSubmit={() => setTab("jobs")} />;
     }
 
     if (tab === "jobs-request-logistics") {
-      return <JobRequestWorkspace requestMode="logistics" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} />;
+      return <JobRequestWorkspace requestMode="logistics" onCreateJobRequest={handleCreateJobRequest} isGuest={isGuest} onAfterSubmit={() => setTab("jobs")} />;
     }
 
     if (tab === "jobs-track") {
