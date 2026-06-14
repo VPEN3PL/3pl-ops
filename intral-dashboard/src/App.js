@@ -231,6 +231,23 @@ function App() {
     return match ? match[1].trim().toLowerCase() : "";
   };
 
+  const dedupeTextLines = (value) => {
+    const seen = new Set();
+
+    return String(value || "")
+      .split(/\n+/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .filter((line) => {
+        const key = line.replace(/\s+/g, " ").toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  };
+
+  const cleanJobNotes = (value) => dedupeTextLines(value).join("\n");
+
   const mapSupabaseJobToOperationalOrder = (job) => {
     const rawStatus = String(job?.status || "").trim();
 
@@ -252,13 +269,14 @@ function App() {
         : "Open";
 
     const createdDate = job?.created_at ? new Date(job.created_at) : null;
+    const cleanNotes = cleanJobNotes(job?.notes || "");
 
     return {
       dbId: job?.id,
       joNumber: job?.job_number || `JO-${String(job?.id || "").slice(0, 6)}`,
       requestor: job?.requestor_name || "Requestor",
       jobType: job?.request_category || job?.job_type || "Work Request",
-      details: job?.notes || "",
+      details: cleanNotes,
       allocationRequired:
         String(job?.request_category || "").toLowerCase() === "movement",
       allocationConfirmed: false,
@@ -289,7 +307,7 @@ function App() {
       weight: "TBD",
       dimensions: "TBD",
       finalDestination: job?.location || job?.ship_to_company || "Pending",
-      additionalDetails: job?.notes || "",
+      additionalDetails: "",
       chargeNumber: job?.charge_number || "",
       chargeCode: job?.charge_code || job?.charge_number || "",
       chargeable: Boolean(job?.chargeable),
@@ -461,7 +479,7 @@ function App() {
           : requestCategory === "shipping"
           ? String(shipping.shipToCompany || shipping.shipToAddress || "").trim()
           : String(logistics.supportDestination || logistics.currentLocation || "").trim(),
-      notes: detailLines.join("\n"),
+      notes: dedupeTextLines(detailLines.join("\n")).join("\n"),
     };
 
     const { data, error } = await supabase

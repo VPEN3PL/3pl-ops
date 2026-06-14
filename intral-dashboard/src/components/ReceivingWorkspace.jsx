@@ -44,6 +44,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
   const [reprintSearch, setReprintSearch] = useState("");
   const [labelQty, setLabelQty] = useState("1");
   const [expandedSection, setExpandedSection] = useState("activity");
+  const [detailReceiptNumber, setDetailReceiptNumber] = useState("");
 
   useEffect(() => {
     loadReceipts();
@@ -131,6 +132,13 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       selectedReceiptNumbers.includes(receipt.receiptNumber)
     );
   }, [receipts, selectedReceiptNumbers]);
+
+  const selectedReceiptDetail = useMemo(() => {
+    return (
+      receipts.find((receipt) => receipt.receiptNumber === detailReceiptNumber) ||
+      null
+    );
+  }, [receipts, detailReceiptNumber]);
 
   const latestReceipt = useMemo(() => {
     return receipts[0] || null;
@@ -576,6 +584,312 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     );
   };
 
+
+  const openReceiptDetail = (receipt) => {
+    if (!receipt?.receiptNumber) return;
+
+    setDetailReceiptNumber(receipt.receiptNumber);
+    setMessage(`${receipt.receiptNumber} opened in Receiving Detail.`);
+  };
+
+  const closeReceiptDetail = () => {
+    setDetailReceiptNumber("");
+    setMessage("");
+  };
+
+  const prepareReceiptForPutaway = (receipt) => {
+    if (!receipt?.receiptNumber) return;
+
+    setSelectedReceiptNumbers([receipt.receiptNumber]);
+    setExpandedSection("transfer");
+    setMessage(`${receipt.receiptNumber} selected for putaway.`);
+  };
+
+  const prepareDetailReprintLabel = (receipt) => {
+    if (!receipt) {
+      alert("Open a receipt before preparing a reprint label.");
+      return;
+    }
+
+    setLabelData({
+      inventoryId: receipt.receiptNumber,
+      customer: receipt.vendor,
+      partNumber: receipt.partNumber,
+      quantity: receipt.quantity,
+      description: receipt.description,
+      poNumber: receipt.purchaseOrder,
+      countryOfOrigin: receipt.countryOfOrigin,
+      site: receipt.isAM ? "AM" : "INTRAL",
+      amTag: receipt.tagNumber,
+      squareFeet: receipt.squareFeet,
+      date: new Date().toISOString().slice(0, 10),
+    });
+
+    setExpandedSection("reprintLabel");
+    setMessage(`Label prepared for ${receipt.receiptNumber}.`);
+  };
+
+  const renderOpenReceiptDetailButton = (receipt) => {
+    return (
+      <button
+        type="button"
+        className="inventory-primary-button"
+        title="Open Receiving Detail"
+        aria-label={`Open Receiving Detail for ${receipt?.receiptNumber || "receipt"}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          openReceiptDetail(receipt);
+        }}
+        style={{
+          minWidth: "34px",
+          width: "34px",
+          height: "30px",
+          padding: "0",
+          borderRadius: "999px",
+          fontSize: "18px",
+          lineHeight: 1,
+          fontWeight: 900,
+        }}
+      >
+        +
+      </button>
+    );
+  };
+
+  const renderReceivingDetailWorkspace = () => {
+    if (!selectedReceiptDetail) return null;
+
+    const receipt = selectedReceiptDetail;
+    const isInReceiving = receipt.status === "In Receiving";
+
+    return (
+      <div className="phase17-smart-card">
+        <div className="phase17-smart-card-header">
+          <div>
+            <span>Receiving Detail Workspace</span>
+            <strong>{receipt.receiptNumber}</strong>
+            <p>Review the full receiving record, prepare putaway, and regenerate labels without opening dropdown sections.</p>
+          </div>
+
+          <div className="shipping-station-actions shipping-workbench-actions">
+            <button
+              type="button"
+              className="phase17-secondary-button"
+              onClick={closeReceiptDetail}
+            >
+              ← Back to Receiving Queue
+            </button>
+          </div>
+        </div>
+
+        {message && <div className="dashboard-message">{message}</div>}
+
+        <div className="phase17-smart-card-body">
+          <div className="phase17-smart-sections">
+            <div className="order-detail-section compact-order-section">
+              <h3>Receiving Identity</h3>
+              <div className="order-release-summary-grid receiving-workbench-field-grid">
+                <div className="order-detail-field">
+                  <span>Receipt #</span>
+                  <strong>{receipt.receiptNumber}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Status</span>
+                  <strong>{receipt.status}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>PO</span>
+                  <strong>{receipt.purchaseOrder || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Vendor</span>
+                  <strong>{receipt.vendor || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Created</span>
+                  <strong>{receipt.createdAt ? new Date(receipt.createdAt).toLocaleString() : "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>RCV Location</span>
+                  <strong>{receipt.receivingLocation || "-"}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Material Details</h3>
+              <div className="order-release-summary-grid receiving-workbench-field-grid">
+                <div className="order-detail-field">
+                  <span>Part #</span>
+                  <strong>{receipt.partNumber || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Description</span>
+                  <strong>{receipt.description || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Quantity</span>
+                  <strong>{receipt.quantity}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>COO</span>
+                  <strong>{receipt.countryOfOrigin || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>A&M Function</span>
+                  <strong>{receipt.isAM ? "Yes" : "No"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>TAG / SQ FT</span>
+                  <strong>
+                    {receipt.isAM
+                      ? `${receipt.tagNumber || "-"} / ${receipt.squareFeet || "-"}`
+                      : "-"}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Putaway / Storage</h3>
+              <div className="order-release-summary-grid receiving-workbench-field-grid">
+                <div className="order-detail-field">
+                  <span>Final Storage Location</span>
+                  <strong>{receipt.finalStorageLocation || "Pending"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Putaway Qty</span>
+                  <strong>{receipt.putawayQty || "Pending"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Selected for Putaway</span>
+                  <strong>
+                    {selectedReceiptNumbers.includes(receipt.receiptNumber)
+                      ? "Selected"
+                      : "Not Selected"}
+                  </strong>
+                </div>
+              </div>
+
+              {isInReceiving ? (
+                <>
+                  <div className="inventory-form-grid phase17-form-grid receiving-workbench-form">
+                    <input
+                      type="number"
+                      value={putawayQty}
+                      onChange={(e) => setPutawayQty(e.target.value)}
+                      placeholder="Qty to Transfer"
+                    />
+
+                    <select
+                      value={inventoryLocation}
+                      onChange={(e) => {
+                        setInventoryLocation(e.target.value);
+                        setBinLocation("");
+                        setAisleLocation("");
+                      }}
+                    >
+                      <option value="">Select Inventory Location</option>
+                      {inventoryLocations.map((location) => (
+                        <option key={location} value={location}>
+                          {location}
+                        </option>
+                      ))}
+                    </select>
+
+                    {(inventoryLocation === "1K" || inventoryLocation === "6K") && (
+                      <>
+                        <input
+                          value={aisleLocation}
+                          onChange={(e) => setAisleLocation(e.target.value)}
+                          placeholder="Aisle / Row"
+                        />
+
+                        <input
+                          value={binLocation}
+                          onChange={(e) => setBinLocation(e.target.value)}
+                          placeholder="Bin / Shelf"
+                        />
+                      </>
+                    )}
+
+                    {selectedLocationIsFloorOnly && (
+                      <input value="FLOOR" disabled placeholder="Final Location Type" />
+                    )}
+
+                    {buildFinalStorageLocation() && (
+                      <input
+                        value={buildFinalStorageLocation()}
+                        disabled
+                        placeholder="Final Storage Location Preview"
+                      />
+                    )}
+                  </div>
+
+                  <div className="shipping-station-actions shipping-workbench-actions">
+                    <button
+                      className="inventory-primary-button"
+                      onClick={() => prepareReceiptForPutaway(receipt)}
+                    >
+                      Select for Putaway
+                    </button>
+
+                    <button
+                      className="order-success-button"
+                      onClick={transferToStorage}
+                      disabled={!selectedReceiptNumbers.includes(receipt.receiptNumber)}
+                    >
+                      Transfer to Storage
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="panel-note">This receipt is already putaway complete.</p>
+              )}
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Label Controls</h3>
+              <p>
+                Prepare or regenerate a receiving label for this receipt. Label layout and printer behavior remain unchanged.
+              </p>
+
+              <div className="shipping-station-actions shipping-workbench-actions">
+                <button
+                  className="inventory-primary-button"
+                  onClick={() => prepareDetailReprintLabel(receipt)}
+                >
+                  Prepare Label
+                </button>
+              </div>
+
+              {labelData?.inventoryId === receipt.receiptNumber && (
+                <div className="order-detail-section">
+                  <h3>Label Preview</h3>
+                  <LabelGenerator initialData={labelData} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {renderSummary()}
+        </div>
+      </div>
+    );
+  };
+
   const renderKpis = () => {
     return (
       <div className="inventory-kpi-grid receiving-workbench-kpi-grid">
@@ -623,6 +937,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
               <table className="inventory-table receiving-workbench-table">
                 <thead>
                   <tr>
+                    <th>Action</th>
                     <th>Receipt #</th>
                     <th>PO</th>
                     <th>Vendor</th>
@@ -637,11 +952,12 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
                 <tbody>
                   {receipts.length === 0 ? (
                     <tr>
-                      <td colSpan="8">No receiving records found.</td>
+                      <td colSpan="9">No receiving records found.</td>
                     </tr>
                   ) : (
                     receipts.map((receipt) => (
                       <tr key={receipt.receiptNumber}>
+                        <td>{renderOpenReceiptDetailButton(receipt)}</td>
                         <td>{receipt.receiptNumber}</td>
                         <td>{receipt.purchaseOrder}</td>
                         <td>{receipt.vendor}</td>
@@ -739,6 +1055,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
             <table className="inventory-table receiving-workbench-table">
               <thead>
                 <tr>
+                  <th>Action</th>
                   <th>Select</th>
                   <th>Receipt #</th>
                   <th>PO</th>
@@ -752,11 +1069,12 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
               <tbody>
                 {inReceivingReceipts.length === 0 ? (
                   <tr>
-                    <td colSpan="7">No receipts currently awaiting putaway.</td>
+                    <td colSpan="8">No receipts currently awaiting putaway.</td>
                   </tr>
                 ) : (
                   inReceivingReceipts.map((receipt) => (
                     <tr key={receipt.receiptNumber}>
+                      <td>{renderOpenReceiptDetailButton(receipt)}</td>
                       <td>
                         <input
                           type="checkbox"
@@ -1066,29 +1384,33 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       {receivingView === "dashboard" && renderKpis()}
 
       <div className="phase17-smart-card-shell receiving-workbench-shell">
-        <div className="phase17-smart-card">
-          <div className="phase17-smart-card-header">
-            <div>
-              <span>Smart Receiving Command Card</span>
-              <strong>{getWorkbenchTitle()}</strong>
-              <p>Receive material, validate inbound details, split putaway, regenerate labels, and keep inventory records clean.</p>
+        {selectedReceiptDetail ? (
+          renderReceivingDetailWorkspace()
+        ) : (
+          <div className="phase17-smart-card">
+            <div className="phase17-smart-card-header">
+              <div>
+                <span>Smart Receiving Command Card</span>
+                <strong>{getWorkbenchTitle()}</strong>
+                <p>Receive material, validate inbound details, split putaway, regenerate labels, and keep inventory records clean.</p>
+              </div>
+
+              <div className="phase17-progress">
+                <span className={receivingView === "create" ? "active" : ""}>1 Receive</span>
+                <span className={receivingView === "putaway" ? "active" : ""}>2 Putaway</span>
+                <span className={receivingView === "reprint" ? "active" : ""}>3 Labels</span>
+              </div>
             </div>
 
-            <div className="phase17-progress">
-              <span className={receivingView === "create" ? "active" : ""}>1 Receive</span>
-              <span className={receivingView === "putaway" ? "active" : ""}>2 Putaway</span>
-              <span className={receivingView === "reprint" ? "active" : ""}>3 Labels</span>
+            <div className="phase17-smart-card-body">
+              <div className="phase17-smart-sections">
+                {renderWorkbenchSections()}
+              </div>
+
+              {renderSummary()}
             </div>
           </div>
-
-          <div className="phase17-smart-card-body">
-            <div className="phase17-smart-sections">
-              {renderWorkbenchSections()}
-            </div>
-
-            {renderSummary()}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

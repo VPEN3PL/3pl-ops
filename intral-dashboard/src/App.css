@@ -9555,3 +9555,77 @@ PHASE 22E COMMAND HEADER VISUAL SYNC
   white-space: normal !important;
   overflow-wrap: anywhere !important;
 }
+/* =========================================
+   PHASE 23D-4A-1 — Order Central Detail Text Readability Hotfix
+   Scoped only to Order Central detail/action panels.
+   Improves readability on dark operational cards without changing workflow logic.
+========================================= */
+
+.order-central-workspace .compact-order-section,
+.order-central-workspace .order-detail-section,
+.order-central-workspace .order-detail-section p,
+.order-central-workspace .order-detail-section h3,
+.order-central-workspace .phase17-accordion-body,
+.order-central-workspace .phase17-accordion-body p {
+  color: #f8fafc !important;
+}
+
+.order-central-workspace .compact-order-section span,
+.order-central-workspace .order-detail-section span,
+.order-central-workspace .phase17-accordion-body span,
+.order-central-workspace .order-detail-field span {
+  color: #bfdbfe !important;
+}
+
+.order-central-workspace .compact-order-section strong,
+.order-central-workspace .order-detail-section strong,
+.order-central-workspace .phase17-accordion-body strong,
+.order-central-workspace .order-detail-field strong {
+  color: #ffffff !important;
+}
+
+.order-central-workspace .dashboard-message,
+.order-central-workspace .dashboard-message span,
+.order-central-workspace .dashboard-message strong {
+  color: #f8fafc !important;
+}
+
+.order-central-workspace .order-release-summary-grid,
+.order-central-workspace .order-workbench-field-grid,
+.order-central-workspace .order-release-mini-grid,
+.order-central-workspace .order-workbench-mini-grid {
+  color: #f8fafc !important;
+}
+
+.order-central-workspace .order-release-summary-grid div,
+.order-central-workspace .order-workbench-field-grid div,
+.order-central-workspace .order-release-mini-grid div,
+.order-central-workspace .order-workbench-mini-grid div {
+  color: #f8fafc !important;
+}
+
+.order-central-workspace .order-release-summary-grid div span,
+.order-central-workspace .order-workbench-field-grid div span,
+.order-central-workspace .order-release-mini-grid div span,
+.order-central-workspace .order-workbench-mini-grid div span {
+  color: #93c5fd !important;
+}
+
+.order-central-workspace .order-release-summary-grid div strong,
+.order-central-workspace .order-workbench-field-grid div strong,
+.order-central-workspace .order-release-mini-grid div strong,
+.order-central-workbench-mini-grid div strong {
+  color: #ffffff !important;
+}
+
+.order-central-workspace .order-checkbox-card,
+.order-central-workspace .order-checkbox-card span {
+  color: #f8fafc !important;
+}
+
+.order-central-workspace .order-detail-readability-panel,
+.order-central-workspace .order-detail-readability-panel p,
+.order-central-workspace .order-detail-readability-panel span,
+.order-central-workspace .order-detail-readability-panel strong {
+  color: #f8fafc !important;
+}

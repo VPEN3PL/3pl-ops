@@ -6,6 +6,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
   const [recentlyCompletedOrder, setRecentlyCompletedOrder] = useState(null);
   const [message, setMessage] = useState("");
   const [expandedSection, setExpandedSection] = useState("load");
+  const [detailViewOpen, setDetailViewOpen] = useState(false);
 
   const shippingOrders = useMemo(() => {
     return orders.filter(
@@ -47,6 +48,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
 
     setLoadedSoNumber(matchedOrder.soNumber);
     setExpandedSection("validation");
+    setDetailViewOpen(true);
     setMessage(`${matchedOrder.soNumber} loaded into Shipping Operations.`);
   };
 
@@ -56,6 +58,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
     setSoSearch("");
     setMessage("");
     setExpandedSection("load");
+    setDetailViewOpen(false);
   };
 
   const startJob = async () => {
@@ -160,6 +163,7 @@ This will remove the SO from active Shipping Operations and move the JO to Close
     setRecentlyCompletedOrder(closedOrder);
     setLoadedSoNumber("");
     setSoSearch("");
+    setDetailViewOpen(false);
     setExpandedSection("completion");
     setMessage(`${loadedOrder.soNumber} has been completed and moved to Closed Orders. Pick List / Completion is ready to preview or print.`);
   };
@@ -357,6 +361,286 @@ This will remove the SO from active Shipping Operations and move the JO to Close
     completionWindow.document.close();
   };
 
+
+  const openShippingDetail = (order) => {
+    if (!order?.soNumber) return;
+
+    setSoSearch(order.soNumber);
+    setLoadedSoNumber(order.soNumber);
+    setRecentlyCompletedOrder(null);
+    setExpandedSection("validation");
+    setDetailViewOpen(true);
+    setMessage(`${order.soNumber} opened in Shipping Detail.`);
+  };
+
+  const renderOpenDetailButton = (order) => {
+    return (
+      <button
+        type="button"
+        className="inventory-primary-button"
+        title="Open Shipping Detail"
+        aria-label={`Open Shipping Detail for ${order?.soNumber || "SO"}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          openShippingDetail(order);
+        }}
+        style={{
+          minWidth: "34px",
+          width: "34px",
+          height: "30px",
+          padding: "0",
+          borderRadius: "999px",
+          fontSize: "18px",
+          lineHeight: 1,
+          fontWeight: 900,
+        }}
+      >
+        +
+      </button>
+    );
+  };
+
+  const renderShippingDetailWorkspace = () => {
+    if (!loadedOrder) return null;
+
+    return (
+      <div className="phase17-smart-card">
+        <div className="phase17-smart-card-header">
+          <div>
+            <span>Shipping Detail Workspace</span>
+            <strong>{loadedOrder.soNumber} / {loadedOrder.joNumber}</strong>
+            <p>Review the full SO record, execute work, and print completion without opening dropdown sections.</p>
+          </div>
+
+          <div className="shipping-station-actions shipping-workbench-actions">
+            <button
+              type="button"
+              className="phase17-secondary-button"
+              onClick={() => {
+                setDetailViewOpen(false);
+                setExpandedSection("load");
+              }}
+            >
+              ← Back to Shipping Queue
+            </button>
+          </div>
+        </div>
+
+        {message && <div className="dashboard-message">{message}</div>}
+
+        <div className="phase17-smart-card-body">
+          <div className="phase17-smart-sections">
+            <div className="order-detail-section compact-order-section">
+              <h3>Shipping Order Identity</h3>
+              <div className="order-release-summary-grid shipping-workbench-field-grid">
+                <div className="order-detail-field">
+                  <span>SO Number</span>
+                  <strong>{loadedOrder.soNumber}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>JO Number</span>
+                  <strong>{loadedOrder.joNumber}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Customer</span>
+                  <strong>{loadedOrder.customer || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Status</span>
+                  <strong>{loadedOrder.releaseStatus || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Job Type</span>
+                  <strong>{loadedOrder.jobType || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Priority</span>
+                  <strong>{loadedOrder.priority || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>STG Location</span>
+                  <strong>{loadedOrder.stagingLocation || "-"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Requestor</span>
+                  <strong>{loadedOrder.requestor || "-"}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Inventory / STG Verification</h3>
+              <div className="order-release-mini-grid shipping-workbench-mini-grid">
+                <div>
+                  <span>Inventory ID</span>
+                  <strong>{loadedOrder.inventoryDetails?.inventoryId || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Part #</span>
+                  <strong>{loadedOrder.inventoryDetails?.partNumber || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Sub-Inventory</span>
+                  <strong>{loadedOrder.inventoryDetails?.subInventory || "STG"}</strong>
+                </div>
+
+                <div>
+                  <span>Original Location</span>
+                  <strong>
+                    {loadedOrder.originalLocation ||
+                      loadedOrder.inventoryDetails?.pullFromLocation ||
+                      "-"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Qty</span>
+                  <strong>{loadedOrder.inventoryDetails?.requestedQty || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>STG Location</span>
+                  <strong>{loadedOrder.stagingLocation || "-"}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Shipment Profile</h3>
+              <div className="order-release-mini-grid shipping-workbench-mini-grid">
+                <div>
+                  <span>Ship From</span>
+                  <strong>{loadedOrder.originalLocation || "INTRAL STG"}</strong>
+                </div>
+
+                <div>
+                  <span>Ship To</span>
+                  <strong>{loadedOrder.shipTo || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Final Destination</span>
+                  <strong>{loadedOrder.finalDestination || loadedOrder.shipTo || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Pieces</span>
+                  <strong>{loadedOrder.pieces || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Weight</span>
+                  <strong>{loadedOrder.weight || "-"}</strong>
+                </div>
+
+                <div>
+                  <span>Dimensions</span>
+                  <strong>{loadedOrder.dimensions || "-"}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Work / Details</h3>
+              {loadedOrder.additionalWork?.length > 0 ? (
+                loadedOrder.additionalWork.map((item, index) => (
+                  <p key={`${loadedOrder.soNumber}-detail-work-${index}`}>{item}</p>
+                ))
+              ) : (
+                <p>No additional work attached.</p>
+              )}
+
+              <p>
+                {loadedOrder.additionalDetails ||
+                  loadedOrder.details ||
+                  "No additional details."}
+              </p>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Execution Controls</h3>
+              <p>
+                Start begins physical work against the SO. Complete closes the job and moves it to Closed Orders.
+              </p>
+
+              <div className="shipping-station-actions shipping-workbench-actions">
+                <button
+                  className="inventory-primary-button"
+                  onClick={startJob}
+                  disabled={loadedOrder.releaseStatus !== "Active"}
+                >
+                  Start Job
+                </button>
+
+                <button
+                  className="order-success-button"
+                  onClick={completeJob}
+                  disabled={loadedOrder.releaseStatus !== "Started"}
+                >
+                  Complete Job
+                </button>
+
+                <button
+                  className="history-button"
+                  onClick={() =>
+                    alert("Print Release Slip will be connected in the print phase.")
+                  }
+                >
+                  Print Release
+                </button>
+
+                <button className="history-button" onClick={printCompletionDocument}>
+                  Print Completion
+                </button>
+
+                <button className="history-button" onClick={clearLoadedOrder}>
+                  Clear SO
+                </button>
+              </div>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Pick List / Completion</h3>
+              <div className="order-release-summary-grid order-workbench-field-grid">
+                <div className="order-detail-field">
+                  <span>Started At</span>
+                  <strong>{formatDateTimeDisplay(getJobStartedAt(loadedOrder))}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Completed At</span>
+                  <strong>{formatDateTimeDisplay(getJobCompletedAt(loadedOrder))}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Total Job Duration</span>
+                  <strong>{getJobDurationDisplay(loadedOrder)}</strong>
+                </div>
+              </div>
+
+              <div className="shipping-station-actions shipping-workbench-actions">
+                <button className="inventory-primary-button" onClick={printCompletionDocument}>
+                  Preview / Print Completion
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {renderExecutionSummary()}
+        </div>
+      </div>
+    );
+  };
+
   const toggleSection = (sectionKey) => {
     setExpandedSection((current) => (current === sectionKey ? "" : sectionKey));
   };
@@ -434,6 +718,7 @@ This will remove the SO from active Shipping Operations and move the JO to Close
               <table className="inventory-table">
                 <thead>
                   <tr>
+                    <th>Action</th>
                     <th>SO #</th>
                     <th>JO #</th>
                     <th>Customer</th>
@@ -446,19 +731,12 @@ This will remove the SO from active Shipping Operations and move the JO to Close
                 <tbody>
                   {activeOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="6">No active shipping orders found.</td>
+                      <td colSpan="7">No active shipping orders found.</td>
                     </tr>
                   ) : (
                     activeOrders.map((order) => (
-                      <tr
-                        key={order.soNumber}
-                        onClick={() => {
-                          setSoSearch(order.soNumber);
-                          setLoadedSoNumber(order.soNumber);
-                          setExpandedSection("validation");
-                          setMessage(`${order.soNumber} loaded into Shipping Operations.`);
-                        }}
-                      >
+                      <tr key={order.soNumber}>
+                        <td>{renderOpenDetailButton(order)}</td>
                         <td>{order.soNumber}</td>
                         <td>{order.joNumber}</td>
                         <td>{order.customer}</td>
@@ -895,52 +1173,61 @@ This will remove the SO from active Shipping Operations and move the JO to Close
       {message && <div className="dashboard-message">{message}</div>}
 
       <div className="phase17-smart-card-shell shipping-workbench-shell">
-        <div className="phase17-smart-card">
-          <div className="phase17-smart-card-header">
-            <div>
-              <span>Smart Execution Card</span>
-              <strong>Shipping Operations Workbench</strong>
-              <p>Load one SO at a time, validate staging, execute work, and complete outbound operations.</p>
+        {loadedOrder && detailViewOpen ? (
+          renderShippingDetailWorkspace()
+        ) : (
+          <div className="phase17-smart-card">
+            <div className="phase17-smart-card-header">
+              <div>
+                <span>Smart Execution Card</span>
+                <strong>Shipping Operations Workbench</strong>
+                <p>Load one SO at a time, validate staging, execute work, and complete outbound operations.</p>
+              </div>
+
+              <div className="phase17-progress">
+                <span className={loadedOrder ? "" : "active"}>1 Load</span>
+                <span className={loadedOrder ? "active" : ""}>2 Validate</span>
+                <span className={loadedOrder?.releaseStatus === "Started" ? "active" : ""}>3 Execute</span>
+                <span className={getPrintableCompletionOrder()?.releaseStatus === "Closed" ? "active" : ""}>4 Complete</span>
+              </div>
             </div>
 
-            <div className="phase17-progress">
-              <span className={loadedOrder ? "" : "active"}>1 Load</span>
-              <span className={loadedOrder ? "active" : ""}>2 Validate</span>
-              <span className={loadedOrder?.releaseStatus === "Started" ? "active" : ""}>3 Execute</span>
-              <span className={getPrintableCompletionOrder()?.releaseStatus === "Closed" ? "active" : ""}>4 Complete</span>
-            </div>
-          </div>
+            <div className="phase17-smart-card-body">
+              <div className="phase17-smart-sections">
+                {renderLoadSection()}
+                {renderValidationSection()}
+                {renderInventorySection()}
+                {renderShipmentSection()}
+                {renderWorkSection()}
+                {renderExecutionSection()}
+                {renderCompletionSection()}
+              </div>
 
-          <div className="phase17-smart-card-body">
-            <div className="phase17-smart-sections">
-              {renderLoadSection()}
-              {renderValidationSection()}
-              {renderInventorySection()}
-              {renderShipmentSection()}
-              {renderWorkSection()}
-              {renderExecutionSection()}
-              {renderCompletionSection()}
+              {renderExecutionSummary()}
             </div>
 
-            {renderExecutionSummary()}
-          </div>
+            <div className="phase17-smart-footer">
+              <button type="button" className="phase17-secondary-button" onClick={clearLoadedOrder}>
+                Clear SO
+              </button>
 
-          <div className="phase17-smart-footer">
-            <button type="button" className="phase17-secondary-button" onClick={clearLoadedOrder}>
-              Clear SO
-            </button>
-
-            <button
-              type="button"
-              className="inventory-primary-button phase17-review-button"
-              onClick={() =>
-                loadedOrder ? setExpandedSection("execution") : setExpandedSection("load")
-              }
-            >
-              {loadedOrder ? "Execution Controls →" : "Load SO →"}
-            </button>
+              <button
+                type="button"
+                className="inventory-primary-button phase17-review-button"
+                onClick={() => {
+                  if (loadedOrder) {
+                    setDetailViewOpen(true);
+                    setExpandedSection("execution");
+                  } else {
+                    setExpandedSection("load");
+                  }
+                }}
+              >
+                {loadedOrder ? "Open Shipping Detail →" : "Load SO →"}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

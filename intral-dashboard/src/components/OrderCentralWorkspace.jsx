@@ -18,6 +18,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
   const [checkedWorkItems, setCheckedWorkItems] = useState([]);
   const [message, setMessage] = useState("");
   const [expandedSection, setExpandedSection] = useState("queue");
+  const [jobDetailOpen, setJobDetailOpen] = useState(false);
   const [savedInvoices, setSavedInvoices] = useState({});
   const [invoiceForm, setInvoiceForm] = useState({
     invoiceNumber: "",
@@ -38,6 +39,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
   useEffect(() => {
     setCurrentPage(1);
+    setJobDetailOpen(false);
 
     if (orderMode === "open" || orderMode === "released" || orderMode === "closed") {
       setExpandedSection("queue");
@@ -132,6 +134,20 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     setExpandedSection(getDefaultSectionForMode());
   };
 
+  const openJobDetail = (job) => {
+    if (!job?.joNumber) return;
+
+    setSelectedJobNumber(job.joNumber);
+    setExpandedSection(getDefaultSectionForMode());
+    setJobDetailOpen(true);
+    setMessage(`Opened ${job.joNumber} detail workspace.`);
+  };
+
+  const closeJobDetail = () => {
+    setJobDetailOpen(false);
+    setExpandedSection("queue");
+  };
+
   const updateInvoiceForm = (field, value) => {
     setInvoiceForm((prev) => ({
       ...prev,
@@ -181,6 +197,39 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     }
 
     return value;
+  };
+
+  const dedupeTextLines = (value) => {
+    const seen = new Set();
+
+    return String(value || "")
+      .split(/\n+/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .filter((line) => {
+        const key = line.replace(/\s+/g, " ").toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  };
+
+  const getCleanRequestDetails = (job) => {
+    const details = dedupeTextLines(job?.details);
+    const additionalDetails = dedupeTextLines(job?.additionalDetails);
+    const seen = new Set();
+
+    return [...details, ...additionalDetails].filter((line) => {
+      const key = line.replace(/\s+/g, " ").toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const getCleanRequestDetailsText = (job, fallback = "No request details provided.") => {
+    const lines = getCleanRequestDetails(job);
+    return lines.length ? lines.join("\n") : fallback;
   };
 
   const getJobStartedAt = (job) => {
@@ -336,6 +385,34 @@ color: "#ffffff",
 
   const renderGovernanceBadge = (label, type = "default") => {
     return <span style={getGovernanceBadgeStyle(type)}>{label}</span>;
+  };
+
+  const renderOpenDetailButton = (job) => {
+    return (
+      <button
+        type="button"
+        title={`Open Job Detail ${job?.joNumber || ""}`}
+        aria-label={`Open Job Detail ${job?.joNumber || ""}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          openJobDetail(job);
+        }}
+        style={{
+          width: "30px",
+          height: "30px",
+          borderRadius: "999px",
+          border: "1px solid rgba(96, 165, 250, 0.7)",
+          background: "rgba(37, 99, 235, 0.28)",
+          color: "#bfdbfe",
+          fontSize: "20px",
+          lineHeight: "20px",
+          fontWeight: 900,
+          cursor: "pointer",
+        }}
+      >
+        +
+      </button>
+    );
   };
 
   const approveSelectedJobReview = () => {
@@ -633,7 +710,7 @@ color: "#ffffff",
             <table className="inventory-table order-workbench-table">
               <thead>
                 <tr>
-                  <th>Select</th>
+                  <th>Action</th>
                   <th>JO #</th>
                   <th>Customer</th>
                   <th>Requestor</th>
@@ -653,17 +730,10 @@ color: "#ffffff",
                   customerRequestOrders.map((job) => (
                     <tr
                       key={`customer-${job.joNumber}`}
-                      className={selectedJobNumber === job.joNumber ? "selected-row" : ""}
+                      style={selectedJobNumber === job.joNumber ? { background: "rgba(37, 99, 235, 0.12)", boxShadow: "inset 4px 0 0 #60a5fa" } : undefined}
                       onClick={() => selectJob(job)}
                     >
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={selectedJobNumber === job.joNumber}
-                          onChange={() => selectJob(job)}
-                          onClick={(event) => event.stopPropagation()}
-                        />
-                      </td>
+                      <td>{renderOpenDetailButton(job)}</td>
 
                       <td>{job.joNumber}</td>
                       <td>{job.customer || "-"}</td>
@@ -714,7 +784,7 @@ color: "#ffffff",
             <table className="inventory-table order-workbench-table">
               <thead>
                 <tr>
-                  <th>Select</th>
+                  <th>Action</th>
                   <th>JO #</th>
                   <th>Requestor</th>
                   <th>Job Type</th>
@@ -737,17 +807,10 @@ color: "#ffffff",
                   paginatedOrders.map((job) => (
                     <tr
                       key={job.joNumber}
-                      className={selectedJobNumber === job.joNumber ? "selected-row" : ""}
+                      style={selectedJobNumber === job.joNumber ? { background: "rgba(37, 99, 235, 0.12)", boxShadow: "inset 4px 0 0 #60a5fa" } : undefined}
                       onClick={() => selectJob(job)}
                     >
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={selectedJobNumber === job.joNumber}
-                          onChange={() => selectJob(job)}
-                          onClick={(event) => event.stopPropagation()}
-                        />
-                      </td>
+                      <td>{renderOpenDetailButton(job)}</td>
 
                       <td>{job.joNumber}</td>
                       <td>{job.requestor}</td>
@@ -909,7 +972,13 @@ color: "#ffffff",
 
             <div className="order-detail-section compact-order-section">
               <h3>Request Details</h3>
-              <p>{selectedJob.details}</p>
+              {getCleanRequestDetails(selectedJob).length > 0 ? (
+                getCleanRequestDetails(selectedJob).map((line, index) => (
+                  <p key={`selected-request-detail-${index}`}>{line}</p>
+                ))
+              ) : (
+                <p>No request details provided.</p>
+              )}
             </div>
 
             {isPendingInternalReview(selectedJob) && (
@@ -1116,6 +1185,10 @@ color: "#ffffff",
     const startedAtDisplay = formatDateTimeDisplay(getJobStartedAt(job));
     const completedAtDisplay = formatDateTimeDisplay(getJobCompletedAt(job));
     const jobDurationDisplay = getJobDurationDisplay(job);
+    const cleanRequestDetailsText = getCleanRequestDetailsText(
+      job,
+      "Pull stored customer material for outbound preparation. Verify tag, system inventory ID, part number, and quantity before staging. Scan each line item barcode to confirm pick completion. Any mismatch must be placed on hold and escalated before shipment."
+    );
 
     const shipFromName = amJob ? "A&M Warehouse" : "INTRAL Warehouse";
     const shipFromLines = [
@@ -1300,11 +1373,7 @@ color: "#ffffff",
             <section class="section">
               <div class="section-title">Description of Request</div>
               <div class="section-body">
-                ${
-                  job.details ||
-                  "Pull stored customer material for outbound preparation. Verify tag, system inventory ID, part number, and quantity before staging. Scan each line item barcode to confirm pick completion. Any mismatch must be placed on hold and escalated before shipment."
-                }
-                ${job.additionalDetails ? `<br /><br />${job.additionalDetails}` : ""}
+                ${cleanRequestDetailsText.replace(/\n/g, "<br />")}
                 ${
                   job.additionalWork?.length
                     ? `<br /><br /><strong>Additional Work:</strong><ul>${additionalWork}</ul>`
@@ -1934,8 +2003,7 @@ color: "#ffffff",
             <section class="section">
               <div class="section-title">Operational Reference</div>
               <div class="section-body">
-                ${job.details || "No job details provided."}
-                ${job.additionalDetails ? `<br /><br />${job.additionalDetails}` : ""}
+                ${getCleanRequestDetailsText(job, "No job details provided.").replace(/\n/g, "<br />")}
               </div>
             </section>
 
@@ -2084,6 +2152,304 @@ color: "#ffffff",
     );
   };
 
+  const renderJobDetailWorkspace = () => {
+    if (!selectedJob) {
+      return (
+        <div className="phase17-accordion-section">
+          <div className="phase17-accordion-body">
+            <div className="dashboard-message">
+              Select a job from the queue to open the operational detail workspace.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const previewSo = getSoPreview();
+    const previewStg = selectedJob.stagingLocation || formatStgLocation(previewSo);
+    const activeInvoice = getActiveInvoice();
+
+    return (
+      <div className="phase17-accordion-section">
+        <div className="phase17-accordion-body">
+          <div
+            className="dashboard-message"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <strong>{selectedJob.joNumber} Operational Detail</strong>
+              <br />
+              <span>
+                All job information and actions are open in one view. Use Back to Orders to return to the queue.
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className="phase17-secondary-button"
+              onClick={closeJobDetail}
+            >
+              Back to Orders
+            </button>
+          </div>
+
+          <div className="order-release-summary-grid order-workbench-field-grid">
+            <div className="order-detail-field">
+              <span>JO Number</span>
+              <strong>{selectedJob.joNumber}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Status</span>
+              <strong>{selectedJob.releaseStatus || "-"}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Customer</span>
+              <strong>{selectedJob.customer || "-"}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Requestor</span>
+              <strong>{selectedJob.requestor || "-"}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Job Type</span>
+              <strong>{selectedJob.jobType || "-"}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Request Source</span>
+              <strong>
+                {renderGovernanceBadge(
+                  getRequestSource(selectedJob),
+                  isCustomerRequest(selectedJob) ? "customer" : "default"
+                )}
+              </strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Review Status</span>
+              <strong>
+                {renderGovernanceBadge(
+                  getReviewStatus(selectedJob),
+                  getReviewBadgeType(selectedJob)
+                )}
+              </strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Allocation</span>
+              <strong>{getAllocationDisplay(selectedJob)}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>SO Number</span>
+              <strong>{selectedJob.soNumber || "Not Released"}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>STG Location</span>
+              <strong>{selectedJob.stagingLocation || "Generated at Release"}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Invoice Amount ($ USD)</span>
+              <strong>{getInvoiceAmountDisplay(activeInvoice.invoiceAmount || selectedJob.invoiceAmount || 0)}</strong>
+            </div>
+
+            <div className="order-detail-field">
+              <span>Total Job Duration</span>
+              <strong>{getJobDurationDisplay(selectedJob)}</strong>
+            </div>
+          </div>
+
+          <div className="order-detail-section compact-order-section">
+            <h3>Request Details</h3>
+            {getCleanRequestDetails(selectedJob).length > 0 ? (
+              getCleanRequestDetails(selectedJob).map((line, index) => (
+                <p key={`job-detail-request-detail-${index}`}>{line}</p>
+              ))
+            ) : (
+              <p>No request details provided.</p>
+            )}
+          </div>
+
+          <div className="order-release-summary-grid order-workbench-field-grid">
+            <div className="order-detail-section compact-order-section">
+              <h3>Review</h3>
+              <p>
+                Current review status: <strong>{getReviewStatus(selectedJob)}</strong>
+              </p>
+
+              {isPendingInternalReview(selectedJob) ? (
+                <button
+                  className="inventory-primary-button"
+                  onClick={approveSelectedJobReview}
+                >
+                  Approve Internal Review
+                </button>
+              ) : (
+                <p>Internal review is complete or not required.</p>
+              )}
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Allocation</h3>
+              <p>{getAllocationDisplay(selectedJob)}</p>
+
+              {selectedJob.allocationRequired && !selectedJob.allocationConfirmed ? (
+                <button className="inventory-primary-button" onClick={confirmAllocation}>
+                  Confirm Allocation
+                </button>
+              ) : (
+                <p>Allocation is not blocking release.</p>
+              )}
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Release</h3>
+              <p>
+                SO Preview: <strong>{previewSo}</strong>
+                <br />
+                STG Preview: <strong>{previewStg}</strong>
+                <br />
+                Eligibility: <strong>{canReleaseJob(selectedJob) ? "Allowed" : "Blocked"}</strong>
+              </p>
+
+              <button
+                className="order-release-button order-workbench-release-button"
+                onClick={releaseSelectedJob}
+                disabled={!canReleaseJob(selectedJob)}
+              >
+                {selectedJob.releaseStatus === "Open"
+                  ? "Generate SO and Assign STG"
+                  : "Released / Locked"}
+              </button>
+            </div>
+
+            <div className="order-detail-section compact-order-section">
+              <h3>Documents</h3>
+              <p>
+                {isClosedJob(selectedJob)
+                  ? "Preview or print the completed Pick List / Completion document."
+                  : "Preview or print the Pick List / Material Release document."}
+              </p>
+
+              <div className="shipping-station-actions shipping-workbench-actions">
+                <button className="inventory-primary-button" onClick={previewPickList}>
+                  {isClosedJob(selectedJob) ? "Preview Completion" : "Preview Pick List"}
+                </button>
+
+                <button className="order-success-button" onClick={printPickList}>
+                  {isClosedJob(selectedJob) ? "Print Completion" : "Print Pick List"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="order-detail-section compact-order-section">
+            <h3>Additional Work</h3>
+
+            {selectedJob.additionalWork?.length > 0 && (
+              <div className="dashboard-message">
+                Existing additional work: {selectedJob.additionalWork.join(", ")}
+              </div>
+            )}
+
+            <div className="order-checkbox-grid order-workbench-checkbox-grid">
+              {additionalWorkOptions.map((item) => (
+                <label className="order-checkbox-card" key={`detail-${item}`}>
+                  <input
+                    type="checkbox"
+                    checked={checkedWorkItems.includes(item)}
+                    onChange={() => toggleWorkItem(item)}
+                  />
+
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+
+            <button className="inventory-primary-button" onClick={saveAdditionalWork}>
+              Submit Additional Work
+            </button>
+          </div>
+
+          <div className="order-detail-section compact-order-section">
+            <h3>Invoice Control</h3>
+
+            <div className="order-release-summary-grid order-workbench-field-grid">
+              <div className="order-detail-field">
+                <span>Invoice Number</span>
+                <input
+                  value={activeInvoice.invoiceNumber || getInvoiceNumber()}
+                  onChange={(e) => updateInvoiceForm("invoiceNumber", e.target.value)}
+                  placeholder="Invoice Number"
+                />
+              </div>
+
+              <div className="order-detail-field">
+                <span>Invoice Amount ($ USD)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={activeInvoice.invoiceAmount || ""}
+                  onChange={(e) => updateInvoiceForm("invoiceAmount", e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="order-detail-field">
+                <span>Invoice Date</span>
+                <input
+                  type="date"
+                  value={activeInvoice.invoiceDate || new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => updateInvoiceForm("invoiceDate", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <textarea
+              rows="4"
+              value={activeInvoice.billingNotes || ""}
+              onChange={(e) => updateInvoiceForm("billingNotes", e.target.value)}
+              placeholder="Enter invoice notes, billing explanation, customer reference, charge details, or special billing instruction."
+              style={{
+                width: "100%",
+                borderRadius: "10px",
+                border: "1px solid rgba(147, 197, 253, 0.28)",
+                background: "rgba(15, 23, 42, 0.84)",
+                color: "#ffffff",
+                padding: "10px",
+                fontWeight: 800,
+                marginTop: "10px",
+              }}
+            />
+
+            <div className="shipping-station-actions shipping-workbench-actions">
+              <button className="inventory-primary-button" onClick={saveInvoice}>
+                Save / Update Invoice
+              </button>
+
+              <button className="order-success-button" onClick={printInvoice}>
+                Print Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderSelectedSummary = () => {
     return (
       <aside className="phase17-smart-summary order-workbench-summary">
@@ -2161,14 +2527,51 @@ color: "#ffffff",
               <span>STG Location</span>
               <strong>{selectedJob?.stagingLocation || "Generated at Release"}</strong>
             </div>
+
+            <div>
+              <span>Invoice Amount $USD</span>
+              <strong>
+                {selectedJob
+                  ? getInvoiceAmountDisplay(
+                      getActiveInvoice().invoiceAmount || selectedJob.invoiceAmount || 0
+                    )
+                  : "$0.00 USD"}
+              </strong>
+            </div>
+
+            {selectedJob && isClosedJob(selectedJob) && (
+              <>
+                <div>
+                  <span>Started At</span>
+                  <strong>{formatDateTimeDisplay(getJobStartedAt(selectedJob))}</strong>
+                </div>
+
+                <div>
+                  <span>Completed At</span>
+                  <strong>{formatDateTimeDisplay(getJobCompletedAt(selectedJob))}</strong>
+                </div>
+
+                <div>
+                  <span>Total Duration</span>
+                  <strong>{getJobDurationDisplay(selectedJob)}</strong>
+                </div>
+              </>
+            )}
           </div>
 
           <button
             type="button"
             className="inventory-primary-button job-submit-button"
-            onClick={() => setExpandedSection(selectedJob ? "release" : "queue")}
+            onClick={() => {
+              if (!selectedJob) {
+                setExpandedSection("queue");
+                return;
+              }
+
+              setJobDetailOpen(true);
+            }}
           >
-            {selectedJob ? "Open Release Control" : "Select JO"}
+            {selectedJob ? "+ Job Detail" : "Select JO"}
           </button>
 
           {selectedJob && (
@@ -2207,6 +2610,7 @@ color: "#ffffff",
   };
 
   const getOrderCentralHeaderText = () => {
+    if (jobDetailOpen && selectedJob) return `${selectedJob.joNumber} Detail Workspace`;
     if (orderMode === "pickList") return "Pick List / Material Release";
     if (orderMode === "invoice") return "Invoice Control";
     if (orderMode === "release") return "Release Control";
@@ -2216,6 +2620,10 @@ color: "#ffffff",
   };
 
   const getOrderCentralHeaderDescription = () => {
+    if (jobDetailOpen && selectedJob) {
+      return "Review the selected job details, actions, documents, and invoice controls in one operational workspace.";
+    }
+
     if (orderMode === "pickList") {
       return "Preview and print the INTRAL Pick List / Material Release document for the selected JO.";
     }
@@ -2240,6 +2648,10 @@ color: "#ffffff",
   };
 
   const renderOrderCentralSections = () => {
+    if (jobDetailOpen && selectedJob) {
+      return renderJobDetailWorkspace();
+    }
+
     if (orderMode === "pickList") {
       return (
         <>
@@ -2369,11 +2781,16 @@ color: "#ffffff",
               type="button"
               className="phase17-secondary-button"
               onClick={() => {
+                if (jobDetailOpen) {
+                  closeJobDetail();
+                  return;
+                }
+
                 setSelectedJobNumber("");
                 setExpandedSection("queue");
               }}
             >
-              Clear Selection
+              {jobDetailOpen ? "Back to Orders" : "Clear Selection"}
             </button>
 
             <button
@@ -2382,6 +2799,11 @@ color: "#ffffff",
               onClick={() => {
                 if (!selectedJob) {
                   setExpandedSection("queue");
+                  return;
+                }
+
+                if (!jobDetailOpen) {
+                  setJobDetailOpen(true);
                   return;
                 }
 
@@ -2405,6 +2827,8 @@ color: "#ffffff",
             >
               {!selectedJob
                 ? "Select JO →"
+                : !jobDetailOpen
+                ? "+ Job Detail"
                 : orderMode === "pickList"
                 ? "Pick List →"
                 : orderMode === "invoice"
