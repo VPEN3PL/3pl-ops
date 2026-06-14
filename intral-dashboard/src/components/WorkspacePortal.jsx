@@ -305,6 +305,63 @@ function WorkspacePortal({
     setTab(key);
   };
 
+  const getNotificationTargetTab = (item) => {
+    if (!item) return "dashboard";
+
+    if (item.tab) return item.tab;
+
+    const text = `${item.title || ""} ${item.detail || ""} ${
+      item.jobNumber || item.job_number || item.soNumber || item.so_number || ""
+    }`.toLowerCase();
+
+    if (text.includes("shipping") || text.includes("so-")) {
+      return "shipping";
+    }
+
+    if (text.includes("order") || text.includes("jo-")) {
+      return "orders";
+    }
+
+    if (text.includes("request")) {
+      return "jobs-track";
+    }
+
+    return "dashboard";
+  };
+
+  const handleNotificationClick = (item) => {
+    if (!item) return;
+
+    const targetTab = getNotificationTargetTab(item);
+    const alertTitle = item.title || "Operational Alert";
+    const alertDetail = item.detail || "This alert requires review.";
+    const reference =
+      item.jobNumber ||
+      item.job_number ||
+      item.soNumber ||
+      item.so_number ||
+      item.reference ||
+      item.id ||
+      "";
+
+    const messageParts = [
+      alertTitle,
+      "",
+      alertDetail,
+      reference ? `Reference: ${reference}` : "",
+      "",
+      `Open ${moduleLabels[getModuleKeyFromTab(targetTab)] || "related workspace"}?`,
+    ].filter(Boolean);
+
+    const shouldOpen = window.confirm(messageParts.join("\n"));
+
+    if (!shouldOpen) {
+      return;
+    }
+
+    goToTab(targetTab);
+  };
+
   const isActionActive = (action) => {
     if (action.tab && tab === action.tab) {
       return true;
@@ -470,7 +527,7 @@ function WorkspacePortal({
                     <button
                       key={item.id || item.title}
                       className={item.severity === "high" ? "alert-high" : ""}
-                      onClick={() => goToTab(item.tab)}
+                      onClick={() => handleNotificationClick(item)}
                     >
                       <strong>{item.title}</strong>
                       <small>{item.detail}</small>
