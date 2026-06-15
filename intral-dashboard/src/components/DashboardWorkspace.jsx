@@ -23,16 +23,57 @@ function DashboardWorkspace({ setTab }) {
     return date.toDateString() === today.toDateString();
   }, []);
 
-  const isOpenJob = useCallback((job) => {
-    const status = String(job.status || "").toLowerCase();
+  const getOperationalReleaseStatus = useCallback((job) => {
+    const rawStatus = String(job?.status || "").trim().toLowerCase();
 
-    return (
-      status !== "shipped" &&
-      status !== "closed" &&
-      status !== "complete" &&
-      status !== "order complete"
-    );
+    if (
+      rawStatus.includes("closed") ||
+      rawStatus.includes("complete") ||
+      rawStatus.includes("completed") ||
+      rawStatus.includes("shipped")
+    ) {
+      return "Closed";
+    }
+
+    if (
+      rawStatus.includes("started") ||
+      rawStatus.includes("in progress") ||
+      rawStatus.includes("executing")
+    ) {
+      return "Started";
+    }
+
+    if (
+      rawStatus.includes("active") ||
+      rawStatus.includes("released") ||
+      rawStatus.includes("shipping")
+    ) {
+      return "Active";
+    }
+
+    return "Open";
   }, []);
+
+  const isOpenJob = useCallback((job) => {
+    return getOperationalReleaseStatus(job) !== "Closed";
+  }, [getOperationalReleaseStatus]);
+
+  const getNotificationAgingHours = useCallback((job) => {
+    if (!job?.created_at) return 0;
+
+    const createdDate = new Date(job.created_at);
+
+    if (Number.isNaN(createdDate.getTime())) return 0;
+
+    const requestedDate = new Date(`${createdDate.toISOString().slice(0, 10)}T00:00:00`);
+    const now = new Date();
+
+    return Math.floor((now.getTime() - requestedDate.getTime()) / 36e5);
+  }, []);
+
+  const isNotificationAgingJob = useCallback((job) => {
+    return getOperationalReleaseStatus(job) === "Open" && getNotificationAgingHours(job) >= 24;
+  }, [getOperationalReleaseStatus, getNotificationAgingHours]);
 
   const getShippingWorkflow = useCallback((job) => {
     const directWorkflow = String(
@@ -168,15 +209,7 @@ function DashboardWorkspace({ setTab }) {
       return status === "allocated" || status === "open" || status === "active";
     });
 
-    const over24Hours = openJobs.filter((job) => {
-      if (!job.created_at) return false;
-
-      const created = new Date(job.created_at);
-      const now = new Date();
-      const hoursOpen = (now - created) / (1000 * 60 * 60);
-
-      return hoursOpen > 24;
-    });
+    const over24Hours = jobs.filter(isNotificationAgingJob);
 
     const activeInventory = inventoryItems.filter((item) => {
       const status = String(item.status || "").toLowerCase();
@@ -247,6 +280,7 @@ function DashboardWorkspace({ setTab }) {
     isOpenJob,
     isPendingShipmentJob,
     isAMCratingJob,
+    isNotificationAgingJob,
   ]);
 
   const recentOpenJobs = useMemo(() => {
@@ -720,27 +754,41 @@ function DashboardWorkspace({ setTab }) {
             className="health-row"
             onClick={() => goToDrilldown("jobs-track")}
           >
-            <span>A&M Crating Queue</span>
+            <span>Active A&M Crating Queue</span>
             <strong>{dashboardMetrics.amCratingQueue}</strong>
           </button>
 
-          <button
-            type="button"
-            className="health-row"
-            onClick={() => goToDrilldown("receiving")}
+          <div
+            className="mini-list"
+            style={{
+              maxHeight: "220px",
+              overflowY: "auto",
+              marginTop: "12px",
+              paddingRight: "4px",
+            }}
           >
-            <span>Receiving Today</span>
-            <strong>{dashboardMetrics.receivingToday}</strong>
-          </button>
-
-          <button
-            type="button"
-            className="health-row"
-            onClick={() => goToDrilldown("inventory")}
-          >
-            <span>Inventory Lines</span>
-            <strong>{dashboardMetrics.inventoryLines}</strong>
-          </button>
+            {recentAMCratingJobs.length === 0 ? (
+              <p className="panel-note">
+                No active A&M crating requests currently found.
+              </p>
+            ) : (
+              recentAMCratingJobs.map((job) => (
+                <button
+                  type="button"
+                  key={`am-control-${job.id}`}
+                  className="mini-list-row"
+                  onClick={() => goToDrilldown("jobs-track")}
+                  title="Open A&M crating request tracking"
+                >
+                  <strong>{job.job_number || "No Job #"}</strong>
+                  <span>
+                    {job.request_category || job.job_type || "A&M Crating"} •{" "}
+                    {job.status || "Open"}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
@@ -812,27 +860,6 @@ function DashboardWorkspace({ setTab }) {
           )}
         </div>
 
-        <div className="dashboard-panel dashboard-queue-panel">
-          <h2>A&M Crating Queue</h2>
-
-          {recentAMCratingJobs.length === 0 ? (
-            <p>No A&M crating related work currently found.</p>
-          ) : (
-            <div className="mini-list">
-              {recentAMCratingJobs.map((job) => (
-                <button
-                  type="button"
-                  key={job.id}
-                  className="mini-list-row"
-                  onClick={() => goToDrilldown("jobs-track")}
-                >
-                  <strong>{job.job_number || "No Job #"}</strong>
-                  <span>{job.request_category || job.job_type || "A&M"}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
