@@ -27,6 +27,8 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
   const [receiptForm, setReceiptForm] = useState({
     purchaseOrder: "",
     vendor: "",
+    carrier: "",
+    trackingNumber: "",
     partNumber: "",
     description: "",
     quantity: "",
@@ -64,6 +66,8 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       receiptNumber: row.receipt_number || "",
       purchaseOrder: row.purchase_order || "",
       vendor: row.vendor || "",
+      carrier: row.carrier || "",
+      trackingNumber: row.tracking_number || "",
       partNumber: row.part_number || "",
       description: row.description || "",
       quantity: row.quantity || 0,
@@ -187,6 +191,8 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
     setReceiptForm({
       purchaseOrder: "",
       vendor: "",
+      carrier: "",
+      trackingNumber: "",
       partNumber: "",
       description: "",
       quantity: "",
@@ -238,6 +244,9 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       return;
     }
 
+    const carrier = receiptForm.carrier.trim();
+    const trackingNumber = receiptForm.trackingNumber.trim();
+
     const newReceipt = {
       receipt_number: getNextReceiptNumber(),
       purchase_order: receiptForm.purchaseOrder.trim(),
@@ -254,6 +263,14 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       status: "In Receiving",
       putaway_qty: 0,
     };
+
+    if (carrier) {
+      newReceipt.carrier = carrier;
+    }
+
+    if (trackingNumber) {
+      newReceipt.tracking_number = trackingNumber;
+    }
 
     const { data, error } = await supabase
       .from("receiving_receipts")
@@ -710,6 +727,16 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
                 </div>
 
                 <div className="order-detail-field">
+                  <span>Carrier</span>
+                  <strong>{receipt.carrier || "Not Provided"}</strong>
+                </div>
+
+                <div className="order-detail-field">
+                  <span>Tracking Number</span>
+                  <strong>{receipt.trackingNumber || "Not Provided"}</strong>
+                </div>
+
+                <div className="order-detail-field">
                   <span>Created</span>
                   <strong>{receipt.createdAt ? new Date(receipt.createdAt).toLocaleString() : "-"}</strong>
                 </div>
@@ -984,7 +1011,7 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
         {renderAccordionHeader(
           "receive",
           "Receive Inventory",
-          "PO, vendor, part, quantity, COO, and A&M details"
+          "PO, vendor, optional carrier/tracking, part, quantity, COO, and A&M details"
         )}
 
         {expandedSection === "receive" && (
@@ -996,6 +1023,25 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
               <input value={receiptForm.description} onChange={(e) => updateReceiptForm("description", e.target.value)} placeholder="Description" />
               <input type="number" value={receiptForm.quantity} onChange={(e) => updateReceiptForm("quantity", e.target.value)} placeholder="Quantity" />
               <input value={receiptForm.countryOfOrigin} onChange={(e) => updateReceiptForm("countryOfOrigin", e.target.value)} placeholder="Country of Origin" />
+            </div>
+
+            <div className="order-detail-section compact-order-section" style={{ marginTop: "12px" }}>
+              <h3>Carrier / Tracking — Optional</h3>
+              <div className="inventory-form-grid phase17-form-grid receiving-workbench-form">
+                <input
+                  value={receiptForm.carrier}
+                  onChange={(e) => updateReceiptForm("carrier", e.target.value)}
+                  placeholder="Carrier (Optional)"
+                />
+
+                <input
+                  value={receiptForm.trackingNumber}
+                  onChange={(e) => updateReceiptForm("trackingNumber", e.target.value)}
+                  placeholder="Tracking Number (Optional)"
+                />
+              </div>
+
+              <p className="panel-note">Carrier and tracking are saved to the receiving record only. They do not print on the receiving label.</p>
             </div>
 
             <div className="receiving-checkbox-row receiving-workbench-checkbox">
@@ -1293,6 +1339,16 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
             <div>
               <span>Vendor</span>
               <strong>{firstSelected?.vendor || latestReceipt?.vendor || "Pending"}</strong>
+            </div>
+
+            <div>
+              <span>Carrier</span>
+              <strong>{firstSelected?.carrier || latestReceipt?.carrier || "Pending"}</strong>
+            </div>
+
+            <div>
+              <span>Tracking</span>
+              <strong>{firstSelected?.trackingNumber || latestReceipt?.trackingNumber || "Pending"}</strong>
             </div>
 
             <div>
