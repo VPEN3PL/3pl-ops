@@ -1644,11 +1644,9 @@ color: "#ffffff",
         {expandedSection === "additionalWork" && (
           <div className="phase17-accordion-body">
             {selectedJob.additionalWork?.length > 0 && (
-              <div className="order-detail-section compact-order-section">
-                <h3>Existing Additional Work</h3>
-                {selectedJob.additionalWork.map((item, index) => (
-                  <p key={`${selectedJob.joNumber}-work-existing-${index}`}>{item}</p>
-                ))}
+              <div className="existing-additional-work-strip">
+                <strong>Existing additional work:</strong>{" "}
+                <span>{selectedJob.additionalWork.join(", ")}</span>
               </div>
             )}
 
@@ -2207,22 +2205,9 @@ color: "#ffffff",
     return (
       <div className="phase17-accordion-section">
         <div className="phase17-accordion-body">
-          <div
-            className="dashboard-message"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="order-detail-hero-strip">
             <div>
               <strong>{selectedJob.joNumber} Operational Detail</strong>
-              <br />
-              <span>
-                All job information and actions are open in one view. Use Back to Orders to return to the queue.
-              </span>
             </div>
 
             <button
@@ -2394,8 +2379,9 @@ color: "#ffffff",
             <h3>Additional Work</h3>
 
             {selectedJob.additionalWork?.length > 0 && (
-              <div className="dashboard-message">
-                Existing additional work: {selectedJob.additionalWork.join(", ")}
+              <div className="existing-additional-work-strip">
+                <strong>Existing additional work:</strong>{" "}
+                <span>{selectedJob.additionalWork.join(", ")}</span>
               </div>
             )}
 
