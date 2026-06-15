@@ -408,6 +408,30 @@ await loadUserRequests();
     alert("Request status updated.");
   };
 
+  const extractRequestNoteValue = (notes, label) => {
+    const cleanNotes = String(notes || "");
+    const pattern = new RegExp(`${label}:\\s*([^|]+)`, "i");
+    const match = cleanNotes.match(pattern);
+
+    return match ? match[1].trim() : "";
+  };
+
+  const getRequestFullName = (request) => {
+    return (
+      extractRequestNoteValue(request?.notes, "Full Name") ||
+      String(request?.requested_email || "")
+        .split("@")[0]
+        .replace(/[._-]+/g, " ")
+        .replace(/\b\w/g, (letter) => letter.toUpperCase())
+        .trim() ||
+      "INTRAL User"
+    );
+  };
+
+  const getRequestDepartment = (request) => {
+    return extractRequestNoteValue(request?.notes, "Department") || "";
+  };
+
   const createRealUserFromRequest = async (request) => {
     if (!isAdmin) {
       alert("Only Admin users can create accounts.");
@@ -419,13 +443,71 @@ await loadUserRequests();
       return;
     }
 
-    if (!request?.temporary_password) {
-      alert("Temporary password is missing.");
+    const cleanRequestedEmail = String(request.requested_email || "")
+      .trim()
+      .toLowerCase();
+
+    const existingProfileLocal = (profiles || []).find((profileItem) => {
+      const profileEmail = String(profileItem?.email || "").trim().toLowerCase();
+      const profileUserEmail = String(profileItem?.user_email || "")
+        .trim()
+        .toLowerCase();
+
+      return (
+        profileEmail === cleanRequestedEmail ||
+        profileUserEmail === cleanRequestedEmail
+      );
+    });
+
+    if (existingProfileLocal) {
+      alert(
+        `Create + Email blocked.\n\n${request.requested_email} already belongs to an existing INTRAL CONNECT profile.\n\nExisting User: ${
+          existingProfileLocal.display_name ||
+          existingProfileLocal.full_name ||
+          existingProfileLocal.email ||
+          existingProfileLocal.user_email ||
+          "Unknown"
+        }\nExisting Role: ${String(existingProfileLocal.role || "unknown").toUpperCase()}\n\nUse a different test email or update the existing user directly.`
+      );
       return;
     }
 
+    const { data: existingProfileRemote, error: existingProfileError } =
+      await supabase
+        .from("profiles")
+        .select("id,email,user_email,display_name,full_name,role")
+        .or(`email.eq.${cleanRequestedEmail},user_email.eq.${cleanRequestedEmail}`)
+        .maybeSingle();
+
+    if (existingProfileError) {
+      alert(
+        `Unable to verify existing user protection. Create + Email was stopped for safety.\n\n${existingProfileError.message}`
+      );
+      return;
+    }
+
+    if (existingProfileRemote) {
+      alert(
+        `Create + Email blocked.\n\n${request.requested_email} already belongs to an existing INTRAL CONNECT profile.\n\nExisting User: ${
+          existingProfileRemote.display_name ||
+          existingProfileRemote.full_name ||
+          existingProfileRemote.email ||
+          existingProfileRemote.user_email ||
+          "Unknown"
+        }\nExisting Role: ${String(existingProfileRemote.role || "unknown").toUpperCase()}\n\nUse a different test email or update the existing user directly.`
+      );
+      return;
+    }
+
+    const temporaryPassword = String(
+      request?.temporary_password || "IntralTemp1!"
+    ).trim();
+
+    const requestFullName = getRequestFullName(request);
+    const requestDepartment = getRequestDepartment(request);
+
     const confirmed = window.confirm(
-      `Create REAL Supabase login for ${request.requested_email} and send onboarding email?`
+      `Create REAL Supabase login for ${request.requested_email} and send onboarding email?\n\nName: ${requestFullName}\nDepartment: ${requestDepartment || "Not provided"}\nTemporary Password: ${temporaryPassword}\n\nThe user will be required to change this password on first login.`
     );
 
     if (!confirmed) return;
@@ -441,9 +523,11 @@ await loadUserRequests();
         },
         body: JSON.stringify({
           email: request.requested_email,
-          password: request.temporary_password,
+          password: temporaryPassword,
           role: request.requested_role || "employee",
           notes: request.notes || "",
+          fullName: requestFullName,
+          department: requestDepartment,
           requestedByEmail: session?.user?.email || "",
         }),
       });
@@ -508,11 +592,6 @@ await loadUserRequests();
       return;
     }
 
-    if (!item?.id) {
-      alert("User ID is missing.");
-      return;
-    }
-
     if (!item?.email && !item?.user_email) {
       alert("User email is missing from profile.");
       return;
@@ -546,7 +625,7 @@ await loadUserRequests();
           Authorization: `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
-          userId: item.id,
+          userId: item.id || "",
           email,
           temporaryPassword,
           role: item.role || "",

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 
 function CredentialRequestWorkspace({ onBackToLogin }) {
+  const CREDENTIAL_REQUEST_EMAIL_FUNCTION_URL =
+    "https://yykbaayqwnewqljrywit.supabase.co/functions/v1/credential-request-email";
+
   const [form, setForm] = useState({
     fullName: "",
     department: "",
@@ -22,12 +25,63 @@ function CredentialRequestWorkspace({ onBackToLogin }) {
     }));
   };
 
+  const sendCredentialRequestConfirmation = async ({
+    fullName,
+    department,
+    manager,
+    email,
+    phone,
+    requestedRole,
+    reason,
+  }) => {
+    try {
+      const response = await fetch(CREDENTIAL_REQUEST_EMAIL_FUNCTION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName,
+          department,
+          manager,
+          email,
+          phone,
+          requestedRole,
+          reason,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.success) {
+        return {
+          success: false,
+          error:
+            result.emailError ||
+            result.error ||
+            "Credential request confirmation email failed.",
+        };
+      }
+
+      return {
+        success: true,
+        error: "",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error?.message || "Credential request confirmation email failed.",
+      };
+    }
+  };
+
   const submitCredentialRequest = async () => {
     const cleanName = form.fullName.trim();
     const cleanEmail = form.email.trim();
     const cleanPhone = form.phone.trim();
     const cleanDepartment = form.department.trim();
     const cleanReason = form.reason.trim();
+    const cleanManager = form.manager.trim();
 
     if (!cleanName) {
       setRequestMessage("Full name is required.");
@@ -60,7 +114,7 @@ function CredentialRequestWorkspace({ onBackToLogin }) {
     const requestNotes = [
       `Full Name: ${cleanName}`,
       `Department: ${cleanDepartment}`,
-      `Manager: ${form.manager.trim() || "Not provided"}`,
+      `Manager: ${cleanManager || "Not provided"}`,
       `Phone: ${cleanPhone}`,
       `Requested Role: ${form.requestedRole}`,
       `Reason: ${cleanReason}`,
@@ -85,6 +139,16 @@ function CredentialRequestWorkspace({ onBackToLogin }) {
       return;
     }
 
+    const emailResult = await sendCredentialRequestConfirmation({
+      fullName: cleanName,
+      department: cleanDepartment,
+      manager: cleanManager,
+      email: cleanEmail,
+      phone: cleanPhone,
+      requestedRole: form.requestedRole || "employee",
+      reason: cleanReason,
+    });
+
     setForm({
       fullName: "",
       department: "",
@@ -95,9 +159,16 @@ function CredentialRequestWorkspace({ onBackToLogin }) {
       reason: "",
     });
 
-    setRequestMessage(
-      "Credential request submitted. An INTRAL admin will review the request and follow up."
-    );
+    if (emailResult.success) {
+      setRequestMessage(
+        "Credential request submitted. Confirmation email sent. An INTRAL admin will review the request and follow up."
+      );
+    } else {
+      setRequestMessage(
+        `Credential request submitted, but confirmation email was not sent: ${emailResult.error}`
+      );
+    }
+
     setLoading(false);
   };
 
@@ -180,9 +251,12 @@ function CredentialRequestWorkspace({ onBackToLogin }) {
           <p
             style={{
               marginTop: "4px",
-              color: requestMessage.includes("failed") || requestMessage.includes("required")
-                ? "#fecaca"
-                : "#dbeafe",
+              color:
+                requestMessage.includes("failed") ||
+                requestMessage.includes("required") ||
+                requestMessage.includes("not sent")
+                  ? "#fecaca"
+                  : "#dbeafe",
               fontWeight: 800,
               lineHeight: 1.45,
             }}
