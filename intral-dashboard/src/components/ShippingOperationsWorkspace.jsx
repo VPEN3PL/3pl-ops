@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
-function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStatus }) {
+function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStatus, deepLinkTarget }) {
   const [soSearch, setSoSearch] = useState("");
   const [loadedSoNumber, setLoadedSoNumber] = useState("");
   const [recentlyCompletedOrder, setRecentlyCompletedOrder] = useState(null);
@@ -28,6 +28,36 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
       (order) => order.releaseStatus === "Active" || order.releaseStatus === "Started"
     );
   }, [shippingOrders]);
+
+  useEffect(() => {
+    if (!deepLinkTarget) return;
+
+    const targetType = String(deepLinkTarget.targetType || "").toLowerCase();
+    const targetId = String(
+      deepLinkTarget.targetId ||
+        deepLinkTarget.soNumber ||
+        deepLinkTarget.so_number ||
+        deepLinkTarget.jobNumber ||
+        deepLinkTarget.job_number ||
+        ""
+    ).trim();
+
+    if (!targetId) return;
+    if (!["shipping", "so", "workspace"].includes(targetType)) return;
+
+    const matchedOrder = shippingOrders.find(
+      (order) => order.soNumber === targetId || order.joNumber === targetId
+    );
+
+    if (!matchedOrder) return;
+
+    setSoSearch(matchedOrder.soNumber);
+    setLoadedSoNumber(matchedOrder.soNumber);
+    setRecentlyCompletedOrder(null);
+    setExpandedSection("validation");
+    setDetailViewOpen(true);
+    setMessage(`${matchedOrder.soNumber} opened from notification.`);
+  }, [deepLinkTarget, shippingOrders]);
 
   const handleLoadOrder = () => {
     const normalizedSo = soSearch.trim().toUpperCase();

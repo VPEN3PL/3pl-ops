@@ -10,7 +10,7 @@ const additionalWorkOptions = [
   "Add special handling instructions",
 ];
 
-function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders }) {
+function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders, deepLinkTarget }) {
   const [selectedJobNumber, setSelectedJobNumber] = useState(() => {
     return localStorage.getItem("intral-connect-selected-jo") || "";
   });
@@ -67,6 +67,41 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
   const selectedJob = useMemo(() => {
     return orders.find((item) => item.joNumber === selectedJobNumber) || null;
   }, [orders, selectedJobNumber]);
+
+  useEffect(() => {
+    if (!deepLinkTarget) return;
+
+    const targetType = String(deepLinkTarget.targetType || "").toLowerCase();
+    const targetId = String(
+      deepLinkTarget.targetId ||
+        deepLinkTarget.jobNumber ||
+        deepLinkTarget.job_number ||
+        ""
+    ).trim();
+
+    if (!targetId) return;
+    if (!["order", "job", "jo", "workspace"].includes(targetType)) return;
+
+    const matchedJob = orders.find((item) => item.joNumber === targetId);
+
+    if (!matchedJob) return;
+
+    const targetTab = String(deepLinkTarget.tab || "");
+    const targetSection = targetTab.includes("release")
+      ? "release"
+      : targetTab.includes("invoice")
+      ? "invoice"
+      : targetTab.includes("picklist")
+      ? "pickList"
+      : targetTab.includes("add-work")
+      ? "additionalWork"
+      : "governance";
+
+    setSelectedJobNumber(matchedJob.joNumber);
+    setExpandedSection(targetSection);
+    setJobDetailOpen(true);
+    setMessage(`${matchedJob.joNumber} opened from notification.`);
+  }, [deepLinkTarget, orders]);
 
   useEffect(() => {
     if (!selectedJob) {

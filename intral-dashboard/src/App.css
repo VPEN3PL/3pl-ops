@@ -9629,3 +9629,45 @@ PHASE 22E COMMAND HEADER VISUAL SYNC
 .order-central-workspace .order-detail-readability-panel strong {
   color: #f8fafc !important;
 }
+/* =========================================================
+   PHASE 23D-5A-1
+   Order Central Additional Work Readability Hotfix
+   Scope: visual-only text contrast fix for submitted additional work
+   ========================================================= */
+
+.order-central-workspace .order-detail-section,
+.order-central-workspace .compact-order-section {
+  color: #f8fafc;
+}
+
+.order-central-workspace .order-detail-section h3,
+.order-central-workspace .compact-order-section h3 {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.order-central-workspace .order-detail-section p,
+.order-central-workspace .compact-order-section p,
+.order-central-workspace .order-detail-section li,
+.order-central-workspace .compact-order-section li,
+.order-central-workspace .order-detail-section span,
+.order-central-workspace .compact-order-section span {
+  color: #e5eefb;
+  font-weight: 800;
+}
+
+.order-central-workspace .order-checkbox-card,
+.order-central-workspace .order-checkbox-card span {
+  color: #f8fafc;
+  font-weight: 900;
+}
+
+.order-central-workspace .order-checkbox-card input:checked + span,
+.order-central-workspace .order-checkbox-card:has(input:checked) span {
+  color: #ffffff;
+}
+
+.order-central-workspace .phase17-accordion-body .panel-note,
+.order-central-workspace .phase17-accordion-body p {
+  color: #dbeafe;
+}

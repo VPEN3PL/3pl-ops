@@ -44,6 +44,7 @@ function WorkspacePortal({
   userEmail,
   handleLogout,
   operationalNotifications = [],
+  onNotificationDeepLink,
   children,
 }) {
   const [favoritesOpen, setFavoritesOpen] = useState(false);
@@ -329,6 +330,31 @@ function WorkspacePortal({
     return "dashboard";
   };
 
+  const buildNotificationDeepLinkTarget = (item, targetTab) => {
+    const targetId =
+      item?.targetId ||
+      item?.jobNumber ||
+      item?.job_number ||
+      item?.soNumber ||
+      item?.so_number ||
+      item?.receiptNumber ||
+      item?.receipt_number ||
+      item?.reference ||
+      "";
+
+    return {
+      id: item?.id || targetId || "notification",
+      tab: targetTab,
+      targetType: item?.targetType || item?.target_type || "workspace",
+      targetId,
+      jobNumber: item?.jobNumber || item?.job_number || "",
+      soNumber: item?.soNumber || item?.so_number || "",
+      receiptNumber: item?.receiptNumber || item?.receipt_number || "",
+      title: item?.title || "Operational Alert",
+      detail: item?.detail || "",
+    };
+  };
+
   const handleNotificationClick = (item) => {
     if (!item) return;
 
@@ -356,6 +382,19 @@ function WorkspacePortal({
     const shouldOpen = window.confirm(messageParts.join("\n"));
 
     if (!shouldOpen) {
+      return;
+    }
+
+    const deepLinkTarget = buildNotificationDeepLinkTarget(item, targetTab);
+
+    if (onNotificationDeepLink) {
+      setFavoritesOpen(false);
+      setNotificationOpen(false);
+      setActionCenterOpen(false);
+      setUserMenuOpen(false);
+      setActionDropdownOpen("");
+      setQuickSearch("");
+      onNotificationDeepLink(deepLinkTarget);
       return;
     }
 

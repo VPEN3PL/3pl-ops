@@ -16,7 +16,7 @@ const inventoryLocations = [
 
 const floorOnlyLocations = ["Basement", "A&M", "DCIC", "M-Building", "1L"];
 
-function ReceivingWorkspace({ receivingView = "dashboard" }) {
+function ReceivingWorkspace({ receivingView = "dashboard", deepLinkTarget }) {
   const [message, setMessage] = useState("");
   const [labelData, setLabelData] = useState(null);
   const [putawayLabelDataList, setPutawayLabelDataList] = useState([]);
@@ -143,6 +143,31 @@ function ReceivingWorkspace({ receivingView = "dashboard" }) {
       null
     );
   }, [receipts, detailReceiptNumber]);
+
+  useEffect(() => {
+    if (!deepLinkTarget) return;
+
+    const targetType = String(deepLinkTarget.targetType || "").toLowerCase();
+    const targetId = String(
+      deepLinkTarget.targetId ||
+        deepLinkTarget.receiptNumber ||
+        deepLinkTarget.receipt_number ||
+        ""
+    ).trim();
+
+    if (!targetId) return;
+    if (!["receiving", "receipt", "rcv", "workspace"].includes(targetType)) return;
+
+    const matchedReceipt = receipts.find(
+      (receipt) => receipt.receiptNumber === targetId
+    );
+
+    if (!matchedReceipt) return;
+
+    setDetailReceiptNumber(matchedReceipt.receiptNumber);
+    setExpandedSection("activity");
+    setMessage(`${matchedReceipt.receiptNumber} opened from notification.`);
+  }, [deepLinkTarget, receipts]);
 
   const latestReceipt = useMemo(() => {
     return receipts[0] || null;

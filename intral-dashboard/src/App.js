@@ -38,6 +38,7 @@ function App() {
 
   const [orders, setOrders] = useState([]);
   const [operationalNotifications, setOperationalNotifications] = useState([]);
+  const [deepLinkTarget, setDeepLinkTarget] = useState(null);
 
   const [liveTime, setLiveTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
@@ -89,6 +90,9 @@ function App() {
             order.jobType || "Work Request"
           }`,
           tab: "orders-open",
+          targetType: "order",
+          targetId: order.joNumber,
+          jobNumber: order.joNumber,
           severity: order.priority === "High" ? "high" : "normal",
         });
       }
@@ -99,6 +103,10 @@ function App() {
           title: "Shipping Ready for Execution",
           detail: `${order.soNumber || order.joNumber} is active and ready for Shipping Operations.`,
           tab: "shipping",
+          targetType: "shipping",
+          targetId: order.soNumber || order.joNumber,
+          soNumber: order.soNumber || "",
+          jobNumber: order.joNumber,
           severity: "normal",
         });
       }
@@ -108,7 +116,10 @@ function App() {
           id: `${order.joNumber}-aging`,
           title: "Aging Work > 24 Hours",
           detail: `${order.joNumber} has been open for approximately ${ageHours} hours.`,
-          tab: "dashboard",
+          tab: "orders-open",
+          targetType: "order",
+          targetId: order.joNumber,
+          jobNumber: order.joNumber,
           severity: "high",
         });
       }
@@ -122,7 +133,10 @@ function App() {
           id: `${order.joNumber}-allocation`,
           title: "Allocation Pending",
           detail: `${order.joNumber} requires inventory allocation confirmation.`,
-          tab: "allocation",
+          tab: "orders-open",
+          targetType: "order",
+          targetId: order.joNumber,
+          jobNumber: order.joNumber,
           severity: "normal",
         });
       }
@@ -818,6 +832,21 @@ function App() {
 
     return { success: true };
   };
+  const handleNotificationDeepLink = (target) => {
+    if (!target) return;
+
+    const nextTarget = {
+      ...target,
+      deepLinkId: `${target.id || target.targetId || target.targetType || "notification"}-${Date.now()}`,
+    };
+
+    setDeepLinkTarget(nextTarget);
+
+    if (target.tab) {
+      setTab(target.tab);
+    }
+  };
+
   const renderWorkspace = () => {
     if (
       isGuest &&
@@ -838,10 +867,10 @@ function App() {
     if (tab === "admin") return <AdminWorkspace session={session} profile={profile} />;
     if (tab === "audit") return <AuditLogsWorkspace />;
 
-    if (tab === "receiving") return <ReceivingWorkspace receivingView="dashboard" />;
-    if (tab === "receiving-create") return <ReceivingWorkspace receivingView="create" />;
-    if (tab === "receiving-putaway") return <ReceivingWorkspace receivingView="putaway" />;
-    if (tab === "receiving-reprint") return <ReceivingWorkspace receivingView="reprint" />;
+    if (tab === "receiving") return <ReceivingWorkspace receivingView="dashboard" deepLinkTarget={deepLinkTarget} />;
+    if (tab === "receiving-create") return <ReceivingWorkspace receivingView="create" deepLinkTarget={deepLinkTarget} />;
+    if (tab === "receiving-putaway") return <ReceivingWorkspace receivingView="putaway" deepLinkTarget={deepLinkTarget} />;
+    if (tab === "receiving-reprint") return <ReceivingWorkspace receivingView="reprint" deepLinkTarget={deepLinkTarget} />;
 
     if (tab === "inventory") return <InventoryWorkspace inventoryView="dashboard" />;
     if (tab === "inventory-lookup") return <InventoryWorkspace inventoryView="lookup" />;
@@ -875,6 +904,7 @@ function App() {
           orderMode="dashboard"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
@@ -885,6 +915,7 @@ function App() {
           orderMode="open"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
@@ -895,6 +926,7 @@ function App() {
           orderMode="released"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
@@ -905,6 +937,7 @@ function App() {
           orderMode="closed"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
@@ -915,6 +948,7 @@ function App() {
           orderMode="view"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
@@ -925,6 +959,7 @@ function App() {
           orderMode="addWork"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
@@ -935,6 +970,7 @@ function App() {
           orderMode="pickList"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
@@ -945,6 +981,7 @@ function App() {
           orderMode="invoice"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
@@ -955,12 +992,13 @@ function App() {
           orderMode="release"
           orders={orders}
           setOrders={setOrders}
+          deepLinkTarget={deepLinkTarget}
         />
       );
     }
 
     if (tab === "shipping-dashboard") {
-      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} />;
+      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} deepLinkTarget={deepLinkTarget} />;
     }
 
     if (
@@ -968,7 +1006,7 @@ function App() {
       tab === "shipping-started" ||
       tab === "shipping-complete"
     ) {
-      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} />;
+      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} deepLinkTarget={deepLinkTarget} />;
     }
 
     return (
@@ -1239,6 +1277,7 @@ function App() {
       userEmail={guestSession ? "guest@intral.local" : session?.user?.email}
       handleLogout={handleLogout}
       operationalNotifications={isGuest ? [] : operationalNotifications}
+      onNotificationDeepLink={handleNotificationDeepLink}
     >
       {renderWorkspace()}
     </WorkspacePortal>
