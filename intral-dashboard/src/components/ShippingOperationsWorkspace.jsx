@@ -1,12 +1,46 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStatus, deepLinkTarget }) {
+const internalDelayReasonOptions = [
+  "",
+  "Carrier / Courier No-Show",
+  "Carrier Reschedule",
+  "Material Not Ready",
+  "Address / Contact Issue",
+  "Weather / Access Delay",
+  "Customer Hold",
+  "Internal Resource Constraint",
+  "Other",
+];
+
+const defaultInternalExceptionForm = {
+  internalDelayReason: "",
+  carrierCourierIssue: "",
+  delayOwner: "",
+  rescheduleCount: "",
+  internalExceptionNotes: "",
+};
+
+const internalExceptionInputStyle = {
+  width: "100%",
+  minHeight: "34px",
+  borderRadius: "8px",
+  border: "1px solid #cbd5e1",
+  background: "#ffffff",
+  color: "#0f172a",
+  padding: "8px 10px",
+  fontWeight: 800,
+};
+
+function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStatus, onSaveInternalException, deepLinkTarget }) {
   const [soSearch, setSoSearch] = useState("");
   const [loadedSoNumber, setLoadedSoNumber] = useState("");
   const [recentlyCompletedOrder, setRecentlyCompletedOrder] = useState(null);
   const [message, setMessage] = useState("");
   const [expandedSection, setExpandedSection] = useState("load");
   const [detailViewOpen, setDetailViewOpen] = useState(false);
+  const [internalExceptionForm, setInternalExceptionForm] = useState(
+    defaultInternalExceptionForm
+  );
 
   const shippingOrders = useMemo(() => {
     return orders.filter(
@@ -28,6 +62,22 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
       (order) => order.releaseStatus === "Active" || order.releaseStatus === "Started"
     );
   }, [shippingOrders]);
+
+
+  useEffect(() => {
+    if (!loadedOrder) {
+      setInternalExceptionForm(defaultInternalExceptionForm);
+      return;
+    }
+
+    setInternalExceptionForm({
+      internalDelayReason: loadedOrder.internalDelayReason || "",
+      carrierCourierIssue: loadedOrder.carrierCourierIssue || "",
+      delayOwner: loadedOrder.delayOwner || "",
+      rescheduleCount: loadedOrder.rescheduleCount || "",
+      internalExceptionNotes: loadedOrder.internalExceptionNotes || "",
+    });
+  }, [loadedOrder]);
 
   useEffect(() => {
     if (!deepLinkTarget) return;
@@ -430,6 +480,156 @@ This will remove the SO from active Shipping Operations and move the JO to Close
     );
   };
 
+  const updateInternalExceptionForm = (field, value) => {
+    setInternalExceptionForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const saveInternalExceptionNotes = async () => {
+    if (!loadedOrder) {
+      alert("Load one SO before saving internal exception notes.");
+      return;
+    }
+
+    const nextInternalException = {
+      internalDelayReason: internalExceptionForm.internalDelayReason,
+      carrierCourierIssue: internalExceptionForm.carrierCourierIssue,
+      delayOwner: internalExceptionForm.delayOwner,
+      rescheduleCount: internalExceptionForm.rescheduleCount,
+      internalExceptionNotes: internalExceptionForm.internalExceptionNotes,
+    };
+
+    if (onSaveInternalException) {
+      const result = await onSaveInternalException(loadedOrder, nextInternalException);
+
+      if (result && result.success === false) {
+        alert(`Internal exception notes saved locally, but Supabase did not save the update: ${result.error}`);
+        return;
+      }
+    } else if (setOrders) {
+      setOrders((currentOrders) =>
+        currentOrders.map((order) =>
+          order.soNumber === loadedOrder.soNumber || order.joNumber === loadedOrder.joNumber
+            ? {
+                ...order,
+                ...nextInternalException,
+                internalExceptionUpdatedAt: new Date().toISOString(),
+              }
+            : order
+        )
+      );
+    }
+
+    setMessage(`Internal exception notes saved for ${loadedOrder.soNumber}.`);
+  };
+
+  const renderInternalExceptionSection = () => {
+    if (!loadedOrder) return null;
+
+    return (
+      <div className="order-detail-section compact-order-section">
+        <h3>Internal Delay / Exception Notes</h3>
+        <p>
+          Internal operational reasoning only. This is not a customer-facing summary.
+        </p>
+
+        <div className="order-release-summary-grid shipping-workbench-field-grid">
+          <div className="order-detail-field">
+            <span>Internal Delay Reason</span>
+            <select
+              value={internalExceptionForm.internalDelayReason}
+              onChange={(event) =>
+                updateInternalExceptionForm("internalDelayReason", event.target.value)
+              }
+              style={internalExceptionInputStyle}
+            >
+              {internalDelayReasonOptions.map((option) => (
+                <option key={option || "blank"} value={option}>
+                  {option || "Select delay reason"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="order-detail-field">
+            <span>Carrier / Courier Issue</span>
+            <select
+              value={internalExceptionForm.carrierCourierIssue}
+              onChange={(event) =>
+                updateInternalExceptionForm("carrierCourierIssue", event.target.value)
+              }
+              style={internalExceptionInputStyle}
+            >
+              <option value="">Select</option>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+
+          <div className="order-detail-field">
+            <span>Delay Owner</span>
+            <input
+              value={internalExceptionForm.delayOwner}
+              onChange={(event) =>
+                updateInternalExceptionForm("delayOwner", event.target.value)
+              }
+              placeholder="Carrier, Customer, INTRAL, Vendor, Other"
+              style={internalExceptionInputStyle}
+            />
+          </div>
+
+          <div className="order-detail-field">
+            <span>Reschedule Count</span>
+            <input
+              type="number"
+              min="0"
+              value={internalExceptionForm.rescheduleCount}
+              onChange={(event) =>
+                updateInternalExceptionForm("rescheduleCount", event.target.value)
+              }
+              placeholder="0"
+              style={internalExceptionInputStyle}
+            />
+          </div>
+        </div>
+
+        <textarea
+          rows="4"
+          value={internalExceptionForm.internalExceptionNotes}
+          onChange={(event) =>
+            updateInternalExceptionForm("internalExceptionNotes", event.target.value)
+          }
+          placeholder="Example: Scheduled truck courier did not arrive for pickup. Courier was rescheduled three times. Warehouse was ready; delay was caused by carrier availability."
+          style={{
+            ...internalExceptionInputStyle,
+            minHeight: "88px",
+            marginTop: "10px",
+            resize: "vertical",
+          }}
+        />
+
+        {(loadedOrder.internalExceptionUpdatedAt || loadedOrder.internalExceptionUpdatedBy) && (
+          <p style={{ marginTop: "8px", color: "#64748b", fontSize: "11px" }}>
+            Last updated by {loadedOrder.internalExceptionUpdatedBy || "INTRAL User"}{" "}
+            {loadedOrder.internalExceptionUpdatedAt
+              ? `on ${formatDateTimeDisplay(loadedOrder.internalExceptionUpdatedAt)}`
+              : ""}
+          </p>
+        )}
+
+        <button
+          className="inventory-primary-button"
+          onClick={saveInternalExceptionNotes}
+          style={{ marginTop: "10px" }}
+        >
+          Save Internal Exception Notes
+        </button>
+      </div>
+    );
+  };
+
   const renderShippingDetailWorkspace = () => {
     if (!loadedOrder) return null;
 
@@ -595,6 +795,8 @@ This will remove the SO from active Shipping Operations and move the JO to Close
                   "No additional details."}
               </p>
             </div>
+
+            {renderInternalExceptionSection()}
 
             <div className="order-detail-section compact-order-section">
               <h3>Execution Controls</h3>

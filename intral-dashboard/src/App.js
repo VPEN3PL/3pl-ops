@@ -260,7 +260,82 @@ function App() {
       });
   };
 
-  const cleanJobNotes = (value) => dedupeTextLines(value).join("\n");
+  const INTERNAL_EXCEPTION_START = "[[INTRAL_INTERNAL_EXCEPTION]]";
+  const INTERNAL_EXCEPTION_END = "[[/INTRAL_INTERNAL_EXCEPTION]]";
+
+  const getDefaultInternalException = () => ({
+    internalDelayReason: "",
+    carrierCourierIssue: "",
+    delayOwner: "",
+    rescheduleCount: "",
+    internalExceptionNotes: "",
+    internalExceptionUpdatedAt: "",
+    internalExceptionUpdatedBy: "",
+  });
+
+  const parseInternalExceptionNotes = (value) => {
+    const textValue = String(value || "");
+    const startIndex = textValue.indexOf(INTERNAL_EXCEPTION_START);
+    const endIndex = textValue.indexOf(INTERNAL_EXCEPTION_END);
+
+    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+      return getDefaultInternalException();
+    }
+
+    const jsonText = textValue
+      .slice(startIndex + INTERNAL_EXCEPTION_START.length, endIndex)
+      .trim();
+
+    try {
+      return {
+        ...getDefaultInternalException(),
+        ...JSON.parse(jsonText),
+      };
+    } catch (error) {
+      return getDefaultInternalException();
+    }
+  };
+
+  const stripInternalExceptionNotes = (value) => {
+    const textValue = String(value || "");
+    const startIndex = textValue.indexOf(INTERNAL_EXCEPTION_START);
+    const endIndex = textValue.indexOf(INTERNAL_EXCEPTION_END);
+
+    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+      return textValue;
+    }
+
+    return `${textValue.slice(0, startIndex)}${textValue.slice(
+      endIndex + INTERNAL_EXCEPTION_END.length
+    )}`.trim();
+  };
+
+  const buildNotesWithInternalException = (baseNotes, internalException) => {
+    const visibleNotes = stripInternalExceptionNotes(baseNotes).trim();
+    const normalizedException = {
+      ...getDefaultInternalException(),
+      ...internalException,
+    };
+
+    const hasInternalException = Object.entries(normalizedException).some(
+      ([key, value]) =>
+        !["internalExceptionUpdatedAt", "internalExceptionUpdatedBy"].includes(key) &&
+        String(value || "").trim()
+    );
+
+    if (!hasInternalException) {
+      return visibleNotes;
+    }
+
+    const internalBlock = `${INTERNAL_EXCEPTION_START}\n${JSON.stringify(
+      normalizedException
+    )}\n${INTERNAL_EXCEPTION_END}`;
+
+    return [visibleNotes, internalBlock].filter(Boolean).join("\n\n");
+  };
+
+  const cleanJobNotes = (value) =>
+    dedupeTextLines(stripInternalExceptionNotes(value)).join("\n");
 
   const mapSupabaseJobToOperationalOrder = (job) => {
     const rawStatus = String(job?.status || "").trim();
@@ -283,10 +358,12 @@ function App() {
         : "Open";
 
     const createdDate = job?.created_at ? new Date(job.created_at) : null;
+    const internalException = parseInternalExceptionNotes(job?.notes || "");
     const cleanNotes = cleanJobNotes(job?.notes || "");
 
     return {
       dbId: job?.id,
+      rawNotes: job?.notes || "",
       joNumber: job?.job_number || `JO-${String(job?.id || "").slice(0, 6)}`,
       requestor: job?.requestor_name || "Requestor",
       jobType: job?.request_category || job?.job_type || "Work Request",
@@ -330,6 +407,13 @@ function App() {
       shippingWorkflow: getShippingWorkflowFromJob(job),
       shippingType: getShippingWorkflowFromJob(job),
       location: job?.location || "",
+      internalDelayReason: internalException.internalDelayReason || "",
+      carrierCourierIssue: internalException.carrierCourierIssue || "",
+      delayOwner: internalException.delayOwner || "",
+      rescheduleCount: internalException.rescheduleCount || "",
+      internalExceptionNotes: internalException.internalExceptionNotes || "",
+      internalExceptionUpdatedAt: internalException.internalExceptionUpdatedAt || "",
+      internalExceptionUpdatedBy: internalException.internalExceptionUpdatedBy || "",
       inventoryDetails: null,
     };
   };
@@ -832,6 +916,89 @@ function App() {
 
     return { success: true };
   };
+  const updateOperationalOrderInternalException = async (
+    targetOrder,
+    internalExceptionFields = {}
+  ) => {
+    if (!targetOrder) {
+      return { success: false, error: "Missing order details." };
+    }
+
+    const updatedBy =
+      profile?.display_name ||
+      profile?.full_name ||
+      profile?.name ||
+      session?.user?.email ||
+      "INTRAL User";
+
+    const nextInternalException = {
+      internalDelayReason: String(
+        internalExceptionFields.internalDelayReason || ""
+      ).trim(),
+      carrierCourierIssue: String(
+        internalExceptionFields.carrierCourierIssue || ""
+      ).trim(),
+      delayOwner: String(internalExceptionFields.delayOwner || "").trim(),
+      rescheduleCount: String(
+        internalExceptionFields.rescheduleCount || ""
+      ).trim(),
+      internalExceptionNotes: String(
+        internalExceptionFields.internalExceptionNotes || ""
+      ).trim(),
+      internalExceptionUpdatedAt: new Date().toISOString(),
+      internalExceptionUpdatedBy: updatedBy,
+    };
+
+    const nextRawNotes = buildNotesWithInternalException(
+      targetOrder.rawNotes || targetOrder.details || "",
+      nextInternalException
+    );
+
+    const nextOrderFields = {
+      ...nextInternalException,
+      rawNotes: nextRawNotes,
+      details: cleanJobNotes(nextRawNotes),
+    };
+
+    setOrders((currentOrders) =>
+      currentOrders.map((order) =>
+        order.joNumber === targetOrder.joNumber ||
+        order.soNumber === targetOrder.soNumber ||
+        (targetOrder.dbId && order.dbId === targetOrder.dbId)
+          ? {
+              ...order,
+              ...nextOrderFields,
+            }
+          : order
+      )
+    );
+
+    let query = supabase
+      .from("jobs")
+      .update({
+        notes: nextRawNotes,
+      });
+
+    if (targetOrder.dbId) {
+      query = query.eq("id", targetOrder.dbId);
+    } else if (targetOrder.joNumber) {
+      query = query.eq("job_number", targetOrder.joNumber);
+    } else {
+      return { success: true };
+    }
+
+    const { error } = await query;
+
+    if (error) {
+      console.warn("Unable to persist internal exception notes:", error.message);
+      return { success: false, error: error.message };
+    }
+
+    await loadSupabaseJobs();
+
+    return { success: true };
+  };
+
   const handleNotificationDeepLink = (target) => {
     if (!target) return;
 
@@ -905,6 +1072,7 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
@@ -916,6 +1084,7 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
@@ -927,6 +1096,7 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
@@ -938,6 +1108,7 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
@@ -949,6 +1120,7 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
@@ -960,6 +1132,7 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
@@ -971,6 +1144,7 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
@@ -982,6 +1156,7 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
@@ -993,12 +1168,13 @@ function App() {
           orders={orders}
           setOrders={setOrders}
           deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
         />
       );
     }
 
     if (tab === "shipping-dashboard") {
-      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} deepLinkTarget={deepLinkTarget} />;
+      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} deepLinkTarget={deepLinkTarget} onSaveInternalException={updateOperationalOrderInternalException} />;
     }
 
     if (
@@ -1006,7 +1182,7 @@ function App() {
       tab === "shipping-started" ||
       tab === "shipping-complete"
     ) {
-      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} deepLinkTarget={deepLinkTarget} />;
+      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} deepLinkTarget={deepLinkTarget} onSaveInternalException={updateOperationalOrderInternalException} />;
     }
 
     return (

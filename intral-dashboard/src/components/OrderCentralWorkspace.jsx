@@ -1,6 +1,37 @@
 import React, { useEffect, useMemo, useState } from "react";
 import logo from "../assets/intral-logo.jpg";
 
+const internalDelayReasonOptions = [
+  "",
+  "Carrier / Courier No-Show",
+  "Carrier Reschedule",
+  "Material Not Ready",
+  "Address / Contact Issue",
+  "Weather / Access Delay",
+  "Customer Hold",
+  "Internal Resource Constraint",
+  "Other",
+];
+
+const defaultInternalExceptionForm = {
+  internalDelayReason: "",
+  carrierCourierIssue: "",
+  delayOwner: "",
+  rescheduleCount: "",
+  internalExceptionNotes: "",
+};
+
+const internalExceptionInputStyle = {
+  width: "100%",
+  minHeight: "34px",
+  borderRadius: "8px",
+  border: "1px solid #cbd5e1",
+  background: "#ffffff",
+  color: "#0f172a",
+  padding: "8px 10px",
+  fontWeight: 800,
+};
+
 const additionalWorkOptions = [
   "Add forklift support",
   "Add labor support",
@@ -10,7 +41,7 @@ const additionalWorkOptions = [
   "Add special handling instructions",
 ];
 
-function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders, deepLinkTarget }) {
+function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders, deepLinkTarget, onSaveInternalException }) {
   const [selectedJobNumber, setSelectedJobNumber] = useState(() => {
     return localStorage.getItem("intral-connect-selected-jo") || "";
   });
@@ -26,6 +57,9 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     invoiceDate: new Date().toISOString().slice(0, 10),
     billingNotes: "",
   });
+  const [internalExceptionForm, setInternalExceptionForm] = useState(
+    defaultInternalExceptionForm
+  );
 
   const ordersPerPage = 5;
 
@@ -138,6 +172,22 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
       billingNotes: "",
     });
   }, [selectedJob, savedInvoices]);
+
+  useEffect(() => {
+    if (!selectedJob) {
+      setInternalExceptionForm(defaultInternalExceptionForm);
+      return;
+    }
+
+    setInternalExceptionForm({
+      internalDelayReason: selectedJob.internalDelayReason || "",
+      carrierCourierIssue: selectedJob.carrierCourierIssue || "",
+      delayOwner: selectedJob.delayOwner || "",
+      rescheduleCount: selectedJob.rescheduleCount || "",
+      internalExceptionNotes: selectedJob.internalExceptionNotes || "",
+    });
+  }, [selectedJob]);
+
 
   const activeList = useMemo(() => {
     if (orderMode === "released") return activeOrders;
@@ -673,6 +723,156 @@ color: "#ffffff",
     return "";
   };
 
+  const updateInternalExceptionForm = (field, value) => {
+    setInternalExceptionForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const saveInternalExceptionNotes = async () => {
+    if (!selectedJob) {
+      alert("Select one JO before saving internal exception notes.");
+      return;
+    }
+
+    const nextInternalException = {
+      internalDelayReason: internalExceptionForm.internalDelayReason,
+      carrierCourierIssue: internalExceptionForm.carrierCourierIssue,
+      delayOwner: internalExceptionForm.delayOwner,
+      rescheduleCount: internalExceptionForm.rescheduleCount,
+      internalExceptionNotes: internalExceptionForm.internalExceptionNotes,
+    };
+
+    if (onSaveInternalException) {
+      const result = await onSaveInternalException(selectedJob, nextInternalException);
+
+      if (result && result.success === false) {
+        alert(`Internal exception notes saved locally, but Supabase did not save the update: ${result.error}`);
+        return;
+      }
+    } else if (setOrders) {
+      setOrders((currentOrders) =>
+        currentOrders.map((order) =>
+          order.joNumber === selectedJob.joNumber
+            ? {
+                ...order,
+                ...nextInternalException,
+                internalExceptionUpdatedAt: new Date().toISOString(),
+              }
+            : order
+        )
+      );
+    }
+
+    setMessage(`Internal exception notes saved for ${selectedJob.joNumber}.`);
+  };
+
+  const renderInternalExceptionSection = (job) => {
+    if (!job) return null;
+
+    return (
+      <div className="order-detail-section compact-order-section">
+        <h3>Internal Exception Notes</h3>
+        <p>
+          Internal operational reasoning only. Do not expose this section to customer / guest views.
+        </p>
+
+        <div className="order-release-summary-grid order-workbench-field-grid">
+          <div className="order-detail-field">
+            <span>Internal Delay Reason</span>
+            <select
+              value={internalExceptionForm.internalDelayReason}
+              onChange={(event) =>
+                updateInternalExceptionForm("internalDelayReason", event.target.value)
+              }
+              style={internalExceptionInputStyle}
+            >
+              {internalDelayReasonOptions.map((option) => (
+                <option key={option || "blank"} value={option}>
+                  {option || "Select delay reason"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="order-detail-field">
+            <span>Carrier / Courier Issue</span>
+            <select
+              value={internalExceptionForm.carrierCourierIssue}
+              onChange={(event) =>
+                updateInternalExceptionForm("carrierCourierIssue", event.target.value)
+              }
+              style={internalExceptionInputStyle}
+            >
+              <option value="">Select</option>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+
+          <div className="order-detail-field">
+            <span>Delay Owner</span>
+            <input
+              value={internalExceptionForm.delayOwner}
+              onChange={(event) =>
+                updateInternalExceptionForm("delayOwner", event.target.value)
+              }
+              placeholder="Carrier, Customer, INTRAL, Vendor, Other"
+              style={internalExceptionInputStyle}
+            />
+          </div>
+
+          <div className="order-detail-field">
+            <span>Reschedule Count</span>
+            <input
+              type="number"
+              min="0"
+              value={internalExceptionForm.rescheduleCount}
+              onChange={(event) =>
+                updateInternalExceptionForm("rescheduleCount", event.target.value)
+              }
+              placeholder="0"
+              style={internalExceptionInputStyle}
+            />
+          </div>
+        </div>
+
+        <textarea
+          rows="4"
+          value={internalExceptionForm.internalExceptionNotes}
+          onChange={(event) =>
+            updateInternalExceptionForm("internalExceptionNotes", event.target.value)
+          }
+          placeholder="Example: Scheduled truck courier did not arrive for pickup. Courier was rescheduled three times. Warehouse was ready; delay was caused by carrier availability."
+          style={{
+            ...internalExceptionInputStyle,
+            minHeight: "88px",
+            marginTop: "10px",
+            resize: "vertical",
+          }}
+        />
+
+        {(job.internalExceptionUpdatedAt || job.internalExceptionUpdatedBy) && (
+          <p style={{ marginTop: "8px", color: "#64748b", fontSize: "11px" }}>
+            Last updated by {job.internalExceptionUpdatedBy || "INTRAL User"}{" "}
+            {job.internalExceptionUpdatedAt
+              ? `on ${formatDateTimeDisplay(job.internalExceptionUpdatedAt)}`
+              : ""}
+          </p>
+        )}
+
+        <button
+          className="inventory-primary-button"
+          onClick={saveInternalExceptionNotes}
+          style={{ marginTop: "10px" }}
+        >
+          Save Internal Exception Notes
+        </button>
+      </div>
+    );
+  };
+
   const renderAccordionHeader = (sectionKey, title, subtitle) => {
     const isOpen = expandedSection === sectionKey;
 
@@ -1015,6 +1215,8 @@ color: "#ffffff",
                 <p>No request details provided.</p>
               )}
             </div>
+
+            {renderInternalExceptionSection(selectedJob)}
 
             {isPendingInternalReview(selectedJob) && (
               <div className="order-detail-section compact-order-section">
@@ -2301,6 +2503,8 @@ color: "#ffffff",
               <p>No request details provided.</p>
             )}
           </div>
+
+          {renderInternalExceptionSection(selectedJob)}
 
           <div className="order-release-summary-grid order-workbench-field-grid">
             <div className="order-detail-section compact-order-section">
