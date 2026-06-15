@@ -9629,45 +9629,158 @@ PHASE 22E COMMAND HEADER VISUAL SYNC
 .order-central-workspace .order-detail-readability-panel strong {
   color: #f8fafc !important;
 }
-/* =========================================================
-   PHASE 23D-5A-1
-   Order Central Additional Work Readability Hotfix
-   Scope: visual-only text contrast fix for submitted additional work
-   ========================================================= */
 
-.order-central-workspace .order-detail-section,
-.order-central-workspace .compact-order-section {
-  color: #f8fafc;
+/* ==========================================================
+   PHASE 23D-9A-1D — ORDER CENTRAL LIGHT STRIP READABILITY
+   Final scoped fix for the two light strips in Job Detail:
+   1) JO operational detail header strip
+   2) Existing additional work strip
+   Does not alter workflow, cards, release, invoice, or layout logic.
+   ========================================================== */
+
+.order-central-workspace .order-detail-hero-strip,
+.order-central-workspace .existing-additional-work-strip {
+  background: #eaf2ff !important;
+  border: 1px solid #93c5fd !important;
+  border-radius: 10px !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  text-shadow: none !important;
 }
 
-.order-central-workspace .order-detail-section h3,
-.order-central-workspace .compact-order-section h3 {
-  color: #ffffff;
-  font-weight: 900;
+.order-central-workspace .order-detail-hero-strip {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  padding: 10px 12px !important;
+  margin-bottom: 10px !important;
 }
 
-.order-central-workspace .order-detail-section p,
-.order-central-workspace .compact-order-section p,
-.order-central-workspace .order-detail-section li,
-.order-central-workspace .compact-order-section li,
-.order-central-workspace .order-detail-section span,
-.order-central-workspace .compact-order-section span {
-  color: #e5eefb;
-  font-weight: 800;
+.order-central-workspace .existing-additional-work-strip {
+  display: block !important;
+  width: 100% !important;
+  padding: 9px 12px !important;
+  margin: 8px 0 10px !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 900 !important;
 }
 
-.order-central-workspace .order-checkbox-card,
-.order-central-workspace .order-checkbox-card span {
-  color: #f8fafc;
-  font-weight: 900;
+.order-central-workspace .order-detail-hero-strip strong,
+.order-central-workspace .order-detail-hero-strip span,
+.order-central-workspace .existing-additional-work-strip strong,
+.order-central-workspace .existing-additional-work-strip span,
+.order-central-workspace .existing-additional-work-strip p {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
 }
 
-.order-central-workspace .order-checkbox-card input:checked + span,
-.order-central-workspace .order-checkbox-card:has(input:checked) span {
-  color: #ffffff;
+.order-central-workspace .order-detail-hero-strip .phase17-secondary-button {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+/* ==========================================================
+   PHASE 23D-9A-1E — ORDER CENTRAL TOP STRIP SIZE MATCH
+   Scoped size-only cleanup.
+   Makes the JO Operational Detail top strip match the compact
+   Existing Additional Work strip sizing.
+   ========================================================== */
+
+.order-central-workspace .order-detail-hero-strip {
+  min-height: auto !important;
+  padding: 9px 12px !important;
+  margin: 8px 0 10px !important;
+  border-radius: 10px !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
 }
 
-.order-central-workspace .phase17-accordion-body .panel-note,
-.order-central-workspace .phase17-accordion-body p {
-  color: #dbeafe;
+.order-central-workspace .order-detail-hero-strip > div {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.order-central-workspace .order-detail-hero-strip strong {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+.order-central-workspace .order-detail-hero-strip span,
+.order-central-workspace .order-detail-hero-strip p,
+.order-central-workspace .order-detail-hero-strip small {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+.order-central-workspace .order-detail-hero-strip .phase17-secondary-button,
+.order-central-workspace .order-detail-hero-strip button {
+  min-height: 34px !important;
+  padding: 7px 12px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+/* ==========================================================
+   PHASE 23D-9A-1F — ORDER DETAIL TOP BAR HEIGHT REDUCTION
+   Scoped height fix.
+   Converts the JO Operational Detail strip to a compact single-row
+   bar so it matches the Additional Work strip height more closely.
+   ========================================================== */
+
+.order-central-workspace .order-detail-hero-strip {
+  min-height: 38px !important;
+  height: auto !important;
+  padding: 6px 10px !important;
+  margin: 6px 0 8px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  flex-wrap: nowrap !important;
+}
+
+.order-central-workspace .order-detail-hero-strip > div {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.order-central-workspace .order-detail-hero-strip strong {
+  font-size: 12px !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+.order-central-workspace .order-detail-hero-strip span,
+.order-central-workspace .order-detail-hero-strip p,
+.order-central-workspace .order-detail-hero-strip small {
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.order-central-workspace .order-detail-hero-strip .phase17-secondary-button,
+.order-central-workspace .order-detail-hero-strip button {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 4px 10px !important;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  flex: 0 0 auto !important;
 }
