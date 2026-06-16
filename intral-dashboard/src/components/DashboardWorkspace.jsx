@@ -377,9 +377,14 @@ function DashboardWorkspace({ setTab }) {
     },
   ];
 
-  const throughputGaugeStyle = {
-    "--gauge-value": `${Math.max(0, Math.min(100, dashboardMetrics.throughputRate))}%`,
-  };
+  const gaugePercent = Math.max(
+    0,
+    Math.min(100, dashboardMetrics.throughputRate)
+  );
+  const gaugeRadius = 48;
+  const gaugeCircumference = 2 * Math.PI * gaugeRadius;
+  const gaugeDashOffset =
+    gaugeCircumference - (gaugePercent / 100) * gaugeCircumference;
 
   const executiveKpis = [
     {
@@ -603,8 +608,30 @@ function DashboardWorkspace({ setTab }) {
           </div>
 
           <div className="phase18-gauge-wrap">
-            <div className="phase18-gauge" style={throughputGaugeStyle}>
-              <div>
+            <div className="phase18-gauge-svg-card" aria-label={`Completion Gauge ${dashboardMetrics.throughputRate}% complete`}>
+              <svg
+                className="phase18-gauge-svg"
+                viewBox="0 0 120 120"
+                role="img"
+                aria-hidden="true"
+              >
+                <circle
+                  className="phase18-gauge-svg-track"
+                  cx="60"
+                  cy="60"
+                  r={gaugeRadius}
+                />
+                <circle
+                  className="phase18-gauge-svg-fill"
+                  cx="60"
+                  cy="60"
+                  r={gaugeRadius}
+                  strokeDasharray={gaugeCircumference}
+                  strokeDashoffset={gaugeDashOffset}
+                />
+              </svg>
+
+              <div className="phase18-gauge-center">
                 <strong>{dashboardMetrics.throughputRate}%</strong>
                 <span>Complete</span>
               </div>

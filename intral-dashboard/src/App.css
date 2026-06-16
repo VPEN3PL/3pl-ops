@@ -9814,3 +9814,87 @@ PHASE 22E COMMAND HEADER VISUAL SYNC
   text-shadow: none !important;
   font-weight: 900 !important;
 }
+
+
+/* =========================================
+   PHASE 23D-9E — DASHBOARD COMPLETION GAUGE SVG FIX
+   Replaces the conic-gradient gauge display with a padded SVG ring.
+   This prevents clipping / missing chunks inside the Throughput card.
+========================================= */
+
+.phase18-gauge-wrap {
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  overflow: visible !important;
+}
+
+.phase18-gauge-svg-card {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: grid;
+  place-items: center;
+  overflow: visible !important;
+}
+
+.phase18-gauge-svg {
+  width: 150px;
+  height: 150px;
+  display: block;
+  overflow: visible !important;
+  transform: rotate(-90deg);
+}
+
+.phase18-gauge-svg-track,
+.phase18-gauge-svg-fill {
+  fill: none;
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+
+.phase18-gauge-svg-track {
+  stroke: rgba(148, 163, 184, 0.24);
+}
+
+.phase18-gauge-svg-fill {
+  stroke: #60a5fa;
+  transition: stroke-dashoffset 0.3s ease;
+  filter: drop-shadow(0 0 7px rgba(96, 165, 250, 0.32));
+}
+
+.phase18-gauge-center {
+  position: absolute;
+  inset: 28px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border-radius: 999px;
+  background: rgba(8, 24, 39, 0.98);
+  border: 1px solid rgba(147, 197, 253, 0.2);
+  text-align: center;
+  z-index: 2;
+}
+
+.phase18-gauge-center strong {
+  display: block;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.phase18-gauge-center span {
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Keep any legacy conic-gradient gauge from drawing if older markup is cached. */
+.phase18-gauge {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
