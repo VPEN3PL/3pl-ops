@@ -408,9 +408,9 @@ function DashboardWorkspace({ setTab }) {
     {
       title: "Open Work",
       value: dashboardMetrics.openJobs,
-      note: "Active operational requests",
+      note: "Pending Order Central review",
       tone: dashboardMetrics.openJobs > 0 ? "normal" : "healthy",
-      targetTab: "jobs",
+      targetTab: "orders-open",
     },
     {
       title: "Critical Aging",
