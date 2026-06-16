@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 import { supabase } from "./supabaseClient";
@@ -36,6 +36,11 @@ function App() {
     return localStorage.getItem("intral-connect-active-tab") || "portal";
   });
 
+  const tabRef = useRef(tab);
+  const browserHistoryReadyRef = useRef(false);
+  const browserBackNavigationRef = useRef(false);
+
+
   const [orders, setOrders] = useState([]);
   const [operationalNotifications, setOperationalNotifications] = useState([]);
   const [deepLinkTarget, setDeepLinkTarget] = useState(null);
@@ -44,8 +49,67 @@ function App() {
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
+    tabRef.current = tab;
     localStorage.setItem("intral-connect-active-tab", tab);
+
+    if (!browserHistoryReadyRef.current) return;
+
+    if (browserBackNavigationRef.current) {
+      browserBackNavigationRef.current = false;
+      return;
+    }
+
+    window.history.pushState(
+      { intralConnect: true, tab },
+      "",
+      window.location.href
+    );
   }, [tab]);
+
+  useEffect(() => {
+    const currentTab = tabRef.current || "portal";
+
+    window.history.replaceState(
+      { intralConnect: true, tab: currentTab },
+      "",
+      window.location.href
+    );
+
+    window.history.pushState(
+      { intralConnect: true, tab: currentTab },
+      "",
+      window.location.href
+    );
+
+    browserHistoryReadyRef.current = true;
+
+    const handleBrowserBack = (event) => {
+      const stateTab = event.state?.intralConnect ? event.state.tab : "";
+
+      browserBackNavigationRef.current = true;
+
+      if (stateTab) {
+        setTab(stateTab);
+        localStorage.setItem("intral-connect-active-tab", stateTab);
+        return;
+      }
+
+      setTab("portal");
+      localStorage.setItem("intral-connect-active-tab", "portal");
+
+      window.history.pushState(
+        { intralConnect: true, tab: "portal" },
+        "",
+        window.location.href
+      );
+    };
+
+    window.addEventListener("popstate", handleBrowserBack);
+
+    return () => {
+      window.removeEventListener("popstate", handleBrowserBack);
+    };
+  }, []);
 
   useEffect(() => {
     const now = new Date();

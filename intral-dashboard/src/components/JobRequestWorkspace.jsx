@@ -135,6 +135,7 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
       shipFromCompany: "",
       shipFromAddress: "",
       shipFromStreet: "",
+      shipFromState: "",
       shipFromZip: "",
       shipFromCountry: "",
 
@@ -143,6 +144,7 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
       shipToCompany: "",
       shipToAddress: "",
       shipToStreet: "",
+      shipToState: "",
       shipToZip: "",
       shipToCountry: "",
       shipToContactName: "",
@@ -374,6 +376,67 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
     return true;
   };
 
+  const getBlankRequestorForm = () => ({
+    chargeType: "",
+    chargeNumber: "",
+    companyName: "",
+    requestorName: "",
+    telephone: "",
+    email: "",
+    submissionStatus: "Pending Internal Review",
+  });
+
+  const getBlankMovementForm = () => ({
+    inventoryId: "",
+    moveQty: "",
+    toLocation: "",
+    reason: "",
+  });
+
+  const getBlankShippingForm = () => ({
+    pcs: "",
+    weight: "",
+    dimensions: "",
+
+    shipFromCompany: "",
+    shipFromAddress: "",
+    shipFromStreet: "",
+    shipFromState: "",
+    shipFromZip: "",
+    shipFromCountry: "",
+
+    amStoredAddress: "",
+
+    shipToCompany: "",
+    shipToAddress: "",
+    shipToStreet: "",
+    shipToState: "",
+    shipToZip: "",
+    shipToCountry: "",
+    shipToContactName: "",
+    shipToTelephone: "",
+    shipToEmail: "",
+  });
+
+  const getBlankLogisticsForm = () => ({
+    supportType: "",
+    currentLocation: "",
+    supportDestination: "",
+    equipmentNeeded: "",
+    dueDate: "",
+    notes: "",
+  });
+
+  const resetRequestFieldsAfterSubmit = () => {
+    setRequestorForm(getBlankRequestorForm());
+    setMovementForm(getBlankMovementForm());
+    setShippingForm(getBlankShippingForm());
+    setLogisticsForm(getBlankLogisticsForm());
+    setShippingType("");
+    setAdditionalDetails("");
+    setTrackingNumber("");
+  };
+
   const handleSubmitRequest = async () => {
     if (isSubmitting) return;
 
@@ -423,6 +486,7 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
         return;
       }
 
+      resetRequestFieldsAfterSubmit();
       setSubmittedJobOrder(result.jobNumber);
       setIsSubmittedLocked(true);
       setExpandedSection("");
