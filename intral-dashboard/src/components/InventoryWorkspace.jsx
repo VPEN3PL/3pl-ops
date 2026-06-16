@@ -11,6 +11,7 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
   const [filters, setFilters] = useState({
     inventoryId: "",
     partNumber: "",
+    description: "",
     customer: "",
     location: "",
   });
@@ -78,6 +79,7 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
     setFilters({
       inventoryId: "",
       partNumber: "",
+      description: "",
       customer: "",
       location: "",
     });
@@ -93,6 +95,10 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
         .toLowerCase()
         .includes(filters.partNumber.toLowerCase());
 
+      const descriptionMatch = String(row.description || "")
+        .toLowerCase()
+        .includes(filters.description.toLowerCase());
+
       const customerMatch = row.customer
         .toLowerCase()
         .includes(filters.customer.toLowerCase());
@@ -100,7 +106,13 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
       const locationSearch = `${row.site} ${row.location} ${row.aisle} ${row.bin}`.toLowerCase();
       const locationMatch = locationSearch.includes(filters.location.toLowerCase());
 
-      return inventoryIdMatch && partNumberMatch && customerMatch && locationMatch;
+      return (
+        inventoryIdMatch &&
+        partNumberMatch &&
+        descriptionMatch &&
+        customerMatch &&
+        locationMatch
+      );
     });
   }, [inventoryRows, filters]);
 
@@ -160,6 +172,19 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
     );
   };
 
+  const getShortInventoryId = (inventoryId) => {
+    const value = String(inventoryId || "").trim();
+
+    if (!value) return "-";
+    if (value.length <= 16) return value;
+
+    const firstSegmentMatch = value.match(/^INV-[^-]+/i);
+    const firstSegment = firstSegmentMatch ? firstSegmentMatch[0] : value.slice(0, 8);
+    const suffix = value.slice(-4);
+
+    return `${firstSegment}...${suffix}`;
+  };
+
   const renderInventoryTable = (rows, emptyMessage = "No inventory records found.") => (
     <table className="inventory-table inventory-workbench-table">
       <thead>
@@ -167,6 +192,7 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
           <th>Inventory ID</th>
           <th>Receipt #</th>
           <th>Part #</th>
+          <th>Description</th>
           <th>Customer</th>
           <th>Total Qty</th>
           <th>Available</th>
@@ -180,14 +206,15 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
       <tbody>
         {rows.length === 0 ? (
           <tr>
-            <td colSpan="10">{emptyMessage}</td>
+            <td colSpan="11">{emptyMessage}</td>
           </tr>
         ) : (
           rows.map((row) => (
             <tr key={row.id}>
-              <td>{row.id}</td>
+              <td title={row.id}>{getShortInventoryId(row.id)}</td>
               <td>{row.receiptNumber || "-"}</td>
               <td>{row.partNumber}</td>
+              <td title={row.description || ""}>{row.description || "-"}</td>
               <td>{row.customer}</td>
               <td>{row.qty}</td>
               <td>{row.available}</td>
@@ -239,7 +266,7 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
       {renderAccordionHeader(
         "lookup",
         "Lookup & Search",
-        "Search by inventory ID, part number, customer, site, or location"
+        "Search by inventory ID, part number, description, customer, site, or location"
       )}
 
       {expandedSection === "lookup" && (
@@ -255,6 +282,12 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
               value={filters.partNumber}
               onChange={(e) => updateFilter("partNumber", e.target.value)}
               placeholder="Part Number"
+            />
+
+            <input
+              value={filters.description}
+              onChange={(e) => updateFilter("description", e.target.value)}
+              placeholder="Description"
             />
 
             <input
