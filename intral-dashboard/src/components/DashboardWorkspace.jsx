@@ -4,6 +4,7 @@ import { supabase } from "../supabaseClient";
 function DashboardWorkspace({ setTab }) {
   const [jobs, setJobs] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
+  const [receivingReceipts, setReceivingReceipts] = useState([]);
   const [allocations, setAllocations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -150,13 +151,22 @@ function DashboardWorkspace({ setTab }) {
     setLoading(true);
     setMessage("Loading dashboard data...");
 
-    const [jobsResult, inventoryResult, allocationsResult] = await Promise.all([
+    const [
+      jobsResult,
+      inventoryResult,
+      receivingResult,
+      allocationsResult,
+    ] = await Promise.all([
       supabase
         .from("jobs")
         .select("*")
         .order("created_at", { ascending: false }),
       supabase
         .from("inventory_items")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("receiving_receipts")
         .select("*")
         .order("created_at", { ascending: false }),
       supabase
@@ -177,6 +187,12 @@ function DashboardWorkspace({ setTab }) {
       return;
     }
 
+    if (receivingResult.error) {
+      setMessage(`Receiving load failed: ${receivingResult.error.message}`);
+      setLoading(false);
+      return;
+    }
+
     if (allocationsResult.error) {
       setMessage(`Allocations load failed: ${allocationsResult.error.message}`);
       setLoading(false);
@@ -185,6 +201,7 @@ function DashboardWorkspace({ setTab }) {
 
     setJobs(jobsResult.data || []);
     setInventoryItems(inventoryResult.data || []);
+    setReceivingReceipts(receivingResult.data || []);
     setAllocations(allocationsResult.data || []);
     setMessage("");
     setLoading(false);
@@ -199,8 +216,8 @@ function DashboardWorkspace({ setTab }) {
     const pendingShipments = jobs.filter(isPendingShipmentJob);
     const amCratingQueue = jobs.filter(isAMCratingJob);
 
-    const receivingToday = inventoryItems.filter((item) =>
-      isToday(item.created_at)
+    const receivingToday = receivingReceipts.filter((receipt) =>
+      isToday(receipt.created_at)
     );
 
     const openAllocations = allocations.filter((allocation) => {
@@ -275,6 +292,7 @@ function DashboardWorkspace({ setTab }) {
   }, [
     jobs,
     inventoryItems,
+    receivingReceipts,
     allocations,
     isToday,
     isOpenJob,

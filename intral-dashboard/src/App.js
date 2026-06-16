@@ -188,22 +188,6 @@ function App() {
         });
       }
 
-      if (
-        order.releaseStatus === "Open" &&
-        order.allocationRequired &&
-        !order.allocationConfirmed
-      ) {
-        alerts.push({
-          id: `${order.joNumber}-allocation`,
-          title: "Allocation Pending",
-          detail: `${order.joNumber} requires inventory allocation confirmation.`,
-          tab: "orders-open",
-          targetType: "order",
-          targetId: order.joNumber,
-          jobNumber: order.joNumber,
-          severity: "normal",
-        });
-      }
     });
 
     setOperationalNotifications(alerts.slice(0, 12));
@@ -401,6 +385,83 @@ function App() {
   const cleanJobNotes = (value) =>
     dedupeTextLines(stripInternalExceptionNotes(value)).join("\n");
 
+  const parseMovementInventoryTrace = (value) => {
+    const textValue = String(value || "");
+
+    const inventoryId =
+      textValue.match(/Inventory ID:\s*([^\n]+)/i)?.[1]?.trim() ||
+      textValue.match(/Selected Inventory:\s*([^|\n]+)/i)?.[1]?.trim() ||
+      textValue.match(/Inventory Reservation:\s*([^\s|\n]+)/i)?.[1]?.trim() ||
+      "";
+
+    const moveQty = textValue.match(/Move Qty:\s*([^\n]+)/i)?.[1]?.trim() || "";
+    const moveTo = textValue.match(/Move To:\s*([^\n]+)/i)?.[1]?.trim() || "";
+    const selectedInventoryLine =
+      textValue.match(/Selected Inventory:\s*([^\n]+)/i)?.[1]?.trim() || "";
+
+    const selectedParts = selectedInventoryLine
+      .split("|")
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    return {
+      inventoryId,
+      partNumber: selectedParts[1] || "",
+      description: selectedParts[2] || "",
+      pullFromLocation: selectedParts[selectedParts.length - 1] || "",
+      requestedQty: moveQty,
+      moveTo,
+      subInventory: "STG",
+    };
+  };
+
+  const buildInventoryFinalizationNotes = (baseNotes, inventoryId, completedAtIso) => {
+    const currentNotes = String(baseNotes || "").trim();
+
+    if (!inventoryId) return currentNotes;
+
+    const existingFinalizationPattern = new RegExp(
+      `Inventory Finalization:\\s*${inventoryId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+      "i"
+    );
+
+    if (existingFinalizationPattern.test(currentNotes)) {
+      return currentNotes;
+    }
+
+    const completedDisplay = completedAtIso || new Date().toISOString();
+    const finalizationLine = `Inventory Finalization: ${inventoryId} removed from active inventory after Shipping Operations completion on ${completedDisplay}.`;
+
+    return [currentNotes, finalizationLine].filter(Boolean).join("\n");
+  };
+
+  const removeCompletedMovementInventory = async (inventoryId) => {
+    const cleanInventoryId = String(inventoryId || "").trim();
+
+    if (!cleanInventoryId) {
+      return { success: true };
+    }
+
+    const { error } = await supabase
+      .from("inventory_items")
+      .delete()
+      .eq("inventory_id", cleanInventoryId);
+
+    if (error) {
+      console.warn(
+        `Unable to remove completed inventory ${cleanInventoryId}:`,
+        error.message
+      );
+
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return { success: true };
+  };
+
   const mapSupabaseJobToOperationalOrder = (job) => {
     const rawStatus = String(job?.status || "").trim();
 
@@ -424,6 +485,7 @@ function App() {
     const createdDate = job?.created_at ? new Date(job.created_at) : null;
     const internalException = parseInternalExceptionNotes(job?.notes || "");
     const cleanNotes = cleanJobNotes(job?.notes || "");
+    const inventoryTrace = parseMovementInventoryTrace(cleanNotes || job?.notes || "");
 
     return {
       dbId: job?.id,
@@ -451,7 +513,7 @@ function App() {
       shipTo: job?.location || job?.ship_to_company || "Pending",
       additionalWork: [],
       stagingLocation: "",
-      originalLocation: "",
+      originalLocation: inventoryTrace.pullFromLocation || "",
       startedAt: job?.start_time || "",
       startedAtIso: job?.start_time || "",
       completedAt: job?.complete_time || "",
@@ -478,7 +540,7 @@ function App() {
       internalExceptionNotes: internalException.internalExceptionNotes || "",
       internalExceptionUpdatedAt: internalException.internalExceptionUpdatedAt || "",
       internalExceptionUpdatedBy: internalException.internalExceptionUpdatedBy || "",
-      inventoryDetails: null,
+      inventoryDetails: inventoryTrace.inventoryId ? inventoryTrace : null,
     };
   };
 
@@ -524,6 +586,42 @@ function App() {
     const nextNumber = Math.max(highestDatabaseNumber, highestLoadedNumber) + 1;
 
     return `JO-${String(nextNumber).padStart(6, "0")}`;
+  };
+
+  const reserveMovementInventoryAfterRequest = async ({
+    selectedInventory,
+    movement,
+    jobNumber,
+  }) => {
+    const inventoryId = String(
+      selectedInventory?.id || movement?.inventoryId || ""
+    ).trim();
+
+    if (!inventoryId) {
+      return { success: true };
+    }
+
+    const { error } = await supabase
+      .from("inventory_items")
+      .update({
+        status: "Move Requested",
+      })
+      .eq("inventory_id", inventoryId)
+      .eq("status", "Available");
+
+    if (error) {
+      console.warn(
+        `Unable to reserve inventory ${inventoryId} for ${jobNumber}:`,
+        error.message
+      );
+
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return { success: true };
   };
 
   const handleCreateJobRequest = async (requestPayload) => {
@@ -576,7 +674,10 @@ function App() {
         ? `Move Reason: ${movement.reason || ""}`
         : "",
       selectedInventory
-        ? `Selected Inventory: ${selectedInventory.id || ""} | ${selectedInventory.partNumber || ""} | ${selectedInventory.location || ""}`
+        ? `Selected Inventory: ${selectedInventory.id || ""} | ${selectedInventory.partNumber || ""} | ${selectedInventory.description || ""} | ${selectedInventory.location || ""}`
+        : "",
+      requestCategory === "movement" && selectedInventory
+        ? `Inventory Reservation: ${selectedInventory.id || movement.inventoryId || ""} reserved for ${generatedJobNumber}`
         : "",
       requestCategory === "shipping"
         ? `PCS: ${shipping.pcs || ""}`
@@ -655,6 +756,21 @@ function App() {
         success: false,
         error: error.message,
       };
+    }
+
+    if (requestCategory === "movement") {
+      const reserveResult = await reserveMovementInventoryAfterRequest({
+        selectedInventory,
+        movement,
+        jobNumber: data?.job_number || generatedJobNumber,
+      });
+
+      if (!reserveResult.success) {
+        return {
+          success: false,
+          error: `Job ${data?.job_number || generatedJobNumber} was created, but inventory reservation failed: ${reserveResult.error}`,
+        };
+      }
     }
 
     await loadSupabaseJobs();
@@ -916,9 +1032,19 @@ function App() {
     }
 
     const nowIso = new Date().toISOString();
+    const movementInventoryTrace = parseMovementInventoryTrace(
+      targetOrder.rawNotes || targetOrder.details || ""
+    );
+    const inventoryIdToRemove =
+      status === "Closed" ? movementInventoryTrace.inventoryId || "" : "";
+
     const nextOrderFields = {
       releaseStatus: status,
       reviewStatus: status === "Closed" ? "Closed" : targetOrder.reviewStatus,
+      inventoryDetails:
+        status === "Closed" && inventoryIdToRemove
+          ? movementInventoryTrace
+          : targetOrder.inventoryDetails,
       ...extraFields,
     };
 
@@ -946,6 +1072,14 @@ function App() {
 
     if (status === "Closed") {
       updatePayload.complete_time = extraFields.completedAtIso || nowIso;
+
+      if (inventoryIdToRemove) {
+        updatePayload.notes = buildInventoryFinalizationNotes(
+          targetOrder.rawNotes || targetOrder.details || "",
+          inventoryIdToRemove,
+          updatePayload.complete_time
+        );
+      }
     }
 
     let query = supabase.from("jobs").update(updatePayload);
@@ -974,6 +1108,19 @@ function App() {
       ].slice(0, 12));
 
       return { success: false, error: error.message };
+    }
+
+    if (status === "Closed" && inventoryIdToRemove) {
+      const inventoryRemovalResult = await removeCompletedMovementInventory(
+        inventoryIdToRemove
+      );
+
+      if (!inventoryRemovalResult.success) {
+        return {
+          success: false,
+          error: `Job was closed, but inventory cleanup failed for ${inventoryIdToRemove}: ${inventoryRemovalResult.error}`,
+        };
+      }
     }
 
     await loadSupabaseJobs();

@@ -1,43 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-
-const availableInventory = [
-  {
-    id: "INV-1001",
-    partNumber: "PN-45882",
-    customer: "Gillette",
-    availableQty: 100,
-    site: "1K",
-    location: "1K-22-A1",
-    status: "Available",
-  },
-  {
-    id: "INV-1002",
-    partNumber: "PN-77811",
-    customer: "Gillette",
-    availableQty: 45,
-    site: "A&M",
-    location: "AM-14-C2",
-    status: "Available",
-  },
-  {
-    id: "INV-1003",
-    partNumber: "PN-99021",
-    customer: "P&G",
-    availableQty: 250,
-    site: "6K",
-    location: "6K-88-D1",
-    status: "Available",
-  },
-  {
-    id: "INV-1004",
-    partNumber: "PN-11122",
-    customer: "Gillette",
-    availableQty: 0,
-    site: "DCIC",
-    location: "DCIC-HOLD",
-    status: "Unavailable",
-  },
-];
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "../supabaseClient";
 
 const amStoredAddresses = [
   {
@@ -55,6 +17,9 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
   const [isSubmittedLocked, setIsSubmittedLocked] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availableInventory, setAvailableInventory] = useState([]);
+  const [loadingInventory, setLoadingInventory] = useState(false);
+  const [inventoryLoadMessage, setInventoryLoadMessage] = useState("");
 
   const [requestorForm, setRequestorForm] = useState({
     chargeType: "",
@@ -112,6 +77,51 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [expandedSection, setExpandedSection] = useState("requestor");
 
+  const mapInventoryItemToMovementOption = (row) => ({
+    id: row.inventory_id || "",
+    partNumber: row.part_number || "",
+    description: row.description || "",
+    customer: row.customer || row.vendor || "",
+    availableQty: Number(row.quantity || 0),
+    site: row.warehouse_location || "",
+    location: row.final_location || row.warehouse_location || "",
+    status: row.status || "Available",
+  });
+
+  const loadAvailableInventory = useCallback(async () => {
+    setLoadingInventory(true);
+    setInventoryLoadMessage("");
+
+    const { data, error } = await supabase
+      .from("inventory_items")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Movement inventory load error:", error.message);
+      setAvailableInventory([]);
+      setInventoryLoadMessage(`Inventory load failed: ${error.message}`);
+      setLoadingInventory(false);
+      return;
+    }
+
+    const liveAvailableInventory = (data || [])
+      .map(mapInventoryItemToMovementOption)
+      .filter(
+        (item) =>
+          item.id &&
+          String(item.status || "").toLowerCase() === "available" &&
+          Number(item.availableQty || 0) > 0
+      );
+
+    setAvailableInventory(liveAvailableInventory);
+    setLoadingInventory(false);
+  }, []);
+
+  useEffect(() => {
+    loadAvailableInventory();
+  }, [loadAvailableInventory]);
+
   useEffect(() => {
     setSubmittedJobOrder("");
     setIsSubmittedLocked(false);
@@ -160,6 +170,9 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
       dueDate: "",
       notes: "",
     });
+    if (requestMode === "movement") {
+      loadAvailableInventory();
+    }
   }, [requestMode]);
 
   const selectedInventory = useMemo(() => {
@@ -167,7 +180,7 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
       availableInventory.find((item) => item.id === movementForm.inventoryId) ||
       null
     );
-  }, [movementForm.inventoryId]);
+  }, [availableInventory, movementForm.inventoryId]);
 
   const updateRequestorForm = (field, value) => {
     setRequestorForm((prev) => ({
@@ -239,7 +252,7 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
     }
 
     if (!selectedInventory) {
-      alert("Selected inventory was not found.");
+      alert("Selected inventory was not found in live available inventory. Refresh the movement request and try again.");
       return false;
     }
 
@@ -819,30 +832,47 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
           {expandedSection === "movement" && (
             <div className="phase17-accordion-body">
               <p className="panel-note">
-                Inventory Movement requires a valid available Inventory ID before
-                the request can proceed.
+                Inventory Movement now reads live available inventory from Supabase.
+                Select a valid available Inventory ID before the request can proceed.
               </p>
+
+              {inventoryLoadMessage && (
+                <div className="dashboard-message">{inventoryLoadMessage}</div>
+              )}
 
               <div className="inventory-form-grid job-compact-form-grid phase17-form-grid">
                 <select
                   value={movementForm.inventoryId}
                   onChange={(e) => updateMovementForm("inventoryId", e.target.value)}
+                  disabled={loadingInventory}
                 >
-                  <option value="">Select Inventory ID</option>
+                  <option value="">
+                    {loadingInventory
+                      ? "Loading available inventory..."
+                      : availableInventory.length === 0
+                      ? "No available inventory found"
+                      : "Select Inventory ID"}
+                  </option>
 
                   {availableInventory.map((item) => (
-                    <option
-                      key={item.id}
-                      value={item.id}
-                      disabled={item.status !== "Available" || item.availableQty <= 0}
-                    >
-                      {item.id} | {item.customer} | {item.partNumber} |
-                      Available: {item.availableQty} | {item.location}
+                    <option key={item.id} value={item.id}>
+                      {item.id} | {item.customer || "Customer"} | {item.partNumber || "Part #"} |
+                      {item.description ? ` ${item.description} |` : ""} Available: {item.availableQty} | {item.location || "Location Pending"}
                     </option>
                   ))}
                 </select>
 
+                <button
+                  type="button"
+                  className="inventory-primary-button"
+                  onClick={loadAvailableInventory}
+                  disabled={loadingInventory}
+                >
+                  {loadingInventory ? "Refreshing..." : "Refresh Inventory"}
+                </button>
+
                 <input value={selectedInventory?.partNumber || ""} placeholder="Part Number" disabled />
+                <input value={selectedInventory?.description || ""} placeholder="Description" disabled />
                 <input value={selectedInventory?.customer || ""} placeholder="Customer" disabled />
                 <input value={selectedInventory?.availableQty ?? ""} placeholder="Available Qty" disabled />
                 <input value={selectedInventory?.location || ""} placeholder="Current Location / From Location" disabled />
@@ -891,6 +921,10 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
                     <tr>
                       <th>Status</th>
                       <td>{selectedInventory.status}</td>
+                    </tr>
+                    <tr>
+                      <th>Description</th>
+                      <td>{selectedInventory.description || "-"}</td>
                     </tr>
                     <tr>
                       <th>Available Qty</th>

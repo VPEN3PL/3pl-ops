@@ -36,9 +36,9 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
     customer: row.customer || row.vendor || "",
     vendor: row.vendor || "",
     description: row.description || "",
-    qty: row.quantity || 0,
+    qty: Number(row.quantity || 0),
     allocated: 0,
-    available: row.status === "Available" ? row.quantity || 0 : 0,
+    available: row.status === "Available" ? Number(row.quantity || 0) : 0,
     site: row.warehouse_location || "",
     aisle: row.aisle_location || "",
     bin: row.bin_location || "",
@@ -52,12 +52,32 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
     updatedAt: row.updated_at || "",
   });
 
+  const removeZeroQuantityInventoryRows = async () => {
+    const { error } = await supabase
+      .from("inventory_items")
+      .delete()
+      .lte("quantity", 0);
+
+    if (error) {
+      console.warn("Zero quantity inventory cleanup skipped:", error.message);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return { success: true };
+  };
+
   const loadInventory = async () => {
     setLoadingInventory(true);
+
+    await removeZeroQuantityInventoryRows();
 
     const { data, error } = await supabase
       .from("inventory_items")
       .select("*")
+      .gt("quantity", 0)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -87,6 +107,8 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
 
   const filteredInventoryRows = useMemo(() => {
     return inventoryRows.filter((row) => {
+      if (Number(row.qty || 0) <= 0) return false;
+
       const inventoryIdMatch = row.id
         .toLowerCase()
         .includes(filters.inventoryId.toLowerCase());
@@ -124,7 +146,9 @@ function InventoryWorkspace({ inventoryView = "dashboard" }) {
   ).size;
 
   const activeInventoryRows = inventoryRows.filter(
-    (row) => String(row.status || "").toLowerCase() === "available"
+    (row) =>
+      String(row.status || "").toLowerCase() === "available" &&
+      Number(row.qty || 0) > 0
   );
 
   const inventoryKpis = [
