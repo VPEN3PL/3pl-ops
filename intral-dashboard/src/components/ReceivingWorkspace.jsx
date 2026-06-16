@@ -541,6 +541,16 @@ function ReceivingWorkspace({ receivingView = "dashboard", deepLinkTarget }) {
     setAisleLocation("");
   };
 
+  const getReceiptLabelQuantity = (receipt) => {
+    const currentQty = Number(receipt?.quantity || 0);
+    const putawayQtyValue = Number(receipt?.putawayQty || 0);
+
+    if (currentQty > 0) return currentQty;
+    if (putawayQtyValue > 0) return putawayQtyValue;
+
+    return 1;
+  };
+
   const getReceiptForReprint = () => {
     const normalized = reprintSearch.trim().toUpperCase();
 
@@ -572,7 +582,7 @@ function ReceivingWorkspace({ receivingView = "dashboard", deepLinkTarget }) {
       inventoryId: receipt.receiptNumber,
       customer: receipt.vendor,
       partNumber: receipt.partNumber,
-      quantity: receipt.quantity,
+      quantity: getReceiptLabelQuantity(receipt),
       description: receipt.description,
       poNumber: receipt.purchaseOrder,
       countryOfOrigin: receipt.countryOfOrigin,
@@ -657,7 +667,7 @@ function ReceivingWorkspace({ receivingView = "dashboard", deepLinkTarget }) {
       inventoryId: receipt.receiptNumber,
       customer: receipt.vendor,
       partNumber: receipt.partNumber,
-      quantity: receipt.quantity,
+      quantity: getReceiptLabelQuantity(receipt),
       description: receipt.description,
       poNumber: receipt.purchaseOrder,
       countryOfOrigin: receipt.countryOfOrigin,
@@ -1291,7 +1301,7 @@ function ReceivingWorkspace({ receivingView = "dashboard", deepLinkTarget }) {
                 <p>Part Number: {reprintReceipt.partNumber}</p>
                 <p>Description: {reprintReceipt.description}</p>
                 <p>COO: {reprintReceipt.countryOfOrigin}</p>
-                <p>Qty: {reprintReceipt.quantity}</p>
+                <p>Qty: {getReceiptLabelQuantity(reprintReceipt)}</p>
                 {reprintReceipt.isAM && <p>A&M SQ FT: {reprintReceipt.squareFeet}</p>}
                 {reprintReceipt.isAM && <p>A&M TAG: {reprintReceipt.tagNumber}</p>}
               </div>
