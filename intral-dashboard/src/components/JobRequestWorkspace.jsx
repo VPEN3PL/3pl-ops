@@ -173,7 +173,7 @@ function JobRequestWorkspace({ requestMode = "movement", onCreateJobRequest, isG
     if (requestMode === "movement") {
       loadAvailableInventory();
     }
-  }, [requestMode]);
+    }, [requestMode, loadAvailableInventory]);
 
   const selectedInventory = useMemo(() => {
     return (
