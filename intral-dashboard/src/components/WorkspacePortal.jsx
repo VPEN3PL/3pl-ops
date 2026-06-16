@@ -54,6 +54,64 @@ function WorkspacePortal({
   const [actionDropdownOpen, setActionDropdownOpen] = useState("");
   const [quickSearch, setQuickSearch] = useState("");
 
+  useEffect(() => {
+    const hasOpenMenu =
+      favoritesOpen ||
+      notificationOpen ||
+      actionCenterOpen ||
+      userMenuOpen ||
+      Boolean(actionDropdownOpen) ||
+      Boolean(quickSearch.trim());
+
+    if (!hasOpenMenu) return undefined;
+
+    const closeOpenMenus = () => {
+      setFavoritesOpen(false);
+      setNotificationOpen(false);
+      setActionCenterOpen(false);
+      setUserMenuOpen(false);
+      setActionDropdownOpen("");
+      setQuickSearch("");
+    };
+
+    const handleOutsideClick = (event) => {
+      const target = event.target;
+
+      if (
+        target.closest(".oracle-icon-menu") ||
+        target.closest(".oracle-user-menu") ||
+        target.closest(".module-action-menu") ||
+        target.closest(".oracle-quick-search")
+      ) {
+        return;
+      }
+
+      closeOpenMenus();
+    };
+
+    const handleEscapeKey = (event) => {
+      if (event.key === "Escape") {
+        closeOpenMenus();
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscapeKey);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [
+    favoritesOpen,
+    notificationOpen,
+    actionCenterOpen,
+    userMenuOpen,
+    actionDropdownOpen,
+    quickSearch,
+  ]);
+
+
   const role = String(profile?.role || "").toLowerCase();
 
   const cards = [
@@ -494,7 +552,10 @@ function WorkspacePortal({
                   setFavoritesOpen((open) => !open);
                   setNotificationOpen(false);
                   setActionCenterOpen(false);
+                  setActionDropdownOpen("");
                   setUserMenuOpen(false);
+                  setActionDropdownOpen("");
+                  setActionDropdownOpen("");
                 }}
               >
                 <Star size={18} />
@@ -585,6 +646,7 @@ function WorkspacePortal({
                   setFavoritesOpen(false);
                   setNotificationOpen(false);
                   setUserMenuOpen(false);
+                  setActionDropdownOpen("");
                 }}
               >
                 <FileText size={18} />
@@ -666,11 +728,15 @@ function WorkspacePortal({
                             ? "topbar-button active-topbar-button"
                             : "topbar-button"
                         }
-                        onClick={() =>
+                        onClick={() => {
+                          setFavoritesOpen(false);
+                          setNotificationOpen(false);
+                          setActionCenterOpen(false);
+                          setUserMenuOpen(false);
                           setActionDropdownOpen((open) =>
                             open === action.label ? "" : action.label
-                          )
-                        }
+                          );
+                        }}
                       >
                         {action.label}
                         <ChevronDown size={15} />
