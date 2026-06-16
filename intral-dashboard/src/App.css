@@ -9784,3 +9784,33 @@ PHASE 22E COMMAND HEADER VISUAL SYNC
   line-height: 1 !important;
   flex: 0 0 auto !important;
 }
+/* ==========================================================
+   PHASE 23D-9B-1 — ORDER CENTRAL DASHBOARD MESSAGE READABILITY
+   Scoped fix for the light notification/status bar shown above
+   the Order Central KPI cards.
+   ========================================================== */
+
+.order-central-workspace > .dashboard-message,
+.order-central-workspace .order-central-header + .dashboard-message,
+.order-central-workspace .phase17-smart-card > .dashboard-message {
+  background: #eaf2ff !important;
+  border: 1px solid #93c5fd !important;
+  border-radius: 10px !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  padding: 9px 12px !important;
+  margin: 8px 0 10px !important;
+}
+
+.order-central-workspace > .dashboard-message *,
+.order-central-workspace .order-central-header + .dashboard-message *,
+.order-central-workspace .phase17-smart-card > .dashboard-message * {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
+}
