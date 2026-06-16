@@ -41,6 +41,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
   const [internalExceptionForm, setInternalExceptionForm] = useState(
     defaultInternalExceptionForm
   );
+  const [detailAction, setDetailAction] = useState("");
 
   const shippingOrders = useMemo(() => {
     return orders.filter(
@@ -66,6 +67,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
 
   useEffect(() => {
     if (!loadedOrder) {
+      setDetailAction("");
       setInternalExceptionForm(defaultInternalExceptionForm);
       return;
     }
@@ -78,6 +80,30 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
       internalExceptionNotes: loadedOrder.internalExceptionNotes || "",
     });
   }, [loadedOrder]);
+
+  useEffect(() => {
+    const handleOpenInternalException = () => {
+      if (!loadedOrder || !detailViewOpen) {
+        setMessage("Open one SO detail workspace before using Action > Internal Exception Notes.");
+        return;
+      }
+
+      setDetailAction("internalException");
+      setMessage(`Internal Exception Notes opened for ${loadedOrder.soNumber}.`);
+    };
+
+    window.addEventListener(
+      "intral-connect-open-shipping-internal-exception",
+      handleOpenInternalException
+    );
+
+    return () => {
+      window.removeEventListener(
+        "intral-connect-open-shipping-internal-exception",
+        handleOpenInternalException
+      );
+    };
+  }, [loadedOrder, detailViewOpen]);
 
   useEffect(() => {
     if (!deepLinkTarget) return;
@@ -104,6 +130,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
     setSoSearch(matchedOrder.soNumber);
     setLoadedSoNumber(matchedOrder.soNumber);
     setRecentlyCompletedOrder(null);
+    setDetailAction("");
     setExpandedSection("validation");
     setDetailViewOpen(true);
     setMessage(`${matchedOrder.soNumber} opened from notification.`);
@@ -127,6 +154,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
     }
 
     setLoadedSoNumber(matchedOrder.soNumber);
+    setDetailAction("");
     setExpandedSection("validation");
     setDetailViewOpen(true);
     setMessage(`${matchedOrder.soNumber} loaded into Shipping Operations.`);
@@ -137,6 +165,7 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
     setRecentlyCompletedOrder(null);
     setSoSearch("");
     setMessage("");
+    setDetailAction("");
     setExpandedSection("load");
     setDetailViewOpen(false);
   };
@@ -243,6 +272,7 @@ This will remove the SO from active Shipping Operations and move the JO to Close
     setRecentlyCompletedOrder(closedOrder);
     setLoadedSoNumber("");
     setSoSearch("");
+    setDetailAction("");
     setDetailViewOpen(false);
     setExpandedSection("completion");
     setMessage(`${loadedOrder.soNumber} has been completed and moved to Closed Orders. Pick List / Completion is ready to preview or print.`);
@@ -448,6 +478,7 @@ This will remove the SO from active Shipping Operations and move the JO to Close
     setSoSearch(order.soNumber);
     setLoadedSoNumber(order.soNumber);
     setRecentlyCompletedOrder(null);
+    setDetailAction("");
     setExpandedSection("validation");
     setDetailViewOpen(true);
     setMessage(`${order.soNumber} opened in Shipping Detail.`);
@@ -529,7 +560,13 @@ This will remove the SO from active Shipping Operations and move the JO to Close
     if (!loadedOrder) return null;
 
     return (
-      <div className="order-detail-section compact-order-section">
+      <div
+        className="order-detail-section compact-order-section"
+        style={{
+          maxHeight: "320px",
+          overflowY: "auto",
+        }}
+      >
         <h3>Internal Delay / Exception Notes</h3>
         <p>
           Internal operational reasoning only. This is not a customer-facing summary.
@@ -647,6 +684,7 @@ This will remove the SO from active Shipping Operations and move the JO to Close
               type="button"
               className="phase17-secondary-button"
               onClick={() => {
+                setDetailAction("");
                 setDetailViewOpen(false);
                 setExpandedSection("load");
               }}
@@ -796,7 +834,7 @@ This will remove the SO from active Shipping Operations and move the JO to Close
               </p>
             </div>
 
-            {renderInternalExceptionSection()}
+            {detailAction === "internalException" && renderInternalExceptionSection()}
 
             <div className="order-detail-section compact-order-section">
               <h3>Execution Controls</h3>

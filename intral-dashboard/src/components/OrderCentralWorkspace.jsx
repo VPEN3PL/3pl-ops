@@ -60,6 +60,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
   const [internalExceptionForm, setInternalExceptionForm] = useState(
     defaultInternalExceptionForm
   );
+  const [detailAction, setDetailAction] = useState("");
 
   const ordersPerPage = 5;
 
@@ -139,6 +140,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
   useEffect(() => {
     if (!selectedJob) {
+      setDetailAction("");
       setInvoiceForm({
         invoiceNumber: "",
         invoiceAmount: "",
@@ -189,6 +191,31 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
   }, [selectedJob]);
 
 
+  useEffect(() => {
+    const handleOpenInternalException = () => {
+      if (!selectedJob || !jobDetailOpen) {
+        setMessage("Open one JO detail workspace before using Action > Internal Exception Notes.");
+        return;
+      }
+
+      setDetailAction("internalException");
+      setMessage(`Internal Exception Notes opened for ${selectedJob.joNumber}.`);
+    };
+
+    window.addEventListener(
+      "intral-connect-open-order-internal-exception",
+      handleOpenInternalException
+    );
+
+    return () => {
+      window.removeEventListener(
+        "intral-connect-open-order-internal-exception",
+        handleOpenInternalException
+      );
+    };
+  }, [selectedJob, jobDetailOpen]);
+
+
   const activeList = useMemo(() => {
     if (orderMode === "released") return activeOrders;
     if (orderMode === "closed") return closedOrders;
@@ -216,6 +243,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     setSelectedJobNumber((current) =>
       current === job.joNumber ? "" : job.joNumber
     );
+    setDetailAction("");
     setExpandedSection(getDefaultSectionForMode());
   };
 
@@ -223,6 +251,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
     if (!job?.joNumber) return;
 
     setSelectedJobNumber(job.joNumber);
+    setDetailAction("");
     setExpandedSection(getDefaultSectionForMode());
     setJobDetailOpen(true);
     setMessage(`Opened ${job.joNumber} detail workspace.`);
@@ -230,6 +259,7 @@ function OrderCentralWorkspace({ orderMode = "dashboard", orders = [], setOrders
 
   const closeJobDetail = () => {
     setJobDetailOpen(false);
+    setDetailAction("");
     setExpandedSection("queue");
   };
 
@@ -772,7 +802,13 @@ color: "#ffffff",
     if (!job) return null;
 
     return (
-      <div className="order-detail-section compact-order-section">
+      <div
+        className="order-detail-section compact-order-section"
+        style={{
+          maxHeight: "320px",
+          overflowY: "auto",
+        }}
+      >
         <h3>Internal Exception Notes</h3>
         <p>
           Internal operational reasoning only. Do not expose this section to customer / guest views.
@@ -1215,8 +1251,6 @@ color: "#ffffff",
                 <p>No request details provided.</p>
               )}
             </div>
-
-            {renderInternalExceptionSection(selectedJob)}
 
             {isPendingInternalReview(selectedJob) && (
               <div className="order-detail-section compact-order-section">
@@ -2504,7 +2538,7 @@ color: "#ffffff",
             )}
           </div>
 
-          {renderInternalExceptionSection(selectedJob)}
+          {detailAction === "internalException" && renderInternalExceptionSection(selectedJob)}
 
           <div className="order-release-summary-grid order-workbench-field-grid">
             <div className="order-detail-section compact-order-section">

@@ -471,6 +471,44 @@ function WorkspacePortal({
     return false;
   };
 
+  const handleTopbarActionItemClick = (item, action) => {
+    const itemTab = String(item?.tab || "");
+    const itemLabel = String(item?.label || "").toLowerCase();
+    const actionLabel = String(action?.label || "").toLowerCase();
+
+    const isInternalExceptionAction =
+      itemTab === "orders-action-internal-exception" ||
+      itemTab === "shipping-action-internal-exception" ||
+      itemLabel.includes("internal exception");
+
+    if (isInternalExceptionAction) {
+      const eventName =
+        moduleKey === "shipping"
+          ? "intral-connect-open-shipping-internal-exception"
+          : "intral-connect-open-order-internal-exception";
+
+      window.dispatchEvent(
+        new CustomEvent(eventName, {
+          detail: {
+            moduleKey,
+            actionLabel,
+            itemLabel: item?.label || "Internal Exception Notes",
+          },
+        })
+      );
+
+      setFavoritesOpen(false);
+      setNotificationOpen(false);
+      setActionCenterOpen(false);
+      setUserMenuOpen(false);
+      setActionDropdownOpen("");
+      setQuickSearch("");
+      return;
+    }
+
+    goToTab(item.tab);
+  };
+
   const renderFavoriteStar = (favoriteTab, label) => {
     if (!favoriteTab) return null;
 
@@ -744,14 +782,29 @@ function WorkspacePortal({
 
                       {actionDropdownOpen === action.label && (
                         <div className="module-action-dropdown oracle-module-dropdown">
-                          {action.items.map((item) => (
+                          {[
+                            ...action.items,
+                            ...(action.label === "Action" &&
+                            (moduleKey === "orders" || moduleKey === "shipping")
+                              ? [
+                                  {
+                                    label: "Internal Exception Notes",
+                                    tab:
+                                      moduleKey === "shipping"
+                                        ? "shipping-action-internal-exception"
+                                        : "orders-action-internal-exception",
+                                  },
+                                ]
+                              : []),
+                          ].map((item) => (
                             <button
                               key={item.tab}
                               className={tab === item.tab ? "active" : ""}
-                              onClick={() => goToTab(item.tab)}
+                              onClick={() => handleTopbarActionItemClick(item, action)}
                             >
                               <span>{item.label}</span>
-                              {renderFavoriteStar(item.tab, item.label)}
+                              {!String(item.tab || "").includes("internal-exception") &&
+                                renderFavoriteStar(item.tab, item.label)}
                             </button>
                           ))}
                         </div>
