@@ -1385,15 +1385,55 @@ function App() {
     }
 
     if (tab === "shipping-dashboard") {
-      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} deepLinkTarget={deepLinkTarget} onSaveInternalException={updateOperationalOrderInternalException} />;
+      return (
+        <ShippingOperationsWorkspace
+          shippingMode="dashboard"
+          orders={orders}
+          setOrders={setOrders}
+          onUpdateOrderStatus={updateOperationalOrderStatus}
+          deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
+        />
+      );
     }
 
-    if (
-      tab === "shipping" ||
-      tab === "shipping-started" ||
-      tab === "shipping-complete"
-    ) {
-      return <ShippingOperationsWorkspace orders={orders} setOrders={setOrders} onUpdateOrderStatus={updateOperationalOrderStatus} deepLinkTarget={deepLinkTarget} onSaveInternalException={updateOperationalOrderInternalException} />;
+    if (tab === "shipping") {
+      return (
+        <ShippingOperationsWorkspace
+          shippingMode="active"
+          orders={orders}
+          setOrders={setOrders}
+          onUpdateOrderStatus={updateOperationalOrderStatus}
+          deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
+        />
+      );
+    }
+
+    if (tab === "shipping-started") {
+      return (
+        <ShippingOperationsWorkspace
+          shippingMode="started"
+          orders={orders}
+          setOrders={setOrders}
+          onUpdateOrderStatus={updateOperationalOrderStatus}
+          deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
+        />
+      );
+    }
+
+    if (tab === "shipping-complete") {
+      return (
+        <ShippingOperationsWorkspace
+          shippingMode="completed"
+          orders={orders}
+          setOrders={setOrders}
+          onUpdateOrderStatus={updateOperationalOrderStatus}
+          deepLinkTarget={deepLinkTarget}
+          onSaveInternalException={updateOperationalOrderInternalException}
+        />
+      );
     }
 
     return (

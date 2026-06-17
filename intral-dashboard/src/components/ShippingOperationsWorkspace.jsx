@@ -31,7 +31,7 @@ const internalExceptionInputStyle = {
   fontWeight: 800,
 };
 
-function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStatus, onSaveInternalException, deepLinkTarget }) {
+function ShippingOperationsWorkspace({ shippingMode = "dashboard", orders = [], setOrders, onUpdateOrderStatus, onSaveInternalException, deepLinkTarget }) {
   const [soSearch, setSoSearch] = useState("");
   const [loadedSoNumber, setLoadedSoNumber] = useState("");
   const [recentlyCompletedOrder, setRecentlyCompletedOrder] = useState(null);
@@ -47,10 +47,29 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
     return orders.filter(
       (order) =>
         order.soNumber &&
-        (order.releaseStatus === "Active" ||
-          order.releaseStatus === "Started")
+        ["Active", "Started", "Closed"].includes(order.releaseStatus)
     );
   }, [orders]);
+
+  const activeOrders = useMemo(() => {
+    return shippingOrders.filter((order) => order.releaseStatus === "Active");
+  }, [shippingOrders]);
+
+  const startedOrders = useMemo(() => {
+    return shippingOrders.filter((order) => order.releaseStatus === "Started");
+  }, [shippingOrders]);
+
+  const completedOrders = useMemo(() => {
+    return shippingOrders.filter((order) => order.releaseStatus === "Closed");
+  }, [shippingOrders]);
+
+  const visibleShippingOrders = useMemo(() => {
+    if (shippingMode === "started") return startedOrders;
+    if (shippingMode === "completed") return completedOrders;
+    if (shippingMode === "active") return activeOrders;
+
+    return shippingOrders;
+  }, [shippingMode, shippingOrders, activeOrders, startedOrders, completedOrders]);
 
   const loadedOrder = useMemo(() => {
     return (
@@ -58,11 +77,33 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
     );
   }, [shippingOrders, loadedSoNumber]);
 
-  const activeOrders = useMemo(() => {
-    return shippingOrders.filter(
-      (order) => order.releaseStatus === "Active" || order.releaseStatus === "Started"
-    );
-  }, [shippingOrders]);
+  const getShippingModeTitle = () => {
+    if (shippingMode === "active") return "Active Orders";
+    if (shippingMode === "started") return "Started Orders";
+    if (shippingMode === "completed") return "Completed Orders";
+    return "Shipping Dashboard";
+  };
+
+  const getShippingModeDescription = () => {
+    if (shippingMode === "active") return "Released SO records waiting to be started.";
+    if (shippingMode === "started") return "SO records currently in execution.";
+    if (shippingMode === "completed") return "Closed SO records completed through Shipping Operations.";
+    return "Review all released, started, and completed shipping work.";
+  };
+
+  const getShippingQueueTitle = () => {
+    if (shippingMode === "active") return "Active SO Queue";
+    if (shippingMode === "started") return "Started SO Queue";
+    if (shippingMode === "completed") return "Completed SO Queue";
+    return "Shipping SO Queue";
+  };
+
+  const getShippingEmptyMessage = () => {
+    if (shippingMode === "active") return "No active shipping orders found.";
+    if (shippingMode === "started") return "No started shipping orders found.";
+    if (shippingMode === "completed") return "No completed shipping orders found.";
+    return "No shipping orders found.";
+  };
 
 
   useEffect(() => {
@@ -104,6 +145,16 @@ function ShippingOperationsWorkspace({ orders = [], setOrders, onUpdateOrderStat
       );
     };
   }, [loadedOrder, detailViewOpen]);
+
+  useEffect(() => {
+    setDetailAction("");
+    setRecentlyCompletedOrder(null);
+    setLoadedSoNumber("");
+    setSoSearch("");
+    setExpandedSection("load");
+    setDetailViewOpen(false);
+    setMessage("");
+  }, [shippingMode]);
 
   useEffect(() => {
     if (!deepLinkTarget) return;
@@ -958,8 +1009,8 @@ This will remove the SO from active Shipping Operations and move the JO to Close
       <div className="phase17-accordion-section">
         {renderAccordionHeader(
           "load",
-          "Load Shipping Order",
-          "Enter SO number or select from active execution queue"
+          getShippingModeTitle(),
+          getShippingModeDescription()
         )}
 
         {expandedSection === "load" && (
@@ -981,8 +1032,8 @@ This will remove the SO from active Shipping Operations and move the JO to Close
 
             <div className="shipping-workbench-queue">
               <div className="phase17-mini-table-header">
-                <span>Active SO Queue</span>
-                <small>{activeOrders.length} active order(s)</small>
+                <span>{getShippingQueueTitle()}</span>
+                <small>{visibleShippingOrders.length} order(s)</small>
               </div>
 
               <table className="inventory-table">
@@ -999,12 +1050,12 @@ This will remove the SO from active Shipping Operations and move the JO to Close
                 </thead>
 
                 <tbody>
-                  {activeOrders.length === 0 ? (
+                  {visibleShippingOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="7">No active shipping orders found.</td>
+                      <td colSpan="7">{getShippingEmptyMessage()}</td>
                     </tr>
                   ) : (
-                    activeOrders.map((order) => (
+                    visibleShippingOrders.map((order) => (
                       <tr key={order.soNumber}>
                         <td>{renderOpenDetailButton(order)}</td>
                         <td>{order.soNumber}</td>
@@ -1450,8 +1501,8 @@ This will remove the SO from active Shipping Operations and move the JO to Close
             <div className="phase17-smart-card-header">
               <div>
                 <span>Smart Execution Card</span>
-                <strong>Shipping Operations Workbench</strong>
-                <p>Load one SO at a time, validate staging, execute work, and complete outbound operations.</p>
+                <strong>{getShippingModeTitle()}</strong>
+                <p>{getShippingModeDescription()}</p>
               </div>
 
               <div className="phase17-progress">
